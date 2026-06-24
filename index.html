@@ -87,6 +87,9 @@
   .card p{color:var(--muted);font-size:15px;line-height:1.65;margin-bottom:18px}
   .card .ph-photo{min-height:150px;border-radius:12px;margin-bottom:18px}
   .icon{color:var(--cyan)}
+  .card-link{display:flex;flex-direction:column;text-decoration:none;color:inherit;transition:transform .18s,border-color .18s,box-shadow .18s}
+  .card-link:hover{border-color:var(--border-cyan);transform:translateY(-3px);box-shadow:0 0 40px rgba(92,225,230,.14),0 12px 50px rgba(0,0,0,.4)}
+  .card-link .btn{margin-top:auto;align-self:center}
 
   /* footer */
   footer{position:relative;z-index:1;border-top:1px solid var(--border);background:rgba(7,10,12,.5);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)}
@@ -161,18 +164,18 @@
     <div class="eyebrow">Services</div>
     <h2>Train <span class="i">with</span> us.</h2>
     <div class="cards two">
-      <div class="card">
+      <a class="card card-link" href="batches.html">
         <h3>Regular batches</h3>
-        <div class="meta"><span class="icon">●</span> styles &amp; levels · weekly timings · studio location</div>
-        <p>Ongoing group classes across multiple dance styles and levels. [Add styles offered, levels, days/timings, and studio address. Mention if pricing is listed or on enquiry.]</p>
-        <a class="btn btn-ghost" data-wa="Hi iMAP! I'm interested in your regular dance batches.">Enquire on WhatsApp</a>
-      </div>
-      <div class="card">
+        <div class="meta"><span class="icon">●</span> group classes · all levels</div>
+        <p>Ongoing weekly classes across Jazz, Jazz Funk, Bollywood, Afro &amp; Dancehall, Semi-Classical, Contemporary, Open Style and dedicated Juniors &amp; Kids batches.</p>
+        <span class="btn btn-ghost">View all batches →</span>
+      </a>
+      <a class="card card-link" href="training.html">
         <h3>Personal training</h3>
-        <div class="meta"><span class="icon">●</span> 1-on-1 · custom schedule · goal-based</div>
-        <p>One-on-one coaching tailored to your goals — technique, audition prep, wedding choreography or fitness. [Add what's included and how sessions are scheduled.]</p>
-        <a class="btn btn-ghost" data-wa="Hi iMAP! I'm interested in personal training.">Enquire on WhatsApp</a>
-      </div>
+        <div class="meta"><span class="icon">●</span> 1-on-1 · goal-based</div>
+        <p>Private coaching with our senior instructors — technique, audition prep, choreography or fitness, on a schedule that fits you.</p>
+        <span class="btn btn-ghost">Meet our trainers →</span>
+      </a>
     </div>
   </section>
 
