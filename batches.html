@@ -120,14 +120,15 @@
   .page-head{max-width:780px;margin:0 auto;padding:96px 24px 0;text-align:center}
   .page-head .lead{margin-top:18px}
   .carousel{position:relative;max-width:1000px;margin:34px auto 0;perspective:1600px;outline:none}
-  .carousel.is-carousel{height:540px}
+  .carousel.is-carousel{height:560px;overflow:hidden;touch-action:pan-y;-webkit-user-select:none;user-select:none}
+  .is-carousel,.is-carousel .cf-stage,.is-carousel .cf-card{touch-action:pan-y}
   .deck:not(.is-carousel){min-height:300px;padding:10px 0}
   .cf-stage{position:relative;width:100%;height:100%}
   .is-carousel .cf-stage{transform-style:preserve-3d}
   .deck:not(.is-carousel) .cf-stage{display:flex;justify-content:center;align-items:stretch;gap:42px;flex-wrap:wrap}
   .cf-glow{position:absolute;left:50%;top:50%;width:300px;height:430px;transform:translate(-50%,-50%);background:radial-gradient(ellipse at center,rgba(92,225,230,.45),rgba(92,225,230,0) 68%);filter:blur(46px);z-index:0;opacity:0;pointer-events:none}
   .is-carousel .cf-glow{opacity:1}
-  .cf-card{width:258px;height:392px;border-radius:20px;overflow:hidden;background:linear-gradient(180deg,var(--glass-2),var(--glass));border:1px solid var(--border);box-shadow:0 18px 50px rgba(0,0,0,.5);display:flex;flex-direction:column;text-align:center;cursor:pointer;backface-visibility:hidden}
+  .cf-card{width:258px;height:392px;border-radius:20px;overflow:hidden;background:linear-gradient(180deg,var(--glass-2),var(--glass));border:1px solid var(--border);box-shadow:0 18px 50px rgba(0,0,0,.5);display:flex;flex-direction:column;text-align:center;cursor:pointer;backface-visibility:hidden;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
   .is-carousel .cf-card{position:absolute;left:50%;top:50%;margin:0;transition:transform .55s cubic-bezier(.22,.61,.36,1),opacity .5s,filter .5s,box-shadow .4s;will-change:transform,opacity}
   .deck:not(.is-carousel) .cf-card{position:relative;transform:none!important;opacity:1!important;filter:none!important}
   .cf-card.is-active{border-color:var(--border-cyan);box-shadow:0 0 52px rgba(92,225,230,.30),0 18px 60px rgba(0,0,0,.55)}
@@ -251,13 +252,11 @@
     }
     function setActive(i){ active=((i)%n+n)%n; layout(); }
     function next(){ setActive(active+1); } function prev(){ setActive(active-1); }
-    var down=false,sx=0,moved=false;
-    function gx(e){ return e.touches?e.touches[0].clientX:(e.changedTouches?e.changedTouches[0].clientX:e.clientX); }
-    function onDown(e){ if(!enabled)return; down=true; moved=false; sx=gx(e); }
-    function onMove(e){ if(!down)return; if(Math.abs(gx(e)-sx)>8)moved=true; }
-    function onUp(e){ if(!down)return; down=false; var dx=gx(e)-sx; if(dx<-40)next(); else if(dx>40)prev(); }
-    root.addEventListener('pointerdown',onDown); window.addEventListener('pointermove',onMove); window.addEventListener('pointerup',onUp);
-    root.addEventListener('touchstart',onDown,{passive:true}); root.addEventListener('touchmove',onMove,{passive:true}); root.addEventListener('touchend',onUp);
+    var down=false,sx=0,sy=0,moved=false,lock=null;
+    function onDown(e){ if(!enabled)return; down=true; moved=false; lock=null; sx=e.clientX; sy=e.clientY; }
+    function onMove(e){ if(!down)return; var dx=e.clientX-sx, dy=e.clientY-sy; if(lock===null && (Math.abs(dx)>6||Math.abs(dy)>6)) lock=Math.abs(dx)>Math.abs(dy)?'x':'y'; if(lock==='y'){down=false;return;} if(Math.abs(dx)>6)moved=true; }
+    function onUp(e){ if(!down)return; down=false; if(lock!=='x')return; var dx=e.clientX-sx; if(dx<-32)next(); else if(dx>32)prev(); }
+    root.addEventListener('pointerdown',onDown); window.addEventListener('pointermove',onMove); window.addEventListener('pointerup',onUp); window.addEventListener('pointercancel',function(){down=false;});
     cards.forEach(function(card,i){ card.addEventListener('click',function(e){ if(!enabled)return; if(e.target.closest('.no-cf'))return; if(moved){moved=false;return;} if(card.classList.contains('is-active')){ var href=card.getAttribute('data-href'); if(href)location.href=href; } else setActive(i); }); });
     if(opts.prevBtn)opts.prevBtn.addEventListener('click',prev);
     if(opts.nextBtn)opts.nextBtn.addEventListener('click',next);
