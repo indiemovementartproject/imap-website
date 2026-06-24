@@ -33,6 +33,7 @@
   @keyframes d2{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(-110px,-80px) scale(1.2)}}
   @keyframes d3{0%,100%{transform:translate(0,0) scale(1)}33%{transform:translate(-90px,60px) scale(.85)}66%{transform:translate(80px,-50px) scale(1.1)}}
   .cursor-orb{position:fixed;top:0;left:0;width:300px;height:300px;border-radius:50%;pointer-events:none;z-index:0;filter:blur(60px);opacity:.45;mix-blend-mode:screen;background:radial-gradient(circle at 50% 50%,rgba(92,225,230,.85),rgba(92,225,230,0) 65%);will-change:transform}
+  .orbs canvas{width:100%;height:100%;display:block;filter:blur(50px);opacity:.85}
 
   /* nav */
   nav{position:sticky;top:0;z-index:50;display:flex;align-items:center;gap:18px;padding:14px 26px;
@@ -75,7 +76,8 @@
   .about-grid{display:grid;grid-template-columns:1.5fr 1fr;gap:28px;align-items:center;margin-top:32px}
   .ph-photo{border:1px solid var(--border);border-radius:18px;background:var(--glass);min-height:240px;display:flex;align-items:center;justify-content:center;color:var(--muted-2);font-family:"Space Mono",monospace;font-size:13px}
   /* About band */
-  .about-band{position:relative;text-align:center;padding:132px 24px;border-top:1px solid var(--border);border-bottom:1px solid var(--border);background-image:linear-gradient(rgba(7,10,12,.5),rgba(7,10,12,.66)),url('about.jpg');background-size:cover;background-position:center;background-repeat:no-repeat}
+  .about-band{position:relative;text-align:center;padding:132px 24px;border-top:1px solid var(--border);border-bottom:1px solid var(--border);overflow:hidden;background:transparent}
+  .about-band::before{content:"";position:absolute;inset:0;background-image:linear-gradient(rgba(7,10,12,.5),rgba(7,10,12,.66)),url('about.jpg');background-size:cover;background-position:center;background-repeat:no-repeat;opacity:.82;z-index:0}
   .about-inner{max-width:880px;margin:0 auto;position:relative;z-index:2}
   .about-band h2{text-shadow:0 2px 26px rgba(0,0,0,.6)}
   .about-band .lead{color:#e7f3f4;text-shadow:0 1px 18px rgba(0,0,0,.7)}
@@ -177,7 +179,7 @@
 </style>
 </head>
 <body class="home">
-<div class="orbs"><div class="orb a"></div><div class="orb b"></div><div class="orb c"></div></div>
+<div class="orbs"><canvas id="orbCanvas"></canvas></div>
 <div class="cursor-orb" id="cursorOrb"></div>
 
 <nav>
@@ -265,8 +267,47 @@
 </footer>
 
 <script>
-  /* cursor orb */
-  (function(){const co=document.getElementById('cursorOrb');if(!matchMedia('(pointer:fine)').matches){co.style.display='none';return;}let mx=innerWidth/2,my=innerHeight/2,cx=mx,cy=my;addEventListener('pointermove',e=>{mx=e.clientX;my=e.clientY;});(function l(){cx+=(mx-cx)*0.1;cy+=(my-cy)*0.1;co.style.transform='translate('+cx+'px,'+cy+'px) translate(-50%,-50%)';requestAnimationFrame(l);})();})();
+  
+  (function(){
+    var canvas=document.getElementById('orbCanvas'); if(!canvas) return;
+    var ctx=canvas.getContext('2d'); var co=document.getElementById('cursorOrb');
+    var fine=matchMedia('(pointer:fine)').matches; if(co&&!fine)co.style.display='none';
+    var reduce=matchMedia('(prefers-reduced-motion:reduce)').matches;
+    var W=0,H=0;
+    function resize(){ W=innerWidth; H=innerHeight; canvas.width=W; canvas.height=H; }
+    resize(); addEventListener('resize',resize);
+    function mk(core,vis,al){ return {x:Math.random()*W,y:Math.random()*H,vx:(Math.random()*2-1)*0.4,vy:(Math.random()*2-1)*0.4,core:core,vis:vis,al:al}; }
+    var orbs=[mk(112,300,0.42),mk(92,250,0.32),mk(74,210,0.24)];
+    var mx=W/2,my=H/2,cx=mx,cy=my,cursorOn=false,cr=80;
+    if(fine){ addEventListener('pointermove',function(e){mx=e.clientX;my=e.clientY;cursorOn=true;}); addEventListener('pointerout',function(e){if(!e.relatedTarget)cursorOn=false;}); }
+    var VMIN=0.12,VMAX=2.6,BOOST=1.5,FRIC=0.992;
+    function sp(o){return Math.hypot(o.vx,o.vy);}
+    function boost(o){ var s=sp(o); if(s<1e-4){var a=Math.random()*6.2832;o.vx=Math.cos(a);o.vy=Math.sin(a);s=1;} var t=Math.min(VMAX,s*BOOST); o.vx=o.vx/s*t; o.vy=o.vy/s*t; }
+    function step(){
+      cx+=(mx-cx)*0.12; cy+=(my-cy)*0.12;
+      if(co&&fine) co.style.transform='translate('+cx+'px,'+cy+'px) translate(-50%,-50%)';
+      for(var i=0;i<orbs.length;i++){ var o=orbs[i]; var s=sp(o);
+        if(s>VMIN){o.vx*=FRIC;o.vy*=FRIC;}
+        o.vx+=(Math.random()-0.5)*0.012; o.vy+=(Math.random()-0.5)*0.012;
+        s=sp(o); if(s<VMIN){ if(s<1e-4){var a=Math.random()*6.2832;o.vx=Math.cos(a)*VMIN;o.vy=Math.sin(a)*VMIN;} else {o.vx=o.vx/s*VMIN;o.vy=o.vy/s*VMIN;} }
+        o.x+=o.vx; o.y+=o.vy;
+        if(o.x<o.core){o.x=o.core;o.vx=Math.abs(o.vx);boost(o);} else if(o.x>W-o.core){o.x=W-o.core;o.vx=-Math.abs(o.vx);boost(o);}
+        if(o.y<o.core){o.y=o.core;o.vy=Math.abs(o.vy);boost(o);} else if(o.y>H-o.core){o.y=H-o.core;o.vy=-Math.abs(o.vy);boost(o);}
+        if(cursorOn){ var dx=o.x-cx,dy=o.y-cy,d=Math.hypot(dx,dy),mn=o.core+cr; if(d<mn&&d>0){ var nx=dx/d,ny=dy/d,ov=mn-d; o.x+=nx*ov; o.y+=ny*ov; var dot=o.vx*nx+o.vy*ny; o.vx-=2*dot*nx; o.vy-=2*dot*ny; boost(o); } }
+      }
+      for(var p=0;p<orbs.length;p++)for(var q=p+1;q<orbs.length;q++){ var A=orbs[p],B=orbs[q],dx=B.x-A.x,dy=B.y-A.y,d=Math.hypot(dx,dy),mn=A.core+B.core;
+        if(d<mn&&d>0){ var nx=dx/d,ny=dy/d,ov=(mn-d)/2; A.x-=nx*ov;A.y-=ny*ov;B.x+=nx*ov;B.y+=ny*ov; var va=A.vx*nx+A.vy*ny,vb=B.vx*nx+B.vy*ny,df=vb-va; A.vx+=df*nx;A.vy+=df*ny;B.vx-=df*nx;B.vy-=df*ny; boost(A);boost(B); } }
+      draw(); if(!reduce) requestAnimationFrame(step);
+    }
+    function draw(){ ctx.clearRect(0,0,W,H); ctx.globalCompositeOperation='lighter';
+      for(var i=0;i<orbs.length;i++){ var o=orbs[i]; var g=ctx.createRadialGradient(o.x,o.y,0,o.x,o.y,o.vis);
+        g.addColorStop(0,'rgba(92,225,230,'+o.al+')'); g.addColorStop(0.5,'rgba(92,225,230,'+(o.al*0.35)+')'); g.addColorStop(1,'rgba(92,225,230,0)');
+        ctx.fillStyle=g; ctx.beginPath(); ctx.arc(o.x,o.y,o.vis,0,6.2832); ctx.fill(); }
+      ctx.globalCompositeOperation='source-over';
+    }
+    if(reduce) draw(); else requestAnimationFrame(step);
+  })();
+
   /* keep hero video looping seamlessly on mobile */
   (function(){
     var v=document.getElementById('heroVideo'); if(!v) return;
