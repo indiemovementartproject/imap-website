@@ -45,6 +45,8 @@
   .nav-cta{border:1px solid var(--cyan)!important;color:var(--cyan)!important;padding:7px 15px;border-radius:10px}
   .nav-cta:hover{background:var(--cyan)!important;color:#04181a!important}
   .burger{margin-left:auto;display:none;background:none;border:1px solid var(--border);color:var(--text);border-radius:9px;padding:8px 10px;font-size:18px;line-height:1;cursor:pointer}
+  body.home nav{position:fixed;left:0;right:0;top:0;opacity:0;transform:translateY(-12px);pointer-events:none;transition:opacity .65s ease,transform .65s ease}
+  body.home nav.show{opacity:1;transform:none;pointer-events:auto}
 
   /* hero */
   .hero{position:relative;min-height:100svh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:90px 24px;overflow:hidden}
@@ -116,9 +118,65 @@
     .section{padding:72px 22px}
   }
   @media (prefers-reduced-motion:reduce){.orb{animation:none!important}html{scroll-behavior:auto}}
+
+  .page-head{max-width:780px;margin:0 auto;padding:96px 24px 0;text-align:center}
+  .page-head .lead{margin-top:18px}
+  .carousel{position:relative;max-width:1000px;margin:34px auto 0;perspective:1600px;outline:none}
+  .carousel.is-carousel{height:560px;overflow:hidden;touch-action:pan-y;-webkit-user-select:none;user-select:none}
+  .is-carousel,.is-carousel .cf-stage,.is-carousel .cf-card{touch-action:pan-y}
+  .deck:not(.is-carousel){min-height:300px;padding:10px 0}
+  .cf-stage{position:relative;width:100%;height:100%}
+  .is-carousel .cf-stage{transform-style:preserve-3d}
+  .deck:not(.is-carousel) .cf-stage{display:flex;justify-content:center;align-items:stretch;gap:42px;flex-wrap:wrap}
+  .cf-glow{position:absolute;left:50%;top:50%;width:300px;height:430px;transform:translate(-50%,-50%);background:radial-gradient(ellipse at center,rgba(92,225,230,.45),rgba(92,225,230,0) 68%);filter:blur(46px);z-index:0;opacity:0;pointer-events:none}
+  .is-carousel .cf-glow{opacity:1}
+  .cf-card{width:258px;height:392px;border-radius:20px;overflow:hidden;background:linear-gradient(180deg,var(--glass-2),var(--glass));border:1px solid var(--border);box-shadow:0 18px 50px rgba(0,0,0,.5);display:flex;flex-direction:column;text-align:center;cursor:pointer;backface-visibility:hidden;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+  .is-carousel .cf-card{position:absolute;left:50%;top:50%;margin:0;transition:transform .55s cubic-bezier(.22,.61,.36,1),opacity .5s,filter .5s,box-shadow .4s;will-change:transform,opacity}
+  .deck:not(.is-carousel) .cf-card{position:relative;transform:none!important;opacity:1!important;filter:none!important}
+  .cf-card.is-active{border-color:var(--border-cyan);box-shadow:0 0 52px rgba(92,225,230,.30),0 18px 60px rgba(0,0,0,.55)}
+  .cf-photo{flex:1;display:flex;align-items:center;justify-content:center;background:repeating-linear-gradient(45deg,rgba(255,255,255,.025) 0 12px,rgba(255,255,255,.05) 12px 24px);color:var(--muted-2);font-family:"Space Mono",monospace;font-size:11px;letter-spacing:.22em;text-transform:uppercase;border-bottom:1px solid var(--border)}
+  .cf-photo .cam{font-size:24px;opacity:.5;display:block;margin-bottom:6px}
+  .cf-body{padding:16px 16px 8px}
+  .cf-card h3{font-family:"Instrument Serif",serif;font-weight:400;font-size:24px;line-height:1.08;margin-bottom:9px}
+  .cf-meta{font-family:"Space Mono",monospace;font-size:12px;color:var(--cyan);letter-spacing:.03em}
+  .cf-loc{font-size:12.5px;color:var(--muted);margin-top:5px}
+  .cf-cta{margin:13px 0 16px;font-family:"Space Mono",monospace;font-size:10.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted-2);opacity:0;transition:.3s}
+  .cf-desc{font-size:13px;color:var(--muted);line-height:1.5;margin-top:6px;padding:0 10px}
+  .svc-card .cf-photo{flex:0 0 44%}
+  .is-carousel .cf-card.is-active .cf-cta{opacity:1;color:var(--cyan)}
+  .deck:not(.is-carousel) .cf-cta{opacity:1;color:var(--cyan)}
+  /* trainer cards */
+  .tcard{height:452px;border-color:var(--border-cyan);box-shadow:0 0 36px rgba(92,225,230,.16),0 18px 50px rgba(0,0,0,.5)}
+  .tcard .cf-line{font-size:13px;color:var(--muted);margin-top:5px;line-height:1.5;padding:0 6px}
+  .tcard .cf-line b{color:var(--text);font-weight:500}
+  .tcard .tbtn{margin:16px auto 18px;width:auto}
+  .deck:not(.is-carousel) .tcard:hover{box-shadow:0 0 52px rgba(92,225,230,.28),0 18px 60px rgba(0,0,0,.55);transform:translateY(-4px)!important}
+  .cf-controls{display:flex;align-items:center;justify-content:center;gap:18px;margin-top:34px}
+  .cf-arrow{width:46px;height:46px;border-radius:50%;background:var(--glass-2);border:1px solid var(--border);color:var(--text);font-size:22px;cursor:pointer;transition:.16s;display:flex;align-items:center;justify-content:center;line-height:1}
+  .cf-arrow:hover{border-color:var(--cyan);color:var(--cyan)}
+  .cf-dots{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;max-width:240px}
+  .cf-dot{width:8px;height:8px;border-radius:50%;background:var(--muted-2);border:none;opacity:.5;cursor:pointer;padding:0}
+  .cf-dot.on{background:var(--cyan);opacity:1;box-shadow:0 0 10px rgba(92,225,230,.7)}
+  .only-mobile{display:none}
+  @media (max-width:760px){.only-mobile{display:flex}.page-head{padding-top:72px}}
+  @media (max-width:560px){.cf-card{width:230px;height:360px}.tcard{height:430px}}
+  /* batch detail */
+  .bd-photo{max-width:560px;margin:8px auto 0;height:300px;border:1px solid var(--border);border-radius:18px;background:repeating-linear-gradient(45deg,rgba(255,255,255,.025) 0 14px,rgba(255,255,255,.05) 14px 28px);display:flex;align-items:center;justify-content:center;color:var(--muted-2);font-family:"Space Mono",monospace;font-size:12px;letter-spacing:.2em;text-transform:uppercase}
+  .bd-meta{font-family:"Space Mono",monospace;font-size:14px;color:var(--cyan);margin-top:14px;letter-spacing:.04em}
+  .bd-meta .sep{color:var(--muted-2);margin:0 8px}
+  /* event/showcase pages */
+  .ev-bar{position:sticky;top:52px;z-index:6;text-align:center;padding:42px 22px 20px;background:rgba(7,10,12,.82);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom:1px solid var(--border)}
+  .ev-bar .eyebrow{margin-bottom:10px}
+  .ev-desc{max-width:680px;margin:26px auto 0;text-align:center;padding:0 22px;will-change:opacity}
+  .gallery{columns:3 240px;column-gap:14px;max-width:1100px;margin:34px auto 0;padding:0 22px 64px}
+  .gitem{break-inside:avoid;margin:0 0 14px;border:1px solid var(--border);border-radius:14px;overflow:hidden;background:repeating-linear-gradient(45deg,rgba(255,255,255,.025) 0 12px,rgba(255,255,255,.05) 12px 24px);display:flex;align-items:center;justify-content:center;color:var(--muted-2);font-family:"Space Mono",monospace;font-size:11px;letter-spacing:.18em;text-transform:uppercase;position:relative}
+  .gitem.vid::before{content:"\25B6";position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:26px;color:rgba(92,225,230,.72);text-shadow:0 0 16px rgba(92,225,230,.5)}
+  .gitem.vid>span{position:absolute;bottom:8px;right:10px}
+  .ar-169{aspect-ratio:16/9}.ar-916{aspect-ratio:9/16}.ar-11{aspect-ratio:1/1}.ar-43{aspect-ratio:4/3}.ar-34{aspect-ratio:3/4}
+  @media (max-width:560px){.ev-bar{top:50px}.gallery{columns:2 150px}}
 </style>
 </head>
-<body>
+<body class="home">
 <div class="orbs"><div class="orb a"></div><div class="orb b"></div><div class="orb c"></div></div>
 <div class="cursor-orb" id="cursorOrb"></div>
 
@@ -153,7 +211,7 @@
   <section class="about-band" id="about">
     <div class="about-inner">
       <div class="eyebrow">About</div>
-      <h2>Let's connect, collaborate &amp; <span class="i">create</span>.</h2>
+      <h2>Who we <span class="i">are</span>.</h2>
       <p class="lead">Indie Movement Art Project is a platform for like-minded artists to connect, collaborate &amp; create. It's the holy grail where movement, music &amp; art come together and make you realise the masterpiece that you are.</p>
       <p class="lead">With regular dance classes &amp; exciting events like open mics &amp; workshops happening every month, we are a community of buzzing creative individuals who are on a mission to facilitate the transformation of artists all over India.</p>
     </div>
@@ -162,20 +220,21 @@
   <!-- SERVICES -->
   <section class="section" id="services">
     <div class="eyebrow">Services</div>
-    <h2>Train <span class="i">with</span> us.</h2>
-    <div class="cards two">
-      <a class="card card-link" href="batches.html">
-        <h3>Regular batches</h3>
-        <div class="meta"><span class="icon">●</span> group classes · all levels</div>
-        <p>Ongoing weekly classes across Jazz, Jazz Funk, Bollywood, Afro &amp; Dancehall, Semi-Classical, Contemporary, Open Style and dedicated Juniors &amp; Kids batches.</p>
-        <span class="btn btn-ghost">View all batches →</span>
-      </a>
-      <a class="card card-link" href="training.html">
-        <h3>Personal training</h3>
-        <div class="meta"><span class="icon">●</span> 1-on-1 · goal-based</div>
-        <p>Private coaching with our senior instructors — technique, audition prep, choreography or fitness, on a schedule that fits you.</p>
-        <span class="btn btn-ghost">Meet our trainers →</span>
-      </a>
+    <h2>What we <span class="i">do</span>.</h2>
+    <div class="carousel is-carousel" id="svcCar" tabindex="0" aria-label="Services">
+      <div class="cf-glow"></div>
+      <div class="cf-stage" id="svcStage">
+<article class="cf-card svc-card" data-href="batches.html" tabindex="0"><div class="cf-photo"><span><span class="cam">▣</span>photo</span></div><div class="cf-body"><h3>Regular Batches</h3><p class="cf-desc">Weekly group classes across many styles &amp; levels.</p><div class="cf-cta">View batches →</div></div></article>
+<article class="cf-card svc-card" data-href="training.html" tabindex="0"><div class="cf-photo"><span><span class="cam">▣</span>photo</span></div><div class="cf-body"><h3>Personal Training</h3><p class="cf-desc">One-on-one coaching, on your own schedule.</p><div class="cf-cta">Meet trainers →</div></div></article>
+<article class="cf-card svc-card" data-href="https://wa.me/918454880061?text=Hi%20iMAP%21%20I%27d%20like%20to%20enquire%20about%20wedding%20%26%20sangeet%20choreography." tabindex="0"><div class="cf-photo"><span><span class="cam">▣</span>photo</span></div><div class="cf-body"><h3>Weddings</h3><p class="cf-desc">Sangeet &amp; wedding choreographies set to a particular theme.</p><div class="cf-cta">Enquire →</div></div></article>
+<article class="cf-card svc-card" data-href="corporate.html" tabindex="0"><div class="cf-photo"><span><span class="cam">▣</span>photo</span></div><div class="cf-body"><h3>Corporate Events</h3><p class="cf-desc">Beginner-friendly choreographies for corporate events.</p><div class="cf-cta">View work →</div></div></article>
+<article class="cf-card svc-card" data-href="musicals.html" tabindex="0"><div class="cf-photo"><span><span class="cam">▣</span>photo</span></div><div class="cf-body"><h3>Musicals</h3><p class="cf-desc">Long-format live musical &amp; drama shows that tell a story, set to a theme.</p><div class="cf-cta">View work →</div></div></article>
+</div>
+    </div>
+    <div class="cf-controls">
+      <button class="cf-arrow" id="svcPrev" aria-label="Previous">‹</button>
+      <div class="cf-dots" id="svcDots"></div>
+      <button class="cf-arrow" id="svcNext" aria-label="Next">›</button>
     </div>
   </section>
 
@@ -225,6 +284,8 @@
     }
     ['touchstart','scroll','click','keydown'].forEach(function(ev){ window.addEventListener(ev,play,{once:true,passive:true}); });
   })();
+  /* nav fade-in on scroll (home only) */
+  (function(){var nav=document.querySelector('nav');if(!document.body.classList.contains('home')||!nav)return;function upd(){if(window.scrollY>window.innerHeight*0.45)nav.classList.add('show');else nav.classList.remove('show');}upd();addEventListener('scroll',upd,{passive:true});addEventListener('resize',upd);})();
   /* WhatsApp links */
   document.querySelectorAll('[data-wa]').forEach(a=>{a.href='https://wa.me/918454880061?text='+encodeURIComponent(a.dataset.wa);a.target='_blank';a.rel='noopener';});
   /* mobile menu */
@@ -233,6 +294,45 @@
   links.querySelectorAll('a').forEach(a=>a.addEventListener('click',()=>{links.classList.remove('open');burger.setAttribute('aria-expanded',false);}));
   /* year */
   document.getElementById('yr').textContent=new Date().getFullYear();
+
+  function Coverflow(opts){
+    var root=opts.root, stage=opts.stage;
+    var cards=[].slice.call(stage.querySelectorAll('.cf-card'));
+    var n=cards.length, active=opts.start||0, span=opts.span||2, enabled=false;
+    var dotsWrap=opts.dots, dots=[];
+    function buildDots(){ if(!dotsWrap)return; dotsWrap.innerHTML=''; dots=[]; for(var i=0;i<n;i++){ (function(i){ var d=document.createElement('button'); d.className='cf-dot'; d.setAttribute('aria-label','Go to item '+(i+1)); d.addEventListener('click',function(){setActive(i);}); dotsWrap.appendChild(d); dots.push(d); })(i);} }
+    function layout(){
+      var half=Math.floor(n/2), cw=cards[0].offsetWidth||258, gap=cw*0.62, depth=cw*0.85;
+      cards.forEach(function(card,i){
+        var off=((i-active)%n+n)%n; if(off>half)off-=n; var a=Math.abs(off);
+        var prev=card._off; card._off=off;
+        if(prev!==undefined && Math.abs(prev-off)>span+1){ card.style.transition='none'; void card.offsetWidth; requestAnimationFrame(function(){card.style.transition='';}); }
+        if(a>span){ card.style.opacity='0'; card.style.pointerEvents='none'; card.style.transform='translate(-50%,-50%) translateX('+((off>0?1:-1)*gap*(span+1))+'px) translateZ('+(-depth*(span+1))+'px) scale(.5)'; card.style.zIndex='0'; card.classList.remove('is-active'); if(dots[i])dots[i].classList.remove('on'); return; }
+        var tx=off*gap, tz=-a*depth, ry=-off*30, sc=Math.max(.62,1-a*0.19);
+        var op=a===0?1:(a===1?0.5:0.22), bl=a===0?0:(a===1?3:6);
+        card.style.transform='translate(-50%,-50%) translateX('+tx+'px) translateZ('+tz+'px) rotateY('+ry+'deg) scale('+sc+')';
+        card.style.opacity=op; card.style.filter=bl?('blur('+bl+'px)'):'none'; card.style.zIndex=String(100-a); card.style.pointerEvents='auto';
+        card.classList.toggle('is-active',a===0); if(dots[i])dots[i].classList.toggle('on',a===0);
+      });
+    }
+    function setActive(i){ active=((i)%n+n)%n; layout(); }
+    function next(){ setActive(active+1); } function prev(){ setActive(active-1); }
+    var down=false,sx=0,sy=0,moved=false,lock=null;
+    function onDown(e){ if(!enabled)return; down=true; moved=false; lock=null; sx=e.clientX; sy=e.clientY; }
+    function onMove(e){ if(!down)return; var dx=e.clientX-sx, dy=e.clientY-sy; if(lock===null && (Math.abs(dx)>6||Math.abs(dy)>6)) lock=Math.abs(dx)>Math.abs(dy)?'x':'y'; if(lock==='y'){down=false;return;} if(Math.abs(dx)>6)moved=true; }
+    function onUp(e){ if(!down)return; down=false; if(lock!=='x')return; var dx=e.clientX-sx; if(dx<-32)next(); else if(dx>32)prev(); }
+    root.addEventListener('pointerdown',onDown); window.addEventListener('pointermove',onMove); window.addEventListener('pointerup',onUp); window.addEventListener('pointercancel',function(){down=false;});
+    cards.forEach(function(card,i){ card.addEventListener('click',function(e){ if(!enabled)return; if(e.target.closest('.no-cf'))return; if(moved){moved=false;return;} if(card.classList.contains('is-active')){ var href=card.getAttribute('data-href'); if(href)location.href=href; } else setActive(i); }); });
+    if(opts.prevBtn)opts.prevBtn.addEventListener('click',prev);
+    if(opts.nextBtn)opts.nextBtn.addEventListener('click',next);
+    root.addEventListener('keydown',function(e){ if(!enabled)return; if(e.key==='ArrowLeft')prev(); else if(e.key==='ArrowRight')next(); });
+    window.addEventListener('resize',function(){ if(enabled)layout(); });
+    function enable(){ if(enabled)return; enabled=true; root.classList.add('is-carousel'); buildDots(); layout(); }
+    function disable(){ if(!enabled)return; enabled=false; root.classList.remove('is-carousel'); if(dotsWrap)dotsWrap.innerHTML=''; cards.forEach(function(c){ c.style.cssText=''; c._off=undefined; c.classList.remove('is-active'); }); }
+    return {enable:enable,disable:disable,layout:layout,next:next,prev:prev,setActive:setActive};
+  }
+
+  (function(){var el=document.getElementById('svcCar');if(!el)return;var sc=Coverflow({root:el,stage:document.getElementById('svcStage'),dots:document.getElementById('svcDots'),prevBtn:document.getElementById('svcPrev'),nextBtn:document.getElementById('svcNext'),span:2,start:0});sc.enable();})();
 </script>
 </body>
 </html>
