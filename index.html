@@ -137,7 +137,8 @@
   .deck:not(.is-carousel) .cf-card{position:relative;transform:none!important;opacity:1!important;filter:none!important}
   .cf-card.is-active{border-color:var(--border-cyan);box-shadow:0 0 52px rgba(92,225,230,.30),0 18px 60px rgba(0,0,0,.55)}
   .cf-photo{flex:0 0 auto;aspect-ratio:4/5;width:100%;position:relative;display:flex;align-items:center;justify-content:center;background:repeating-linear-gradient(45deg,rgba(255,255,255,.025) 0 12px,rgba(255,255,255,.05) 12px 24px);color:var(--muted-2);font-family:"Space Mono",monospace;font-size:11px;letter-spacing:.22em;text-transform:uppercase;border-bottom:1px solid var(--border)}
-  .cf-photo img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
+  .cf-photo img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;z-index:1}
+  .cf-photo:has(img)>span{display:none}
   .cf-photo .cam{font-size:24px;opacity:.5;display:block;margin-bottom:6px}
   .cf-body{flex:1;display:flex;flex-direction:column;justify-content:center;padding:14px 16px}
   .cf-card h3{font-family:"Instrument Serif",serif;font-weight:400;font-size:25px;line-height:1.08;margin-bottom:9px}
@@ -164,7 +165,8 @@
   @media (max-width:560px){.carousel.is-carousel{height:540px}.cf-card{width:212px}}
   /* batch detail */
   .bd-photo{max-width:340px;aspect-ratio:4/5;margin:8px auto 0;border:1px solid var(--border);border-radius:18px;overflow:hidden;position:relative;background:repeating-linear-gradient(45deg,rgba(255,255,255,.025) 0 14px,rgba(255,255,255,.05) 14px 28px);display:flex;align-items:center;justify-content:center;color:var(--muted-2);font-family:"Space Mono",monospace;font-size:12px;letter-spacing:.2em;text-transform:uppercase}
-  .bd-photo img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+  .bd-photo img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:1}
+  .bd-photo:has(img)>span{display:none}
   .bd-meta{font-family:"Space Mono",monospace;font-size:14px;color:var(--cyan);margin-top:14px;letter-spacing:.04em}
   .bd-meta .sep{color:var(--muted-2);margin:0 8px}
   /* event/showcase pages */
