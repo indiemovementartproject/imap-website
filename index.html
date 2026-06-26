@@ -136,7 +136,8 @@
   .is-carousel .cf-card{position:absolute;left:50%;top:50%;margin:0;transition:transform .55s cubic-bezier(.22,.61,.36,1),opacity .5s,filter .5s,box-shadow .4s;will-change:transform,opacity}
   .deck:not(.is-carousel) .cf-card{position:relative;transform:none!important;opacity:1!important;filter:none!important}
   .cf-card.is-active{border-color:var(--border-cyan);box-shadow:0 0 52px rgba(92,225,230,.30),0 18px 60px rgba(0,0,0,.55)}
-  .cf-photo{flex:0 0 auto;aspect-ratio:4/5;width:100%;display:flex;align-items:center;justify-content:center;background:repeating-linear-gradient(45deg,rgba(255,255,255,.025) 0 12px,rgba(255,255,255,.05) 12px 24px);color:var(--muted-2);font-family:"Space Mono",monospace;font-size:11px;letter-spacing:.22em;text-transform:uppercase;border-bottom:1px solid var(--border)}
+  .cf-photo{flex:0 0 auto;aspect-ratio:4/5;width:100%;position:relative;display:flex;align-items:center;justify-content:center;background:repeating-linear-gradient(45deg,rgba(255,255,255,.025) 0 12px,rgba(255,255,255,.05) 12px 24px);color:var(--muted-2);font-family:"Space Mono",monospace;font-size:11px;letter-spacing:.22em;text-transform:uppercase;border-bottom:1px solid var(--border)}
+  .cf-photo img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
   .cf-photo .cam{font-size:24px;opacity:.5;display:block;margin-bottom:6px}
   .cf-body{flex:1;display:flex;flex-direction:column;justify-content:center;padding:14px 16px}
   .cf-card h3{font-family:"Instrument Serif",serif;font-weight:400;font-size:25px;line-height:1.08;margin-bottom:9px}
@@ -162,7 +163,8 @@
   @media (max-width:760px){.only-mobile{display:flex}.page-head{padding-top:72px}}
   @media (max-width:560px){.carousel.is-carousel{height:540px}.cf-card{width:212px}}
   /* batch detail */
-  .bd-photo{max-width:560px;margin:8px auto 0;height:300px;border:1px solid var(--border);border-radius:18px;background:repeating-linear-gradient(45deg,rgba(255,255,255,.025) 0 14px,rgba(255,255,255,.05) 14px 28px);display:flex;align-items:center;justify-content:center;color:var(--muted-2);font-family:"Space Mono",monospace;font-size:12px;letter-spacing:.2em;text-transform:uppercase}
+  .bd-photo{max-width:340px;aspect-ratio:4/5;margin:8px auto 0;border:1px solid var(--border);border-radius:18px;overflow:hidden;position:relative;background:repeating-linear-gradient(45deg,rgba(255,255,255,.025) 0 14px,rgba(255,255,255,.05) 14px 28px);display:flex;align-items:center;justify-content:center;color:var(--muted-2);font-family:"Space Mono",monospace;font-size:12px;letter-spacing:.2em;text-transform:uppercase}
+  .bd-photo img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
   .bd-meta{font-family:"Space Mono",monospace;font-size:14px;color:var(--cyan);margin-top:14px;letter-spacing:.04em}
   .bd-meta .sep{color:var(--muted-2);margin:0 8px}
   /* event/showcase pages */
@@ -225,7 +227,7 @@
     <div class="carousel is-carousel" id="svcCar" tabindex="0" aria-label="Services">
       <div class="cf-glow"></div>
       <div class="cf-stage" id="svcStage">
-<article class="cf-card svc-card" data-href="batches.html" tabindex="0"><div class="cf-photo"><span><span class="cam">▣</span>photo</span></div><div class="cf-body"><h3>Regular Batches</h3><p class="cf-desc">Weekly group classes across many styles &amp; levels.</p><div class="cf-cta">View batches →</div></div></article>
+<article class="cf-card svc-card" data-href="batches.html" tabindex="0"><div class="cf-photo"><img src="media/jazz-training.jpg" alt="Regular Batches" loading="lazy" onerror="this.remove()"><span><span class="cam">▣</span>photo</span></div><div class="cf-body"><h3>Regular Batches</h3><p class="cf-desc">Weekly group classes across many styles &amp; levels.</p><div class="cf-cta">View batches →</div></div></article>
 <article class="cf-card svc-card" data-href="training.html" tabindex="0"><div class="cf-photo"><span><span class="cam">▣</span>photo</span></div><div class="cf-body"><h3>Personal Training</h3><p class="cf-desc">One-on-one coaching, on your own schedule.</p><div class="cf-cta">Meet trainers →</div></div></article>
 <article class="cf-card svc-card" data-href="https://wa.me/918454880061?text=Hi%20iMAP%21%20I%27d%20like%20to%20enquire%20about%20wedding%20%26%20sangeet%20choreography." tabindex="0"><div class="cf-photo"><span><span class="cam">▣</span>photo</span></div><div class="cf-body"><h3>Weddings</h3><p class="cf-desc">Sangeet &amp; wedding choreographies set to a particular theme.</p><div class="cf-cta">Enquire →</div></div></article>
 <article class="cf-card svc-card" data-href="corporate.html" tabindex="0"><div class="cf-photo"><span><span class="cam">▣</span>photo</span></div><div class="cf-body"><h3>Corporate Events</h3><p class="cf-desc">Beginner-friendly choreographies for corporate events.</p><div class="cf-cta">View work →</div></div></article>
