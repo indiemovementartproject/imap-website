@@ -134,6 +134,7 @@
   .is-carousel .cf-glow{opacity:1}
   .cf-card{width:248px;border-radius:22px;overflow:hidden;background:linear-gradient(180deg,rgba(12,16,18,.5),rgba(12,16,18,.74));backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid var(--border);box-shadow:0 18px 50px rgba(0,0,0,.5);display:flex;flex-direction:column;text-align:center;cursor:pointer;backface-visibility:hidden;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
   .is-carousel .cf-card{position:absolute;left:50%;top:50%;margin:0;transition:transform .55s cubic-bezier(.22,.61,.36,1),opacity .5s,filter .5s,box-shadow .4s;will-change:transform,opacity}
+  .is-dragging .cf-card{transition:none!important}
   .deck:not(.is-carousel) .cf-card{position:relative;transform:none!important;opacity:1!important;filter:none!important}
   .cf-card.is-active{border-color:var(--border-cyan);box-shadow:0 0 52px rgba(92,225,230,.30),0 18px 60px rgba(0,0,0,.55)}
   .cf-photo{flex:0 0 auto;aspect-ratio:4/5;width:100%;position:relative;display:flex;align-items:center;justify-content:center;background:repeating-linear-gradient(45deg,rgba(255,255,255,.025) 0 12px,rgba(255,255,255,.05) 12px 24px);color:var(--muted-2);font-family:"Space Mono",monospace;font-size:11px;letter-spacing:.22em;text-transform:uppercase;border-bottom:1px solid var(--border)}
@@ -146,6 +147,9 @@
   .cf-loc{font-size:13.5px;color:#b9c4c5;margin-top:5px}
   .cf-cta{margin-top:13px;font-family:"Space Mono",monospace;font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted-2);opacity:0;transition:.3s}
   .cf-desc{font-size:15px;color:#dde6e7;line-height:1.5;margin-top:6px;padding:0 8px;text-shadow:0 1px 8px rgba(0,0,0,.45)}
+  .cf-btn{margin-top:15px;align-self:center;width:auto}
+  .cf-hint{text-align:center;font-family:"Space Mono",monospace;font-size:11.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);margin-top:12px}
+  .cf-hint span{color:var(--cyan)}
   .is-carousel .cf-card.is-active .cf-cta{opacity:1;color:var(--cyan)}
   .deck:not(.is-carousel) .cf-cta{opacity:1;color:var(--cyan)}
   /* trainer cards */
@@ -199,23 +203,24 @@
   <section class="page-head">
     <div class="eyebrow">Regular Batches</div>
     <h2>Find your <span class="i">groove</span>.</h2>
-    <p class="lead">Group classes across a wide range of styles and levels — Jazz, Jazz Funk, Bollywood, Afro &amp; Dancehall, Semi-Classical, Contemporary, Open Style, plus dedicated Juniors &amp; Kids batches. Swipe through and tap a batch to see its page.</p>
+    <p class="lead">Group classes across a wide range of styles and levels — Jazz, Jazz Funk, Bollywood, Afro &amp; Dancehall, Semi-Classical, Contemporary, Open Style, plus dedicated Juniors &amp; Kids batches.</p>
+    <p class="cf-hint"><span>Click a card</span> to view more details</p>
   </section>
   <section style="padding-bottom:40px">
     <div class="carousel is-carousel" id="bCar" tabindex="0" aria-roledescription="carousel" aria-label="Batches">
       <div class="cf-glow"></div>
       <div class="cf-stage" id="bStage">
-<article class="cf-card" data-href="batch.html?batch=jazz-training" tabindex="0"><div class="cf-photo"><img src="media/jazz-training.jpg" alt="Jazz Training" loading="lazy" onerror="this.remove()"><span><span class="cam">▣</span>photo</span></div><div class="cf-body"><h3>Jazz Training</h3><div class="cf-meta">Sat · 7 PM</div><div class="cf-loc">Seawoods Studio</div><div class="cf-cta">View details →</div></div></article>
-<article class="cf-card" data-href="batch.html?batch=jazz-funk-weekends" tabindex="0"><div class="cf-photo"><img src="media/jazz-funk-weekends.jpg" alt="Jazz Funk Weekends" loading="lazy" onerror="this.remove()"><span><span class="cam">▣</span>photo</span></div><div class="cf-body"><h3>Jazz Funk Weekends</h3><div class="cf-meta">Sun · 3–5 PM</div><div class="cf-loc">Seawoods Studio</div><div class="cf-cta">View details →</div></div></article>
-<article class="cf-card" data-href="batch.html?batch=bollywood" tabindex="0"><div class="cf-photo"><img src="media/bollywood.jpg" alt="Bollywood" loading="lazy" onerror="this.remove()"><span><span class="cam">▣</span>photo</span></div><div class="cf-body"><h3>Bollywood</h3><div class="cf-meta">Sat–Sun · 6–7 PM</div><div class="cf-loc">Seawoods Studio</div><div class="cf-cta">View details →</div></div></article>
-<article class="cf-card" data-href="batch.html?batch=bollywood-advance" tabindex="0"><div class="cf-photo"><img src="media/bollywood-advance.jpg" alt="Bollywood Advance" loading="lazy" onerror="this.remove()"><span><span class="cam">▣</span>photo</span></div><div class="cf-body"><h3>Bollywood Advance</h3><div class="cf-meta">Mon–Wed · 7–8 PM</div><div class="cf-loc">Vashi Studio</div><div class="cf-cta">View details →</div></div></article>
-<article class="cf-card" data-href="batch.html?batch=afro-dancehall" tabindex="0"><div class="cf-photo"><img src="media/afro-dancehall.jpg" alt="Afro &amp; Dancehall" loading="lazy" onerror="this.remove()"><span><span class="cam">▣</span>photo</span></div><div class="cf-body"><h3>Afro &amp; Dancehall</h3><div class="cf-meta">Sat–Sun · 5–6 PM</div><div class="cf-loc">Seawoods Studio</div><div class="cf-cta">View details →</div></div></article>
-<article class="cf-card" data-href="batch.html?batch=juniors" tabindex="0"><div class="cf-photo"><img src="media/juniors.jpg" alt="Juniors Batch" loading="lazy" onerror="this.remove()"><span><span class="cam">▣</span>photo</span></div><div class="cf-body"><h3>Juniors Batch</h3><div class="cf-meta">Tue–Thu · 5–6 PM</div><div class="cf-loc">Seawoods Studio</div><div class="cf-cta">View details →</div></div></article>
-<article class="cf-card" data-href="batch.html?batch=kids" tabindex="0"><div class="cf-photo"><img src="media/kids.jpg" alt="Kids Batch" loading="lazy" onerror="this.remove()"><span><span class="cam">▣</span>photo</span></div><div class="cf-body"><h3>Kids Batch</h3><div class="cf-meta">Tue–Thu · 7–8 PM</div><div class="cf-loc">Vashi Studio</div><div class="cf-cta">View details →</div></div></article>
-<article class="cf-card" data-href="batch.html?batch=semi-classical" tabindex="0"><div class="cf-photo"><img src="media/semi-classical.jpg" alt="Semi-Classical" loading="lazy" onerror="this.remove()"><span><span class="cam">▣</span>photo</span></div><div class="cf-body"><h3>Semi-Classical</h3><div class="cf-meta">Sun · 1–3 PM</div><div class="cf-loc">Seawoods Studio</div><div class="cf-cta">View details →</div></div></article>
-<article class="cf-card" data-href="batch.html?batch=contemporary" tabindex="0"><div class="cf-photo"><img src="media/contemporary.jpg" alt="Contemporary" loading="lazy" onerror="this.remove()"><span><span class="cam">▣</span>photo</span></div><div class="cf-body"><h3>Contemporary</h3><div class="cf-meta">Sun · 11 AM–1 PM</div><div class="cf-loc">Seawoods Studio</div><div class="cf-cta">View details →</div></div></article>
-<article class="cf-card" data-href="batch.html?batch=jazz-funk-weekdays" tabindex="0"><div class="cf-photo"><img src="media/jazz-funk-weekdays.jpg" alt="Jazz Funk Weekdays" loading="lazy" onerror="this.remove()"><span><span class="cam">▣</span>photo</span></div><div class="cf-body"><h3>Jazz Funk Weekdays</h3><div class="cf-meta">Tue–Thu · 9–10 PM</div><div class="cf-loc">Seawoods Studio</div><div class="cf-cta">View details →</div></div></article>
-<article class="cf-card" data-href="batch.html?batch=open-style" tabindex="0"><div class="cf-photo"><img src="media/open-style.jpg" alt="Open Style" loading="lazy" onerror="this.remove()"><span><span class="cam">▣</span>photo</span></div><div class="cf-body"><h3>Open Style</h3><div class="cf-meta">Sun · 7–9 PM</div><div class="cf-loc">Seawoods Studio</div><div class="cf-cta">View details →</div></div></article>
+<article class="cf-card" data-href="batch.html?batch=jazz-training" tabindex="0"><div class="cf-photo"><img src="media/jazz-training.jpg" alt="Jazz Training" loading="lazy" onerror="this.remove()"><span><span class="cam">▣</span>photo</span></div><div class="cf-body"><h3>Jazz Training</h3><div class="cf-meta">Sat · 7 PM</div><div class="cf-loc">Seawoods Studio</div><a class="btn btn-cyan cf-btn no-cf" data-wa="Hi iMAP! I'd like to enquire about the Jazz Training batch.">Enquire</a></div></article>
+<article class="cf-card" data-href="batch.html?batch=jazz-funk-weekends" tabindex="0"><div class="cf-photo"><img src="media/jazz-funk-weekends.jpg" alt="Jazz Funk Weekends" loading="lazy" onerror="this.remove()"><span><span class="cam">▣</span>photo</span></div><div class="cf-body"><h3>Jazz Funk Weekends</h3><div class="cf-meta">Sun · 3–5 PM</div><div class="cf-loc">Seawoods Studio</div><a class="btn btn-cyan cf-btn no-cf" data-wa="Hi iMAP! I'd like to enquire about the Jazz Funk Weekends batch.">Enquire</a></div></article>
+<article class="cf-card" data-href="batch.html?batch=bollywood" tabindex="0"><div class="cf-photo"><img src="media/bollywood.jpg" alt="Bollywood" loading="lazy" onerror="this.remove()"><span><span class="cam">▣</span>photo</span></div><div class="cf-body"><h3>Bollywood</h3><div class="cf-meta">Sat–Sun · 6–7 PM</div><div class="cf-loc">Seawoods Studio</div><a class="btn btn-cyan cf-btn no-cf" data-wa="Hi iMAP! I'd like to enquire about the Bollywood batch.">Enquire</a></div></article>
+<article class="cf-card" data-href="batch.html?batch=bollywood-advance" tabindex="0"><div class="cf-photo"><img src="media/bollywood-advance.jpg" alt="Bollywood Advance" loading="lazy" onerror="this.remove()"><span><span class="cam">▣</span>photo</span></div><div class="cf-body"><h3>Bollywood Advance</h3><div class="cf-meta">Mon–Wed · 7–8 PM</div><div class="cf-loc">Vashi Studio</div><a class="btn btn-cyan cf-btn no-cf" data-wa="Hi iMAP! I'd like to enquire about the Bollywood Advance batch.">Enquire</a></div></article>
+<article class="cf-card" data-href="batch.html?batch=afro-dancehall" tabindex="0"><div class="cf-photo"><img src="media/afro-dancehall.jpg" alt="Afro &amp; Dancehall" loading="lazy" onerror="this.remove()"><span><span class="cam">▣</span>photo</span></div><div class="cf-body"><h3>Afro &amp; Dancehall</h3><div class="cf-meta">Sat–Sun · 5–6 PM</div><div class="cf-loc">Seawoods Studio</div><a class="btn btn-cyan cf-btn no-cf" data-wa="Hi iMAP! I'd like to enquire about the Afro & Dancehall batch.">Enquire</a></div></article>
+<article class="cf-card" data-href="batch.html?batch=juniors" tabindex="0"><div class="cf-photo"><img src="media/juniors.jpg" alt="Juniors Batch" loading="lazy" onerror="this.remove()"><span><span class="cam">▣</span>photo</span></div><div class="cf-body"><h3>Juniors Batch</h3><div class="cf-meta">Tue–Thu · 5–6 PM</div><div class="cf-loc">Seawoods Studio</div><a class="btn btn-cyan cf-btn no-cf" data-wa="Hi iMAP! I'd like to enquire about the Juniors Batch batch.">Enquire</a></div></article>
+<article class="cf-card" data-href="batch.html?batch=kids" tabindex="0"><div class="cf-photo"><img src="media/kids.jpg" alt="Kids Batch" loading="lazy" onerror="this.remove()"><span><span class="cam">▣</span>photo</span></div><div class="cf-body"><h3>Kids Batch</h3><div class="cf-meta">Tue–Thu · 7–8 PM</div><div class="cf-loc">Vashi Studio</div><a class="btn btn-cyan cf-btn no-cf" data-wa="Hi iMAP! I'd like to enquire about the Kids Batch batch.">Enquire</a></div></article>
+<article class="cf-card" data-href="batch.html?batch=semi-classical" tabindex="0"><div class="cf-photo"><img src="media/semi-classical.jpg" alt="Semi-Classical" loading="lazy" onerror="this.remove()"><span><span class="cam">▣</span>photo</span></div><div class="cf-body"><h3>Semi-Classical</h3><div class="cf-meta">Sun · 1–3 PM</div><div class="cf-loc">Seawoods Studio</div><a class="btn btn-cyan cf-btn no-cf" data-wa="Hi iMAP! I'd like to enquire about the Semi-Classical batch.">Enquire</a></div></article>
+<article class="cf-card" data-href="batch.html?batch=contemporary" tabindex="0"><div class="cf-photo"><img src="media/contemporary.jpg" alt="Contemporary" loading="lazy" onerror="this.remove()"><span><span class="cam">▣</span>photo</span></div><div class="cf-body"><h3>Contemporary</h3><div class="cf-meta">Sun · 11 AM–1 PM</div><div class="cf-loc">Seawoods Studio</div><a class="btn btn-cyan cf-btn no-cf" data-wa="Hi iMAP! I'd like to enquire about the Contemporary batch.">Enquire</a></div></article>
+<article class="cf-card" data-href="batch.html?batch=jazz-funk-weekdays" tabindex="0"><div class="cf-photo"><img src="media/jazz-funk-weekdays.jpg" alt="Jazz Funk Weekdays" loading="lazy" onerror="this.remove()"><span><span class="cam">▣</span>photo</span></div><div class="cf-body"><h3>Jazz Funk Weekdays</h3><div class="cf-meta">Tue–Thu · 9–10 PM</div><div class="cf-loc">Seawoods Studio</div><a class="btn btn-cyan cf-btn no-cf" data-wa="Hi iMAP! I'd like to enquire about the Jazz Funk Weekdays batch.">Enquire</a></div></article>
+<article class="cf-card" data-href="batch.html?batch=open-style" tabindex="0"><div class="cf-photo"><img src="media/open-style.jpg" alt="Open Style" loading="lazy" onerror="this.remove()"><span><span class="cam">▣</span>photo</span></div><div class="cf-body"><h3>Open Style</h3><div class="cf-meta">Sun · 7–9 PM</div><div class="cf-loc">Seawoods Studio</div><a class="btn btn-cyan cf-btn no-cf" data-wa="Hi iMAP! I'd like to enquire about the Open Style batch.">Enquire</a></div></article>
 </div>
     </div>
     <div class="cf-controls">
@@ -292,38 +297,46 @@
   function Coverflow(opts){
     var root=opts.root, stage=opts.stage;
     var cards=[].slice.call(stage.querySelectorAll('.cf-card'));
-    var n=cards.length, active=opts.start||0, span=opts.span||2, enabled=false;
+    var n=cards.length, span=opts.span||2, enabled=false, pos=opts.start||0;
     var dotsWrap=opts.dots, dots=[];
-    function buildDots(){ if(!dotsWrap)return; dotsWrap.innerHTML=''; dots=[]; for(var i=0;i<n;i++){ (function(i){ var d=document.createElement('button'); d.className='cf-dot'; d.setAttribute('aria-label','Go to item '+(i+1)); d.addEventListener('click',function(){setActive(i);}); dotsWrap.appendChild(d); dots.push(d); })(i);} }
+    function buildDots(){ if(!dotsWrap)return; dotsWrap.innerHTML=''; dots=[]; for(var i=0;i<n;i++){ (function(i){ var d=document.createElement('button'); d.className='cf-dot'; d.setAttribute('aria-label','Go to item '+(i+1)); d.addEventListener('click',function(){go(i);}); dotsWrap.appendChild(d); dots.push(d); })(i);} }
+    function geom(){ var cw=cards[0].offsetWidth||248; return {gap:cw*0.62, depth:cw*0.85}; }
+    function wrap(o){ o=((o%n)+n)%n; if(o>n/2)o-=n; return o; }
     function layout(){
-      var half=Math.floor(n/2), cw=cards[0].offsetWidth||258, gap=cw*0.62, depth=cw*0.85;
+      var g=geom();
       cards.forEach(function(card,i){
-        var off=((i-active)%n+n)%n; if(off>half)off-=n; var a=Math.abs(off);
-        var prev=card._off; card._off=off;
-        if(prev!==undefined && Math.abs(prev-off)>span+1){ card.style.transition='none'; void card.offsetWidth; requestAnimationFrame(function(){card.style.transition='';}); }
-        if(a>span){ card.style.opacity='0'; card.style.pointerEvents='none'; card.style.transform='translate(-50%,-50%) translateX('+((off>0?1:-1)*gap*(span+1))+'px) translateZ('+(-depth*(span+1))+'px) scale(.5)'; card.style.zIndex='0'; card.classList.remove('is-active'); if(dots[i])dots[i].classList.remove('on'); return; }
-        var tx=off*gap, tz=-a*depth, ry=-off*30, sc=Math.max(.62,1-a*0.19);
-        var op=a===0?1:(a===1?0.5:0.22), bl=a===0?0:(a===1?3:6);
-        card.style.transform='translate(-50%,-50%) translateX('+tx+'px) translateZ('+tz+'px) rotateY('+ry+'deg) scale('+sc+')';
-        card.style.opacity=op; card.style.filter=bl?('blur('+bl+'px)'):'none'; card.style.zIndex=String(100-a); card.style.pointerEvents='auto';
-        card.classList.toggle('is-active',a===0); if(dots[i])dots[i].classList.toggle('on',a===0);
+        var off=wrap(i-pos), a=Math.abs(off);
+        if(a>span+0.001){ card.style.opacity='0'; card.style.pointerEvents='none'; card.style.transform='translate(-50%,-50%) translateX('+((off>0?1:-1)*g.gap*(span+1))+'px) translateZ('+(-g.depth*(span+1))+'px) scale(.55)'; card.style.zIndex='0'; card.classList.remove('is-active'); if(dots[i])dots[i].classList.remove('on'); return; }
+        var tx=off*g.gap, tz=-a*g.depth, ry=-off*30, sc=Math.max(.62,1-a*0.19);
+        var op=a<=1?(1-0.5*a):Math.max(0,0.5-0.28*(a-1)), bl=Math.min(6,a*3);
+        card.style.transform='translate(-50%,-50%) translateX('+tx+'px) translateZ('+tz+'px) rotateY('+ry.toFixed(2)+'deg) scale('+sc.toFixed(3)+')';
+        card.style.opacity=op.toFixed(3); card.style.filter=bl>0.05?('blur('+bl.toFixed(2)+'px)'):'none'; card.style.zIndex=String(100-Math.round(a*10)); card.style.pointerEvents='auto';
+        card.classList.toggle('is-active',a<0.5); if(dots[i])dots[i].classList.toggle('on',a<0.5);
       });
     }
-    function setActive(i){ active=((i)%n+n)%n; layout(); }
-    function next(){ setActive(active+1); } function prev(){ setActive(active-1); }
-    var down=false,sx=0,sy=0,moved=false,lock=null;
-    function onDown(e){ if(!enabled)return; down=true; moved=false; lock=null; sx=e.clientX; sy=e.clientY; }
-    function onMove(e){ if(!down)return; var dx=e.clientX-sx, dy=e.clientY-sy; if(lock===null && (Math.abs(dx)>6||Math.abs(dy)>6)) lock=Math.abs(dx)>Math.abs(dy)?'x':'y'; if(lock==='y'){down=false;return;} if(Math.abs(dx)>6)moved=true; }
-    function onUp(e){ if(!down)return; down=false; if(lock!=='x')return; var dx=e.clientX-sx; if(dx<-32)next(); else if(dx>32)prev(); }
-    root.addEventListener('pointerdown',onDown); window.addEventListener('pointermove',onMove); window.addEventListener('pointerup',onUp); window.addEventListener('pointercancel',function(){down=false;});
-    cards.forEach(function(card,i){ card.addEventListener('click',function(e){ if(!enabled)return; if(e.target.closest('.no-cf'))return; if(moved){moved=false;return;} if(card.classList.contains('is-active')){ var href=card.getAttribute('data-href'); if(href)location.href=href; } else setActive(i); }); });
+    function norm(){ pos=((Math.round(pos)%n)+n)%n; }
+    function settle(p){ root.classList.remove('is-dragging'); pos=p; layout(); norm(); }
+    function go(i){ settle(i); }
+    function next(){ settle(Math.round(pos)+1); }
+    function prev(){ settle(Math.round(pos)-1); }
+    var down=false,sx=0,sy=0,startPos=0,lock=null,moved=false,raf=0,curDx=0;
+    function applyDrag(){ raf=0; var g=geom(); pos=startPos - curDx/g.gap; layout(); }
+    function onDown(e){ if(!enabled)return; down=true; lock=null; moved=false; sx=e.clientX; sy=e.clientY; startPos=pos; curDx=0; }
+    function onMove(e){ if(!down)return; var dx=e.clientX-sx, dy=e.clientY-sy;
+      if(lock===null){ if(Math.abs(dx)>5||Math.abs(dy)>5) lock=Math.abs(dx)>Math.abs(dy)?'x':'y'; }
+      if(lock==='y'){ down=false; if(root.classList.contains('is-dragging')) settle(Math.round(pos)); return; }
+      if(lock==='x'){ if(Math.abs(dx)>4) moved=true; curDx=dx; root.classList.add('is-dragging'); if(!raf) raf=requestAnimationFrame(applyDrag); }
+    }
+    function onUp(){ if(!down)return; down=false; if(raf){cancelAnimationFrame(raf);raf=0;} if(lock==='x') settle(Math.round(pos)); }
+    root.addEventListener('pointerdown',onDown); window.addEventListener('pointermove',onMove); window.addEventListener('pointerup',onUp); window.addEventListener('pointercancel',onUp);
+    cards.forEach(function(card,i){ card.addEventListener('click',function(e){ if(!enabled)return; if(e.target.closest('.no-cf'))return; if(moved){moved=false;return;} if(Math.abs(wrap(i-pos))<0.5){ var href=card.getAttribute('data-href'); if(href)location.href=href; } else go(i); }); });
     if(opts.prevBtn)opts.prevBtn.addEventListener('click',prev);
     if(opts.nextBtn)opts.nextBtn.addEventListener('click',next);
     root.addEventListener('keydown',function(e){ if(!enabled)return; if(e.key==='ArrowLeft')prev(); else if(e.key==='ArrowRight')next(); });
     window.addEventListener('resize',function(){ if(enabled)layout(); });
-    function enable(){ if(enabled)return; enabled=true; root.classList.add('is-carousel'); buildDots(); layout(); }
-    function disable(){ if(!enabled)return; enabled=false; root.classList.remove('is-carousel'); if(dotsWrap)dotsWrap.innerHTML=''; cards.forEach(function(c){ c.style.cssText=''; c._off=undefined; c.classList.remove('is-active'); }); }
-    return {enable:enable,disable:disable,layout:layout,next:next,prev:prev,setActive:setActive};
+    function enable(){ if(enabled)return; enabled=true; root.classList.add('is-carousel'); buildDots(); norm(); layout(); }
+    function disable(){ if(!enabled)return; enabled=false; root.classList.remove('is-carousel','is-dragging'); if(dotsWrap)dotsWrap.innerHTML=''; cards.forEach(function(c){ c.style.cssText=''; c.classList.remove('is-active'); }); }
+    return {enable:enable,disable:disable,layout:layout,next:next,prev:prev,setActive:go};
   }
 
   var bcar=Coverflow({root:document.getElementById('bCar'),stage:document.getElementById('bStage'),dots:document.getElementById('bDots'),prevBtn:document.getElementById('bPrev'),nextBtn:document.getElementById('bNext'),span:2,start:0});
