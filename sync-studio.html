@@ -177,7 +177,7 @@
   <div class="master hide" id="master">
     <div class="mgroup">
       <div>
-        <div class="mlabel">Master tempo</div>
+        <div class="mlabel">Target tempo</div>
         <div class="bpmbox" style="margin-top:5px">
           <input type="number" id="target" value="120" min="40" max="240" step="0.01" aria-label="Master BPM">
           <span>BPM</span>
@@ -274,10 +274,10 @@ document.addEventListener('pointerdown',unlock,{once:true});
 
 /* ============ BPM detection: onset envelope + autocorrelation ============ */
 function detectBPM(chan, sr, from, to){
-  var N=to-from; if(N < sr*2) return null;
-  var hop=512, win=1024;
-  var frames=Math.floor((N-win)/hop); if(frames<32) return null;
-  // onset envelope = half-wave rectified RMS difference
+  from=Math.max(0,from|0); to=Math.min(chan.length,to|0);
+  var N=to-from; if(N < sr*3) return null;
+  var hop=256, win=1024;
+  var frames=Math.floor((N-win)/hop); if(frames<64) return null;
   var env=new Float32Array(frames), prev=0;
   for(var f=0;f<frames;f++){
     var o=from+f*hop, sum=0;
@@ -285,32 +285,49 @@ function detectBPM(chan, sr, from, to){
     var rms=Math.sqrt(sum/(win/2));
     env[f]=Math.max(0,rms-prev); prev=rms;
   }
-  // remove local mean so steady loudness doesn't bias the correlation
-  var m=0; for(var f=0;f<frames;f++) m+=env[f]; m/=frames;
-  for(var f=0;f<frames;f++) env[f]-=m;
+  var m=0; for(var f=0;f<frames;f++) m+=env[f]; m/=frames||1;
+  for(var f=0;f<frames;f++) env[f]=Math.max(0,env[f]-m);
   var envRate=sr/hop;
-  var minLag=Math.floor(envRate*60/200), maxLag=Math.ceil(envRate*60/50);
-  maxLag=Math.min(maxLag,Math.floor(frames/2)); if(maxLag<=minLag) return null;
-  var acf=new Float32Array(maxLag+1), best=-1, bestLag=-1;
-  for(var lag=minLag;lag<=maxLag;lag++){
+  // widen the lag range so we can also look at each candidate's multiples
+  var LO=Math.max(2,Math.floor(envRate*60/220)), HI=Math.ceil(envRate*60/13);
+  HI=Math.min(HI, Math.floor(frames/3)); if(HI<=LO+2) return null;
+  var acf=new Float32Array(HI+2);
+  for(var lag=LO;lag<=HI;lag++){
     var s=0,na=0,nb=0, lim=frames-lag;
     for(var i=0;i<lim;i++){ var a=env[i],b=env[i+lag]; s+=a*b; na+=a*a; nb+=b*b; }
-    var c=(na>0&&nb>0)? s/Math.sqrt(na*nb) : 0;
-    // prior: favour tempi near 120 on a log scale (tames octave errors)
-    var bpm=60*envRate/lag, lg=Math.log2(bpm/120);
-    acf[lag]=c*Math.exp(-0.5*(lg/0.9)*(lg/0.9));
-    if(acf[lag]>best){ best=acf[lag]; bestLag=lag; }
+    acf[lag]=(na>0&&nb>0)? s/Math.sqrt(na*nb) : 0;
   }
-  if(bestLag<0) return null;
-  // parabolic interpolation -> fractional lag -> fractional BPM (avoids drift over long tracks)
-  var L=bestLag;
-  if(L>minLag && L<maxLag){
-    var y0=acf[L-1],y1=acf[L],y2=acf[L+1], d=(y0-2*y1+y2);
-    if(Math.abs(d)>1e-9){ var adj=0.5*(y0-y2)/d; if(Math.abs(adj)<1) L=L+adj; }
+  function acfAt(lag){
+    if(lag<LO||lag>=HI) return 0;
+    var i=Math.floor(lag), fr=lag-i;
+    return acf[i]*(1-fr)+(acf[i+1]||0)*fr;
   }
-  var bpm=60*envRate/L;
-  while(bpm<70) bpm*=2; while(bpm>180) bpm/=2;
-  return Math.round(bpm*100)/100;
+  function prior(bpm){ var lg=Math.log2(bpm/125); return Math.exp(-0.5*(lg/1.05)*(lg/1.05)); }
+  // Harmonic (comb) score: a true beat lines up at its lag AND its multiples.
+  // A bar-level pulse (half/quarter tempo) only lines up on a sparser comb, so it loses.
+  // Score the METRICAL multiples only: the beat, the 2-beat, and the bar.
+  // A half-tempo reading matches the 2-beat and bar but has no bar-of-its-own in range,
+  // so it scores lower than the true beat. (k=3,5 are not metrical in 4/4 and only add noise.)
+  var K=[1,2,4], W=[1,0.6,0.4];
+  function score(bpm){
+    var L=envRate*60/bpm, s=0, wt=0;
+    for(var i=0;i<K.length;i++){ var lag=K[i]*L; if(lag<HI){ s+=W[i]*acfAt(lag); wt+=W[i]; } }
+    if(wt<=0) return 0;
+    return (s/wt)*prior(bpm);
+  }
+  var best=-1, bb=null;
+  for(var bpm=55; bpm<=200.001; bpm+=0.25){
+    var sc=score(bpm);
+    if(sc>best){ best=sc; bb=bpm; }
+  }
+  if(bb===null) return null;
+  // refine on a fine grid around the winner
+  var lo=Math.max(55,bb-1), hi=Math.min(200,bb+1);
+  for(var bpm=lo; bpm<=hi; bpm+=0.01){
+    var sc=score(bpm);
+    if(sc>best){ best=sc; bb=bpm; }
+  }
+  return Math.round(bb*100)/100;
 }
 
 var WORKER_SRC = `
@@ -573,7 +590,8 @@ function buildCard(t){
       '<span class="zhint">scroll to zoom · drag to pan</span>'+
     '</div>'+
     '<div class="trow">'+
-      '<div class="field"><label>BPM</label><input type="number" class="tBpm" step="0.01" min="40" max="240"></div>'+
+      '<div class="field"><label title="This track\u2019s own tempo, before any change">Original</label><input type="number" class="tBpm" step="0.01" min="40" max="240"></div>'+
+      '<button class="mini det" title="Detect this track\u2019s tempo from the selected region">Detect original tempo</button>'+
       '<button class="mini x2">×2</button><button class="mini d2">÷2</button>'+
       '<div class="field"><label>Start</label><input type="number" class="tS" step="0.01" min="0"></div>'+
       '<button class="mini sM">−10ms</button><button class="mini sP">+10ms</button>'+
@@ -597,6 +615,7 @@ function buildCard(t){
     var v=parseFloat(e.target.value);
     if(v>=40&&v<=240){ t.bpm=v; invalidate(t); } fill(t); sync();
   });
+  d.querySelector('.det').addEventListener('click',function(){ detectFor(t); });
   d.querySelector('.x2').addEventListener('click',function(){ if(t.bpm*2<=240){ t.bpm=Math.round(t.bpm*200)/100; invalidate(t); fill(t); sync(); } });
   d.querySelector('.d2').addEventListener('click',function(){ if(t.bpm/2>=40){ t.bpm=Math.round(t.bpm*50)/100; invalidate(t); fill(t); sync(); } });
   d.querySelector('.tS').addEventListener('change',function(e){ setStart(t, parseFloat(e.target.value)); });
@@ -610,6 +629,19 @@ function buildCard(t){
   d.querySelector('.mu').addEventListener('click',function(){ toggleMute(t); });
   d.querySelector('.dl').addEventListener('click',function(){ downloadOne(t); });
   wireWave(t);
+}
+function detectFor(t){
+  if(!t.buf) return;
+  var b=t.el.querySelector('.det'); b.disabled=true; b.textContent='Detecting…';
+  setTimeout(function(){
+    var sr=t.buf.sampleRate, mono=t.buf.getChannelData(0);
+    var a=Math.floor(t.start*sr), z=Math.floor(t.end*sr);
+    var bpm=detectBPM(mono, sr, a, z);
+    if(bpm){ t.detected=bpm; t.bpm=bpm; setStatus(t,'Original tempo: '+bpm.toFixed(2)+' BPM'); invalidate(t); }
+    else setStatus(t,'Not enough audio in the selection to detect a tempo.',true);
+    b.disabled=false; b.textContent='Detect original tempo';
+    sync();
+  },30);
 }
 function removeTrack(t){
   stopTrack(t);
@@ -697,8 +729,9 @@ function fill(t){
   if(t.bpm){
     var pct=(tg/t.bpm-1)*100;
     sh.classList.toggle('up', pct>0);
-    sh.innerHTML = Math.abs(pct)<0.05 ? 'already at tempo'
-      : (t.bpm.toFixed(2)+' → <b>'+tg.toFixed(2)+'</b> ('+(pct>0?'+':'')+pct.toFixed(1)+'% speed)');
+    var mult=tg/t.bpm;
+    sh.innerHTML = Math.abs(pct)<0.05 ? 'already at target tempo'
+      : (t.bpm.toFixed(2)+' → <b>'+tg.toFixed(2)+'</b> · plays '+mult.toFixed(3)+'× '+(pct>0?'faster':'slower'));
   } else sh.textContent='';
 }
 function wireWave(t){
