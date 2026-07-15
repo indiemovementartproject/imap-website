@@ -185,6 +185,14 @@
   .gitem.vid>span{position:absolute;bottom:8px;right:10px}
   .ar-169{aspect-ratio:16/9}.ar-916{aspect-ratio:9/16}.ar-11{aspect-ratio:1/1}.ar-43{aspect-ratio:4/3}.ar-34{aspect-ratio:3/4}
   @media (max-width:560px){.ev-bar{top:50px}.gallery{columns:2 150px}}
+
+  .svc-single{display:flex;justify-content:center;margin-top:8px}
+  .svc-single .svc-card{width:min(420px,100%);cursor:pointer;text-decoration:none;display:block;
+    border:1px solid var(--border);border-radius:20px;overflow:hidden;background:var(--glass-2);
+    transition:transform .3s cubic-bezier(.2,.7,.2,1),border-color .3s,box-shadow .3s}
+  .svc-single .svc-card:hover{transform:translateY(-4px);border-color:var(--border-cyan);
+    box-shadow:0 18px 50px rgba(0,0,0,.4),0 0 0 1px var(--border-cyan)}
+  .svc-single .cf-cta{color:var(--cyan)}
 </style>
 </head>
 <body class="home">
@@ -197,7 +205,6 @@
   <div class="nav-links" id="navLinks">
     <a href="#about">About</a>
     <a href="#services">Services</a>
-    <a href="#events">Events</a>
     <a href="count-me-in.html">Count Me In</a>
     <a href="sync-studio.html">Sync Studio</a>
     <a class="nav-cta" data-wa="Hi iMAP! I'd like to book a class.">Book</a>
@@ -233,29 +240,14 @@
   <section class="section" id="services">
     <div class="eyebrow">Services</div>
     <h2>What we <span class="i">do</span>.</h2>
-    <div class="carousel is-carousel" id="svcCar" tabindex="0" aria-label="Services">
-      <div class="cf-glow"></div>
-      <div class="cf-stage" id="svcStage">
-<article class="cf-card svc-card" data-href="batches.html" tabindex="0"><div class="cf-photo"><img src="media/jazz-training.jpg" alt="Regular Batches" loading="lazy" onerror="this.remove()"><span><span class="cam">▣</span>photo</span></div><div class="cf-body"><h3>Regular Batches</h3><p class="cf-desc">Weekly group classes across many styles &amp; levels.</p><div class="cf-cta">View batches →</div></div></article>
-<article class="cf-card svc-card" data-href="training.html" tabindex="0"><div class="cf-photo"><span><span class="cam">▣</span>photo</span></div><div class="cf-body"><h3>Personal Training</h3><p class="cf-desc">One-on-one coaching, on your own schedule.</p><div class="cf-cta">Meet trainers →</div></div></article>
-<article class="cf-card svc-card" data-href="https://wa.me/918454880061?text=Hi%20iMAP%21%20I%27d%20like%20to%20enquire%20about%20wedding%20%26%20sangeet%20choreography." tabindex="0"><div class="cf-photo"><span><span class="cam">▣</span>photo</span></div><div class="cf-body"><h3>Weddings</h3><p class="cf-desc">Sangeet &amp; wedding choreographies set to a particular theme.</p><div class="cf-cta">Enquire →</div></div></article>
-<article class="cf-card svc-card" data-href="corporate.html" tabindex="0"><div class="cf-photo"><span><span class="cam">▣</span>photo</span></div><div class="cf-body"><h3>Corporate Events</h3><p class="cf-desc">Beginner-friendly choreographies for corporate events.</p><div class="cf-cta">View work →</div></div></article>
-<article class="cf-card svc-card" data-href="musicals.html" tabindex="0"><div class="cf-photo"><span><span class="cam">▣</span>photo</span></div><div class="cf-body"><h3>Musicals</h3><p class="cf-desc">Long-format live musical &amp; drama shows that tell a story, set to a theme.</p><div class="cf-cta">View work →</div></div></article>
-</div>
-    </div>
-    <div class="cf-controls">
-      <button class="cf-arrow" id="svcPrev" aria-label="Previous">‹</button>
-      <div class="cf-dots" id="svcDots"></div>
-      <button class="cf-arrow" id="svcNext" aria-label="Next">›</button>
+    <div class="svc-single">
+      <a class="cf-card svc-card" href="batches.html">
+        <div class="cf-photo"><img src="media/jazz-training.jpg" alt="Regular Batches" loading="lazy" onerror="this.remove()"><span><span class="cam">▣</span>photo</span></div>
+        <div class="cf-body"><h3>Regular Batches</h3><p class="cf-desc">Weekly group classes across many styles &amp; levels.</p><div class="cf-cta">View batches →</div></div>
+      </a>
     </div>
   </section>
 
-  <!-- EVENTS & WORKSHOPS -->
-  <section class="section" id="events">
-    <div class="eyebrow">Events &amp; workshops</div>
-    <h2>What's <span class="i">new</span>.</h2>
-    <p class="lead">Something special is on the way — the <span class="i">iMAP Annual Jam</span>. Details and announcements will land right here. Stay tuned.</p>
-  </section>
 </main>
 
 <footer>
@@ -396,8 +388,6 @@
     function disable(){ if(!enabled)return; enabled=false; stopAuto(); if(resumeTimer){clearTimeout(resumeTimer);resumeTimer=0;} root.classList.remove('is-carousel','is-dragging'); if(dotsWrap)dotsWrap.innerHTML=''; cards.forEach(function(c){ c.style.cssText=''; c.classList.remove('is-active'); }); }
     return {enable:enable,disable:disable,layout:layout,next:next,prev:prev,setActive:go};
   }
-
-  (function(){var el=document.getElementById('svcCar');if(!el)return;var sc=Coverflow({root:el,stage:document.getElementById('svcStage'),dots:document.getElementById('svcDots'),prevBtn:document.getElementById('svcPrev'),nextBtn:document.getElementById('svcNext'),span:2,start:0,autoplay:true});sc.enable();})();
 </script>
 </body>
 </html>
