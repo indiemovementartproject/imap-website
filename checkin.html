@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+<title>iMAP Annual Jam · Check-in</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --brand:#5ce1e6; --pink:#f26fb2; --ink:#eaf6ff;
+    --ok:#37e0b0; --bad:#ff6b7a; --warn:#ffcf6b;
+  }
+  *{ box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html,body{ margin:0; height:100%; }
+  body{
+    font-family:"Fredoka",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+    color:var(--ink); overflow:hidden; position:relative;
+    background:
+      radial-gradient(1200px 800px at 50% -10%, #12203a 0%, transparent 60%),
+      radial-gradient(900px 700px at 90% 110%, #171233 0%, transparent 55%),
+      linear-gradient(160deg,#070b16 0%,#0b1122 55%,#080d1a 100%);
+  }
+  /* floating background orbs */
+  .orbs{ position:fixed; inset:0; z-index:0; overflow:hidden; pointer-events:none; }
+  .orb{ position:absolute; border-radius:50%; filter:blur(2px); opacity:.55;
+        animation:float 14s ease-in-out infinite; }
+  .orb::after{ content:""; position:absolute; top:14%; left:18%; width:34%; height:34%;
+        border-radius:50%; background:rgba(255,255,255,.55); filter:blur(4px); }
+  .c{ background:radial-gradient(circle at 34% 30%, rgba(92,225,230,.85), rgba(92,225,230,.06) 62%, transparent 70%);
+      box-shadow:0 0 60px 8px rgba(92,225,230,.35); }
+  .p{ background:radial-gradient(circle at 34% 30%, rgba(242,111,178,.8), rgba(242,111,178,.05) 62%, transparent 70%);
+      box-shadow:0 0 60px 8px rgba(242,111,178,.3); }
+  .w{ background:radial-gradient(circle at 34% 30%, rgba(255,255,255,.7), rgba(255,255,255,.04) 60%, transparent 70%);
+      box-shadow:0 0 50px 6px rgba(255,255,255,.15); }
+  .o1{ width:140px; height:140px; top:8%;  left:-40px; }
+  .o2{ width:90px;  height:90px;  top:22%; right:-24px; animation-delay:-3s; }
+  .o3{ width:70px;  height:70px;  top:60%; left:8%;  animation-delay:-6s; }
+  .o4{ width:120px; height:120px; bottom:6%; right:6%; animation-delay:-2s; }
+  .o5{ width:52px;  height:52px;  top:46%; right:18%; animation-delay:-8s; }
+  .o6{ width:46px;  height:46px;  bottom:20%; left:24%; animation-delay:-5s; }
+  @keyframes float{ 0%,100%{ transform:translateY(0) } 50%{ transform:translateY(-22px) } }
+
+  .app{ position:relative; z-index:1; max-width:460px; margin:0 auto;
+        min-height:100dvh; display:flex; flex-direction:column; align-items:center;
+        padding:26px 18px 34px; gap:16px; }
+
+  .logo{ width:132px; height:132px; object-fit:contain; margin-top:4px;
+         filter:drop-shadow(0 0 26px rgba(92,225,230,.55)) drop-shadow(0 6px 18px rgba(0,0,0,.5));
+         animation:bob 6s ease-in-out infinite; }
+  @keyframes bob{ 0%,100%{ transform:translateY(0) } 50%{ transform:translateY(-8px) } }
+
+  .glass{ background:rgba(255,255,255,.055); border:1px solid rgba(255,255,255,.14);
+          backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px);
+          box-shadow:0 8px 34px rgba(0,0,0,.4), inset 0 1px 0 rgba(255,255,255,.12); }
+
+  .counter{ display:flex; align-items:center; gap:8px; padding:9px 18px; border-radius:999px;
+            font-size:15px; font-weight:600; letter-spacing:.3px; }
+  .counter b{ color:var(--brand); font-size:17px; }
+
+  .scanner{ width:100%; border-radius:22px; padding:14px; }
+  #reader{ width:100%; border-radius:14px; overflow:hidden; }
+  #reader video{ border-radius:14px; }
+  .scanhint{ text-align:center; font-size:13px; opacity:.6; margin-top:2px; }
+
+  .manual{ width:100%; border-radius:18px; padding:14px; display:flex; flex-direction:column; gap:10px; }
+  .manual input{ width:100%; padding:13px 14px; border-radius:12px; border:1px solid rgba(255,255,255,.18);
+                 background:rgba(255,255,255,.06); color:#fff; font-size:15px;
+                 font-family:ui-monospace,monospace; text-transform:uppercase; }
+  .manual input::placeholder{ color:rgba(234,246,255,.4); text-transform:none; }
+  .manual button{ width:100%; padding:13px; border:none; border-radius:12px; cursor:pointer;
+                  font-family:"Fredoka",sans-serif; font-weight:600; font-size:15px; color:#062225;
+                  background:linear-gradient(120deg,var(--brand),#8ff0f3);
+                  box-shadow:0 6px 18px rgba(92,225,230,.35); }
+
+  /* result popup */
+  .popup{ position:fixed; inset:0; z-index:10; display:flex; align-items:center; justify-content:center;
+          padding:24px; background:rgba(4,8,18,.55); backdrop-filter:blur(6px);
+          opacity:0; pointer-events:none; transition:opacity .2s ease; }
+  .popup.show{ opacity:1; pointer-events:auto; }
+  .card{ width:100%; max-width:360px; border-radius:26px; padding:34px 26px; text-align:center;
+         background:rgba(255,255,255,.07); border:1px solid rgba(255,255,255,.16);
+         backdrop-filter:blur(20px); box-shadow:0 20px 60px rgba(0,0,0,.5);
+         transform:scale(.8); opacity:0; transition:transform .28s cubic-bezier(.2,1.3,.4,1), opacity .2s; }
+  .popup.show .card{ transform:scale(1); opacity:1; }
+  .badge{ width:96px; height:96px; margin:0 auto 18px; border-radius:50%; display:flex;
+          align-items:center; justify-content:center; font-size:52px; font-weight:700; color:#04231a; }
+  .card h1{ font-size:30px; margin:0 0 4px; font-weight:700; }
+  .card p{ font-size:18px; margin:0; opacity:.9; font-weight:500; }
+  .card .pcode{ margin-top:16px; font-family:ui-monospace,monospace; font-size:14px;
+                letter-spacing:.5px; opacity:.75; }
+  .card .psub{ margin-top:6px; font-size:14px; opacity:.7; }
+
+  /* state colors */
+  .ok .badge{ background:linear-gradient(135deg,var(--ok),#7bf0cf); box-shadow:0 0 40px rgba(55,224,176,.6); }
+  .ok h1{ color:var(--ok); text-shadow:0 0 22px rgba(55,224,176,.5); }
+  .bad .badge{ background:linear-gradient(135deg,var(--bad),#ff9aa4); color:#2a0708; box-shadow:0 0 40px rgba(255,107,122,.55); }
+  .bad h1{ color:var(--bad); }
+  .warn .badge{ background:linear-gradient(135deg,var(--warn),#ffe3a6); color:#2a1c02; }
+  .warn h1{ color:var(--warn); }
+</style>
+<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+</head>
+<body>
+<div class="orbs">
+  <div class="orb c o1"></div><div class="orb p o2"></div><div class="orb w o3"></div>
+  <div class="orb c o4"></div><div class="orb p o5"></div><div class="orb w o6"></div>
+</div>
+
+<div class="app">
+  <img class="logo" src="logo_orb.png" alt="iMAP Annual Jam" />
+  <div class="counter glass">Admitted <b id="admitted">–</b> / 300</div>
+
+  <div class="scanner glass">
+    <div id="reader"></div>
+  </div>
+  <div class="scanhint">Point the camera at a ticket QR</div>
+
+  <div class="manual glass">
+    <input id="manualCode" placeholder="Or type code e.g. IMAP-JAM-2026-AB12CD" autocomplete="off" />
+    <button id="manualBtn">Check code</button>
+  </div>
+</div>
+
+<!-- result popup -->
+<div id="popup" class="popup" onclick="hidePopup()">
+  <div class="card" id="card">
+    <div class="badge" id="badge">✓</div>
+    <h1 id="ptitle">Welcome!</h1>
+    <p id="pmsg">Check-in Successful</p>
+    <div class="pcode" id="pcode"></div>
+    <div class="psub" id="psub"></div>
+  </div>
+</div>
+
+<script>
+// ---- PASTE YOUR FIREBASE CONFIG (copy from your working attendance app) ----
+const firebaseConfig = {
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_PROJECT.firebaseapp.com",
+  databaseURL: "https://imap-attendance-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "YOUR_PROJECT",
+  appId: "YOUR_APP_ID"
+};
+// ---------------------------------------------------------------------------
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+const $ = (id) => document.getElementById(id);
+let busy = false, hideTimer = null;
+
+// live admitted count
+db.ref("Tickets").on("value", (snap) => {
+  let used = 0;
+  snap.forEach((c) => { if (c.val() && c.val().used) used++; });
+  $("admitted").textContent = used;
+});
+
+function showPopup(state, title, msg, code, sub){
+  clearTimeout(hideTimer);
+  $("card").className = "card " + state;
+  $("badge").textContent = state === "ok" ? "✓" : (state === "warn" ? "!" : "✕");
+  $("ptitle").textContent = title;
+  $("pmsg").textContent = msg;
+  $("pcode").textContent = code || "";
+  $("psub").textContent = sub || "";
+  $("popup").classList.add("show");
+  hideTimer = setTimeout(hidePopup, state === "ok" ? 1900 : 2600);
+}
+function hidePopup(){ $("popup").classList.remove("show"); busy = false; }
+
+function checkCode(raw){
+  if (busy) return;
+  const code = (raw || "").trim().toUpperCase();
+  if (!code) return;
+  busy = true;
+  const ref = db.ref("Tickets/" + code.replace(/[.#$/\[\]]/g, ""));
+  ref.transaction((cur) => {
+    if (cur === null) return;        // unknown code -> abort
+    if (cur.used) return;            // already used -> abort
+    cur.used = true; cur.usedAt = Date.now();
+    return cur;
+  }, (err, committed, snap) => {
+    if (err){ showPopup("warn", "Try again", "Network hiccup", code); }
+    else if (!snap.exists()){ showPopup("bad", "Invalid ticket", "Not on the guest list", code); }
+    else if (!committed){
+      const t = snap.val().usedAt ? new Date(snap.val().usedAt).toLocaleTimeString() : "";
+      showPopup("bad", "Already checked in", "This ticket was used", code, t ? "First scanned " + t : "");
+    }
+    else { showPopup("ok", "Welcome!", "Check-in Successful", code); }
+  });
+}
+
+$("manualBtn").onclick = () => { checkCode($("manualCode").value); $("manualCode").value = ""; };
+
+// camera QR scanning
+const scanner = new Html5Qrcode("reader");
+Html5Qrcode.getCameras().then((cams) => {
+  const back = cams.find(c => /back|rear|environment/i.test(c.label)) || cams[cams.length - 1];
+  scanner.start(
+    back ? back.id : { facingMode: "environment" },
+    { fps: 10, qrbox: { width: 230, height: 230 } },
+    (decoded) => checkCode(decoded),
+    () => {}
+  );
+}).catch(() => { document.querySelector(".scanhint").textContent = "Camera unavailable — use the code box below"; });
+</script>
+</body>
+</html>
