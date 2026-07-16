@@ -186,13 +186,36 @@
   .ar-169{aspect-ratio:16/9}.ar-916{aspect-ratio:9/16}.ar-11{aspect-ratio:1/1}.ar-43{aspect-ratio:4/3}.ar-34{aspect-ratio:3/4}
   @media (max-width:560px){.ev-bar{top:50px}.gallery{columns:2 150px}}
 
-  .svc-single{display:flex;justify-content:center;margin-top:8px}
-  .svc-single .svc-card{width:min(420px,100%);cursor:pointer;text-decoration:none;display:block;
-    border:1px solid var(--border);border-radius:20px;overflow:hidden;background:var(--glass-2);
-    transition:transform .3s cubic-bezier(.2,.7,.2,1),border-color .3s,box-shadow .3s}
-  .svc-single .svc-card:hover{transform:translateY(-4px);border-color:var(--border-cyan);
-    box-shadow:0 18px 50px rgba(0,0,0,.4),0 0 0 1px var(--border-cyan)}
-  .svc-single .cf-cta{color:var(--cyan)}
+
+  /* admin (team-only) */
+  .admin{position:relative;z-index:1;border-top:1px solid var(--border);background:rgba(5,7,9,.6);
+    backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);text-align:center;padding:18px 20px 26px}
+  .admin-toggle{background:none;border:0;cursor:pointer;color:var(--muted-2);font-family:"Space Mono",monospace;
+    font-size:11px;letter-spacing:.22em;text-transform:uppercase;padding:8px 14px;border-radius:999px;transition:.25s}
+  .admin-toggle:hover{color:var(--cyan)}
+  .admin-toggle .lk{opacity:.7;margin-right:7px}
+  .admin-panel{max-width:340px;margin:0 auto;overflow:hidden;max-height:0;opacity:0;
+    transition:max-height .35s ease,opacity .3s ease,margin .35s ease}
+  .admin-panel.open{max-height:260px;opacity:1;margin-top:16px}
+  .admin-panel form{display:flex;gap:8px;justify-content:center}
+  .admin-panel input{flex:1;max-width:210px;padding:11px 14px;border-radius:12px;border:1px solid var(--border);
+    background:rgba(255,255,255,.05);color:var(--text);font-family:"Space Mono",monospace;font-size:13px;outline:0}
+  .admin-panel input:focus{border-color:var(--border-cyan)}
+  .admin-panel button.go{padding:11px 18px;border-radius:12px;border:1px solid var(--cyan);background:var(--cyan);
+    color:#06202a;font-family:"Space Grotesk",sans-serif;font-weight:600;font-size:13px;cursor:pointer;transition:.2s}
+  .admin-panel button.go:hover{box-shadow:0 0 18px rgba(92,225,230,.4)}
+  .admin-err{color:#ffb060;font-family:"Space Mono",monospace;font-size:11px;margin-top:10px;min-height:14px;letter-spacing:.04em}
+  .admin-links{display:none;flex-direction:column;gap:10px;margin-top:4px}
+  .admin-links.show{display:flex}
+  .admin-links a.tool{display:inline-flex;align-items:center;justify-content:center;gap:9px;
+    padding:12px 18px;border-radius:12px;border:1px solid var(--border-cyan);background:rgba(92,225,230,.06);
+    color:var(--text);text-decoration:none;font-size:14px;transition:.22s}
+  .admin-links a.tool:hover{background:rgba(92,225,230,.12);box-shadow:0 0 18px rgba(92,225,230,.25)}
+  .admin-links .hint{color:var(--muted-2);font-family:"Space Mono",monospace;font-size:10.5px;letter-spacing:.1em}
+  .admin-lock{margin-top:12px}
+  .admin-lock button{background:none;border:0;color:var(--muted-2);font-family:"Space Mono",monospace;
+    font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;cursor:pointer;transition:.2s}
+  .admin-lock button:hover{color:var(--cyan)}
 </style>
 </head>
 <body class="home">
@@ -205,6 +228,7 @@
   <div class="nav-links" id="navLinks">
     <a href="#about">About</a>
     <a href="#services">Services</a>
+    <a href="#events">What’s new</a>
     <a href="count-me-in.html">Count Me In</a>
     <a href="sync-studio.html">Sync Studio</a>
     <a class="nav-cta" data-wa="Hi iMAP! I'd like to book a class.">Book</a>
@@ -240,12 +264,28 @@
   <section class="section" id="services">
     <div class="eyebrow">Services</div>
     <h2>What we <span class="i">do</span>.</h2>
-    <div class="svc-single">
-      <a class="cf-card svc-card" href="batches.html">
-        <div class="cf-photo"><img src="media/jazz-training.jpg" alt="Regular Batches" loading="lazy" onerror="this.remove()"><span><span class="cam">▣</span>photo</span></div>
-        <div class="cf-body"><h3>Regular Batches</h3><p class="cf-desc">Weekly group classes across many styles &amp; levels.</p><div class="cf-cta">View batches →</div></div>
-      </a>
+    <div class="carousel is-carousel" id="svcCar" tabindex="0" aria-label="Services">
+      <div class="cf-glow"></div>
+      <div class="cf-stage" id="svcStage">
+<article class="cf-card svc-card" data-href="batches.html" tabindex="0"><div class="cf-photo"><img src="media/jazz-training.jpg" alt="Regular Batches" loading="lazy" onerror="this.remove()"><span><span class="cam">▣</span>photo</span></div><div class="cf-body"><h3>Regular Batches</h3><p class="cf-desc">Weekly group classes across many styles &amp; levels.</p><div class="cf-cta">View batches →</div></div></article>
+<article class="cf-card svc-card" data-href="training.html" tabindex="0"><div class="cf-photo"><span><span class="cam">▣</span>photo</span></div><div class="cf-body"><h3>Personal Training</h3><p class="cf-desc">One-on-one coaching, on your own schedule.</p><div class="cf-cta">Meet trainers →</div></div></article>
+<article class="cf-card svc-card" data-href="https://wa.me/918454880061?text=Hi%20iMAP%21%20I%27d%20like%20to%20enquire%20about%20wedding%20%26%20sangeet%20choreography." tabindex="0"><div class="cf-photo"><span><span class="cam">▣</span>photo</span></div><div class="cf-body"><h3>Weddings</h3><p class="cf-desc">Sangeet &amp; wedding choreographies set to a particular theme.</p><div class="cf-cta">Enquire →</div></div></article>
+<article class="cf-card svc-card" data-href="corporate.html" tabindex="0"><div class="cf-photo"><span><span class="cam">▣</span>photo</span></div><div class="cf-body"><h3>Corporate Events</h3><p class="cf-desc">Beginner-friendly choreographies for corporate events.</p><div class="cf-cta">View work →</div></div></article>
+<article class="cf-card svc-card" data-href="musicals.html" tabindex="0"><div class="cf-photo"><span><span class="cam">▣</span>photo</span></div><div class="cf-body"><h3>Musicals</h3><p class="cf-desc">Long-format live musical &amp; drama shows that tell a story, set to a theme.</p><div class="cf-cta">View work →</div></div></article>
+</div>
     </div>
+    <div class="cf-controls">
+      <button class="cf-arrow" id="svcPrev" aria-label="Previous">‹</button>
+      <div class="cf-dots" id="svcDots"></div>
+      <button class="cf-arrow" id="svcNext" aria-label="Next">›</button>
+    </div>
+  </section>
+
+  <!-- EVENTS & WORKSHOPS -->
+  <section class="section" id="events">
+    <div class="eyebrow">Events &amp; workshops</div>
+    <h2>What's <span class="i">new</span>.</h2>
+    <p class="lead">Something special is on the way — the <span class="i">iMAP Annual Jam</span>. Details and announcements will land right here. Stay tuned.</p>
   </section>
 
 </main>
@@ -268,6 +308,23 @@
   </div>
   <div class="foot-bottom">© <span id="yr"></span> Indie Movement Art Project · Movement. Method. Mindset</div>
 </footer>
+
+<section class="admin" id="admin">
+  <button class="admin-toggle" id="adminToggle" aria-expanded="false"><span class="lk">⚿</span>Admin</button>
+  <div class="admin-panel" id="adminPanel">
+    <form id="adminForm" autocomplete="off">
+      <input type="password" id="adminPass" placeholder="Team password" aria-label="Admin password" autocomplete="off">
+      <button type="submit" class="go">Enter</button>
+    </form>
+    <div class="admin-err" id="adminErr"></div>
+    <div class="admin-links" id="adminLinks">
+      <span class="hint">Team tools</span>
+      <a class="tool" href="checkin.html">🎟 Annual Jam · Check-in</a>
+      <div class="admin-lock"><button id="adminLock">Lock again</button></div>
+    </div>
+  </div>
+</section>
+
 
 <script>
   
@@ -388,6 +445,49 @@
     function disable(){ if(!enabled)return; enabled=false; stopAuto(); if(resumeTimer){clearTimeout(resumeTimer);resumeTimer=0;} root.classList.remove('is-carousel','is-dragging'); if(dotsWrap)dotsWrap.innerHTML=''; cards.forEach(function(c){ c.style.cssText=''; c.classList.remove('is-active'); }); }
     return {enable:enable,disable:disable,layout:layout,next:next,prev:prev,setActive:go};
   }
+
+  (function(){var el=document.getElementById('svcCar');if(!el)return;var sc=Coverflow({root:el,stage:document.getElementById('svcStage'),dots:document.getElementById('svcDots'),prevBtn:document.getElementById('svcPrev'),nextBtn:document.getElementById('svcNext'),span:2,start:0,autoplay:true});sc.enable();})();
+</script>
+
+<script>
+(function(){
+  var HASH="7d95799b975c47b4bfeb475f93e1c5968f1c959e10425478f769efb0d9c0bac2";
+  var toggle=document.getElementById('adminToggle'), panel=document.getElementById('adminPanel'),
+      form=document.getElementById('adminForm'), pass=document.getElementById('adminPass'),
+      err=document.getElementById('adminErr'), links=document.getElementById('adminLinks'),
+      lock=document.getElementById('adminLock');
+  if(!toggle) return;
+
+  function unlock(){ links.classList.add('show'); form.style.display='none'; err.textContent=''; }
+  function relock(){ links.classList.remove('show'); form.style.display='flex'; pass.value=''; try{sessionStorage.removeItem('imapAdmin');}catch(e){} }
+
+  // stay unlocked for the browser session so the team isn't re-prompted each visit
+  try{ if(sessionStorage.getItem('imapAdmin')==='1') unlock(); }catch(e){}
+
+  toggle.addEventListener('click',function(){
+    var open=panel.classList.toggle('open');
+    toggle.setAttribute('aria-expanded',open?'true':'false');
+    if(open){ setTimeout(function(){ if(form.style.display!=='none') pass.focus(); },260); }
+  });
+
+  async function sha256(str){
+    if(window.crypto&&crypto.subtle){
+      var buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(str));
+      return Array.from(new Uint8Array(buf)).map(function(b){return b.toString(16).padStart(2,'0');}).join('');
+    }
+    return null; // no fallback: crypto.subtle needs https or localhost
+  }
+
+  form.addEventListener('submit',async function(e){
+    e.preventDefault();
+    err.textContent='Checking…';
+    var h=await sha256(pass.value);
+    if(h===null){ err.textContent='Open this page over https to sign in.'; return; }
+    if(h===HASH){ try{sessionStorage.setItem('imapAdmin','1');}catch(e){} unlock(); }
+    else { err.textContent='Incorrect password.'; pass.select(); }
+  });
+  if(lock) lock.addEventListener('click',relock);
+})();
 </script>
 </body>
 </html>
