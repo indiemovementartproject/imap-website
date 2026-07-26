@@ -111,7 +111,7 @@
 
 <div class="app">
   <img class="logo" src="logo_orb.png" alt="iMAP Annual Jam" />
-  <div class="counter glass">Admitted <b id="admitted">–</b> / 300</div>
+  <div class="counter glass">Admitted <b id="admitted">–</b> / 337</div>
 
   <div class="scanner glass">
     <div id="reader"></div>
@@ -189,7 +189,11 @@ function checkCode(raw){
       const t = snap.val().usedAt ? new Date(snap.val().usedAt).toLocaleTimeString() : "";
       showPopup("bad", "Already checked in", "This ticket was used", code, t ? "First scanned " + t : "");
     }
-    else { showPopup("ok", "Welcome!", "Check-in Successful", code); }
+    else {
+      var cat = snap.val().cat;
+      var label = cat === "student" ? "Student pass" : (cat === "sellable" ? "Sold ticket" : "");
+      showPopup("ok", "Welcome!", "Check-in Successful", code, label);
+    }
   });
 }
 
