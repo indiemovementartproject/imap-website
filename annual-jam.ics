@@ -1,0 +1,26 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Indie Movement Art Project//Annual Jam 2026//EN
+CALSCALE:GREGORIAN
+METHOD:PUBLISH
+BEGIN:VEVENT
+UID:annual-jam-2026@indiemovementartproject
+DTSTAMP:20260727T000000Z
+DTSTART:20260809T130000Z
+DTEND:20260809T163000Z
+SUMMARY:iMAP Annual Jam 2026
+DESCRIPTION:iMAP 3rd Anniversary Show. Show starts 6:30 PM. Open seating fr
+ om row E onwards\, first come first served. Rows A to D are reserved for i
+ nvited guests and sponsors.
+LOCATION:Terna Auditorium\, Plot 12\, Sector 22\, Nerul (W)\, Navi Mumbai 4
+ 00706
+URL:https://maps.app.goo.gl/5mLNQaJ7CuwuEUg97
+STATUS:CONFIRMED
+TRANSP:OPAQUE
+BEGIN:VALARM
+TRIGGER:-P1D
+ACTION:DISPLAY
+DESCRIPTION:iMAP Annual Jam is tomorrow
+END:VALARM
+END:VEVENT
+END:VCALENDAR
