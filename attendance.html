@@ -354,6 +354,73 @@
     .archived-batches-toggle{width:auto;white-space:nowrap;flex-shrink:0;}
     #main{padding:20px 16px 50px;}
   }
+
+/* ===================== STAFF LOGIN GATE ===================== */
+#authGate{
+  position:fixed; inset:0; z-index:99999;
+  display:flex; align-items:center; justify-content:center; padding:24px;
+  background:linear-gradient(160deg, var(--bg-0), var(--bg-1) 55%, var(--bg-2));
+}
+#authGate[hidden]{ display:none; }
+#authCard{
+  width:100%; max-width:340px;
+  background:var(--glass-strong);
+  -webkit-backdrop-filter:blur(18px); backdrop-filter:blur(18px);
+  border:1px solid var(--glass-border-bright);
+  border-radius:var(--radius);
+  box-shadow:var(--shadow), var(--glow);
+  padding:30px 26px 26px;
+}
+#authLogo{
+  width:44px; height:44px; margin:0 0 16px;
+  border-radius:12px;
+  background:radial-gradient(circle at 30% 30%, var(--brand-bright), var(--brand-deep));
+  box-shadow:0 0 22px -4px var(--brand-glow);
+}
+#authCard h1{
+  margin:0; font-size:20px; font-weight:650; letter-spacing:-0.01em; color:var(--text);
+}
+#authCard .authSub{
+  margin:4px 0 22px; font-size:13px; color:var(--text-dim); letter-spacing:0.02em;
+}
+#authCard label{
+  display:block; font-size:11px; text-transform:uppercase; letter-spacing:0.09em;
+  color:var(--text-dim); margin:0 0 6px;
+}
+#authCard input{
+  width:100%; box-sizing:border-box; padding:11px 13px; margin:0 0 16px;
+  font:inherit; font-size:14px; color:var(--text);
+  background:rgba(0,0,0,0.28);
+  border:1px solid var(--glass-border); border-radius:11px;
+  outline:none; transition:border-color .18s, box-shadow .18s;
+}
+#authCard input:focus{
+  border-color:var(--brand); box-shadow:0 0 0 3px var(--brand-glow-soft);
+}
+#authBtn{
+  width:100%; padding:12px; margin-top:4px;
+  font:inherit; font-size:14px; font-weight:650; letter-spacing:0.01em;
+  color:#062024; background:var(--brand);
+  border:none; border-radius:11px; cursor:pointer;
+  transition:background .18s, transform .08s, opacity .18s;
+}
+#authBtn:hover{ background:var(--brand-bright); }
+#authBtn:active{ transform:translateY(1px); }
+#authBtn[disabled]{ opacity:.55; cursor:default; }
+#authErr{
+  min-height:17px; margin:13px 0 0; font-size:12.5px; line-height:1.4;
+  color:var(--absent); text-align:center;
+}
+#signOutBtn{
+  position:fixed; right:14px; bottom:14px; z-index:9998;
+  padding:7px 13px; font:inherit; font-size:12px; letter-spacing:0.02em;
+  color:var(--text-soft); background:var(--glass);
+  -webkit-backdrop-filter:blur(12px); backdrop-filter:blur(12px);
+  border:1px solid var(--glass-border); border-radius:999px;
+  cursor:pointer; opacity:.55; transition:opacity .18s, color .18s, border-color .18s;
+}
+#signOutBtn:hover{ opacity:1; color:var(--text); border-color:var(--glass-border-bright); }
+@media (max-width:780px){ #signOutBtn{ bottom:auto; top:10px; right:10px; } }
 </style>
 </head>
 <body>
@@ -372,6 +439,22 @@
 </div>
 <div id="toast"></div>
 <div id="celebrate"></div>
+
+<!-- ===================== STAFF LOGIN GATE ===================== -->
+<div id="authGate" aria-hidden="false">
+  <div id="authCard">
+    <div id="authLogo"></div>
+    <h1>Staff sign in</h1>
+    <p class="authSub">iMAP Attendance</p>
+    <label for="authEmail">Email</label>
+    <input id="authEmail" type="email" autocomplete="username" spellcheck="false" placeholder="you@imap.com">
+    <label for="authPass">Password</label>
+    <input id="authPass" type="password" autocomplete="current-password" placeholder="••••••••">
+    <button id="authBtn" type="button">Sign in</button>
+    <p id="authErr" role="alert"></p>
+  </div>
+</div>
+<button id="signOutBtn" type="button" title="Sign out" hidden>Sign out</button>
 
 <script>
 /* ============================= CONSTANTS ============================= */
@@ -413,20 +496,115 @@ function _loadScript(src){
   });
 }
 
+/* ---------------------------- AUTH GATE ----------------------------
+   The database rules require a signed-in staff account. Nothing is read
+   or written until firebase.auth() reports a user, so the app simply
+   waits on the login overlay instead of silently showing an empty sheet.
+-------------------------------------------------------------------- */
+function _authError(code){
+  switch(code){
+    case 'auth/invalid-email':        return 'That email address is not valid.';
+    case 'auth/user-disabled':        return 'This account has been disabled.';
+    case 'auth/user-not-found':
+    case 'auth/wrong-password':
+    case 'auth/invalid-credential':   return 'Wrong email or password.';
+    case 'auth/too-many-requests':    return 'Too many attempts. Wait a minute and try again.';
+    case 'auth/network-request-failed': return 'No connection. Check your internet.';
+    default:                          return 'Could not sign in. Please try again.';
+  }
+}
+
+function waitForAuth(){
+  const gate   = document.getElementById('authGate');
+  const email  = document.getElementById('authEmail');
+  const pass   = document.getElementById('authPass');
+  const btn    = document.getElementById('authBtn');
+  const err    = document.getElementById('authErr');
+  const outBtn = document.getElementById('signOutBtn');
+
+  async function attempt(){
+    const e = (email.value || '').trim();
+    const p = pass.value || '';
+    err.textContent = '';
+    if(!e || !p){ err.textContent = 'Enter your email and password.'; return; }
+    btn.disabled = true; btn.textContent = 'Signing in\u2026';
+    try{
+      await firebase.auth().signInWithEmailAndPassword(e, p);
+    }catch(ex){
+      err.textContent = _authError(ex && ex.code);
+      pass.value = ''; pass.focus();
+    }finally{
+      btn.disabled = false; btn.textContent = 'Sign in';
+    }
+  }
+
+  btn.addEventListener('click', attempt);
+  [email, pass].forEach(el => el.addEventListener('keydown', ev => {
+    if(ev.key === 'Enter'){ ev.preventDefault(); attempt(); }
+  }));
+  outBtn.addEventListener('click', ()=>{
+    firebase.auth().signOut().then(()=>location.reload());
+  });
+
+  // Resolves the first time a user is present. Later sign-outs reload the page.
+  return new Promise(resolve => {
+    let settled = false;
+    firebase.auth().onAuthStateChanged(user => {
+      if(user && !settled){
+        settled = true;
+        gate.hidden = true;
+        gate.setAttribute('aria-hidden','true');
+        outBtn.hidden = false;
+        resolve(user);
+      }else if(!user && settled){
+        location.reload();
+      }else if(!user){
+        gate.hidden = false;
+        pass.value = '';
+        email.focus();
+      }
+    });
+  });
+}
+
 async function initStorage(){
   if(FIREBASE_CONFIG && FIREBASE_CONFIG.databaseURL){
     try{
       await _loadScript('https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js');
+      await _loadScript('https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js');
       await _loadScript('https://www.gstatic.com/firebasejs/10.12.5/firebase-database-compat.js');
       firebase.initializeApp(FIREBASE_CONFIG);
+
+      // Blocks here until a staff member signs in. No DB call happens before this.
+      await waitForAuth();
+
       fbRoot = firebase.database().ref('imap_attendance');
       STORE_MODE = 'firebase';
     }catch(e){
-      console.error('Firebase init failed — using this device only.', e);
+      console.error('Firebase init failed \u2014 using this device only.', e);
       STORE_MODE = 'local';
-      setTimeout(()=>showToast('Cloud sync unavailable — saving to this device only', true), 1000);
+      document.getElementById('authGate').hidden = true;
+      setTimeout(()=>showToast('Cloud sync unavailable \u2014 saving to this device only', true), 1000);
     }
+  }else{
+    document.getElementById('authGate').hidden = true;
   }
+}
+
+/* A permission error means the signed-in account is not allowed by the
+   database rules. Say so loudly \u2014 silently returning empty data makes it
+   look like the records were deleted, which they were not. */
+let _deniedWarned = false;
+function _isDenied(e){
+  const m = (e && (e.code || e.message) || '').toString().toUpperCase();
+  return m.indexOf('PERMISSION') !== -1 || m.indexOf('DENIED') !== -1;
+}
+function _warnDenied(){
+  if(_deniedWarned) return;
+  _deniedWarned = true;
+  const who = (firebase.auth().currentUser || {}).email || 'this account';
+  console.error('Database rules rejected ' + who + '. Data is intact \u2014 access is not granted.');
+  showToast('No access for ' + who + '. Your data is safe \u2014 ask the admin to grant this account.', true);
 }
 
 async function storeGet(key, fallback){
@@ -437,7 +615,10 @@ async function storeGet(key, fallback){
     }
     const v = localStorage.getItem(LS_PREFIX + key);
     return v === null ? fallback : JSON.parse(v);
-  }catch(e){ return fallback; }
+  }catch(e){
+    if(_isDenied(e)) _warnDenied();
+    return fallback;
+  }
 }
 async function storeSet(key, value){
   try{
@@ -447,7 +628,11 @@ async function storeSet(key, value){
     }
     localStorage.setItem(LS_PREFIX + key, JSON.stringify(value));
     return true;
-  }catch(e){ showToast('Could not save changes', true); return null; }
+  }catch(e){
+    if(_isDenied(e)){ _warnDenied(); }
+    else { showToast('Could not save changes', true); }
+    return null;
+  }
 }
 async function storeList(prefix){
   try{
