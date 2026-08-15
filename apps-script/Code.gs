@@ -17,7 +17,7 @@
 
 /* Bump this whenever you paste a new copy in. Visiting the /exec URL in a browser
    prints it, so you can always tell which version the web app is actually serving. */
-var BUILD = '2026-08-15-c';
+var BUILD = '2026-08-15-d';
 
 var CONFIG = {
   ADMIN_EMAIL:   'indiemovementartproject@gmail.com',
@@ -229,9 +229,12 @@ function ocrImage(blob) {
     throw new Error('Drive advanced service is not switched on');
   }
   var file;
-  if (Drive.Files.insert) {                       /* Drive v2 */
+  if (Drive.Files.insert) {
+    /* Drive v2: `ocr: true` already implies conversion to a Doc. Naming the Doc
+       mimeType here makes Drive read it as the SOURCE type and refuse with
+       "OCR is not supported for files of type application/vnd.google-apps.document". */
     file = Drive.Files.insert(
-      { title: 'imap-ocr-tmp', mimeType: 'application/vnd.google-apps.document' },
+      { title: 'imap-ocr-tmp' },
       blob, { ocr: true, ocrLanguage: 'en' });
   } else if (Drive.Files.create) {                /* Drive v3 — conversion comes from the mimeType */
     file = Drive.Files.create(
