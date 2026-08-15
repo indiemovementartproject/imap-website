@@ -17,7 +17,13 @@
 
 var CONFIG = {
   ADMIN_EMAIL:   'indiemovementartproject@gmail.com',
-  SCREENSHOT_TO: 'indiemovementartproject@gmail.com',  // Ruchika — put her own address here if she has one
+  /* Everyone who should hear about a payment. Add or remove freely — the first
+     address is the To:, the rest are copied in. */
+  NOTIFY: [
+    'chikajain@gmail.com',                 // Ruchika — iMAP WhatsApp
+    'rohitchoudhary91.rc@gmail.com',       // Rohit — the account being paid
+    'indiemovementartproject@gmail.com'    // studio record
+  ],
   BRAND: 'Indie Movement Art Project',
   SITE:  'https://indiemovementartproject.com',
   ENQUIRY_WHATSAPP: '918454880061',   // Ruchika — enquiries + screenshots
@@ -370,20 +376,27 @@ function mailAdmin(receipt, d, shot) {
     (d.flags ? '<div style="margin:0 0 16px;padding:12px 14px;border-radius:10px;background:#fdecea;border:1px solid #f0a9a1;' +
         'color:#8a2018;font:13px/1.6 -apple-system,Segoe UI,sans-serif"><b>Check this:</b> ' + esc(d.flags) + '</div>' : '') +
     '<table style="width:100%;border-collapse:collapse">' +
-      row('Receipt', receipt) + row('For', d.lines) + row('Total', '₹' + d.expected) +
       row('Name', d.name) + row('Contact', '+91 ' + d.phone) +
       row('Email', d.email || '— not given —') +
+      row('Paid', '₹' + d.expected) + row('For', d.lines) +
+      row('Receipt', receipt) +
       (shot && shot.utr ? row('UPI ref (read off image)', shot.utr) : '') +
       row('Reference', d.ref) +
     '</table>' +
-    '<p style="margin:20px 0 0"><a href="https://wa.me/91' + esc(d.phone) + '" ' +
+    '<p style="font:12px/1.6 -apple-system,Segoe UI,sans-serif;color:#8a9a9c;margin:14px 0 0">' +
+      (shot && shot.blob ? 'Their payment screenshot is attached.' : 'No screenshot came through.') + '</p>' +
+    '<p style="margin:20px 0 0"><a href="https://wa.me/91' + esc(d.phone) + '?text=' +
+      encodeURIComponent('Hi ' + d.name.split(/\s+/)[0] + '! Thanks for your payment of ₹' + d.expected +
+        ' for ' + d.lines + '. Your booking is confirmed — receipt ' + receipt + '. See you in the studio!') + '" ' +
       'style="display:inline-block;background:#25D366;color:#fff;text-decoration:none;padding:12px 20px;' +
-      'border-radius:10px;font:14px -apple-system,Segoe UI,sans-serif">WhatsApp ' + esc(d.name.split(/\s+/)[0]) + '</a></p>' +
+      'border-radius:10px;font:14px -apple-system,Segoe UI,sans-serif">WhatsApp ' + esc(d.name.split(/\s+/)[0]) +
+      ' — message ready</a></p>' +
     (shot && shot.url ? '<p style="font:12px -apple-system,Segoe UI,sans-serif;margin:14px 0 0">' +
       '<a href="' + esc(shot.url) + '" style="color:' + CONFIG.CYAN + '">Open the screenshot in Drive</a></p>' : '');
 
+  var to = CONFIG.NOTIFY.slice(0);
   var opts = {
-    to: CONFIG.SCREENSHOT_TO,
+    to: to.shift(),
     subject: (passed ? '✅ ' : '⚠️ ') + 'Payment · ₹' + d.expected + ' · ' + d.name + ' · ' + receipt,
     htmlBody: shell(passed ? 'Payment confirmed' : 'Payment needs checking',
                     passed ? 'Auto-verified' : 'Needs a look',
@@ -391,6 +404,7 @@ function mailAdmin(receipt, d, shot) {
     name: 'iMAP Payments',
     replyTo: d.email || CONFIG.ADMIN_EMAIL
   };
+  if (to.length) opts.cc = to.join(',');
   if (shot && shot.blob) opts.attachments = [shot.blob];
   MailApp.sendEmail(opts);
 }

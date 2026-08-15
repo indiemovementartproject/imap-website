@@ -137,8 +137,13 @@ var CONFIG = {
 order so the customer can send their screenshot to Ruchika by hand. You just don't get the
 automatic check, the sheet row or the emails.
 
-Also in `Code.gs`, set `SCREENSHOT_TO` to whichever inbox Ruchika actually reads. It defaults to
-`indiemovementartproject@gmail.com`.
+Every payment emails the whole team — `CONFIG.NOTIFY` in `Code.gs` currently lists
+Ruchika (`chikajain@gmail.com`), Rohit (`rohitchoudhary91.rc@gmail.com`) and the studio address.
+The first is the To:, the rest are copied. Add or remove addresses freely.
+
+There is no automatic WhatsApp message: sending one programmatically needs Meta's WhatsApp Cloud
+API, which would take +91 84548 80061 out of the normal WhatsApp app. Instead each email carries a
+green **WhatsApp <name>** button with a confirmation already written, so replying is one tap.
 
 **Prices live in two files and must agree:**
 - `cart.js` — the catalogue the site shows
