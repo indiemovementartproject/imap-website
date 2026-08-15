@@ -197,5 +197,7 @@ image in Drive, and **Flags** calls out a tampered total.
 | Nothing happens on "Open UPI app" (desktop) | Expected — UPI links only work on phones; use the QR code |
 | Everything lands as PENDING | The Drive API service isn't switched on (step 3b), so nothing can be read |
 | "Unable to open the file at present" | Multiple Google accounts in the browser — see the box in step 1, or use a standalone script |
+| "Attempted to execute myFunction, but it was deleted" | The toolbar dropdown still points at the blank project's placeholder. Save, then pick `setup` from it |
+| "Found a service identifier used more than once: Drive" | Drive was added twice. Remove one under **Services**, or show `appsscript.json` via Project Settings and leave a single Drive block in `enabledAdvancedServices` |
 | A genuine payment isn't auto-confirmed | Usually a cropped screenshot missing the date, or an unusual date format. Check **Auto-check** for which half failed |
 | A payment app button does nothing on desktop | Expected — those links only work on a phone. Use the QR code, or copy the UPI ID |
