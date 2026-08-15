@@ -15,6 +15,10 @@
  * why every screenshot still reaches a human.
  */
 
+/* Bump this whenever you paste a new copy in. Visiting the /exec URL in a browser
+   prints it, so you can always tell which version the web app is actually serving. */
+var BUILD = '2026-08-15-b';
+
 var CONFIG = {
   ADMIN_EMAIL:   'indiemovementartproject@gmail.com',
   /* Everyone who should hear about a payment. Add or remove freely — the first
@@ -128,7 +132,9 @@ function doPost(e) {
 }
 
 function doGet() {
-  return HtmlService.createHtmlOutput('<p>iMAP payment endpoint is running.</p>');
+  return HtmlService.createHtmlOutput(
+    '<p>iMAP payment endpoint is running.</p><p>build ' + BUILD +
+    ' · items ' + Object.keys(PRICES).length + '</p>');
 }
 
 function json(obj) {
