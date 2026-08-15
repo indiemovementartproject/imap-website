@@ -77,6 +77,35 @@
   .item .amt{flex:0 0 auto;font-family:"Instrument Serif",serif;font-size:22px;white-space:nowrap}
   .item .amt.ask{font-family:"Space Mono",monospace;font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted-2)}
 
+  /* pay + upload */
+  .wa-pay{display:flex;align-items:center;gap:14px;background:linear-gradient(100deg,#25D366,#4ae585);color:#04231a;
+    text-decoration:none;border-radius:15px;padding:16px 20px;margin-bottom:16px;transition:.18s;box-shadow:0 10px 30px rgba(37,211,102,.22)}
+  .wa-pay:hover{transform:translateY(-2px);box-shadow:0 0 36px rgba(37,211,102,.45)}
+  .wa-pay .wa-i{flex:0 0 auto;width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,.28);
+    display:flex;align-items:center;justify-content:center;font-size:19px}
+  .wa-pay .wa-t{font-size:16.5px;font-weight:600;line-height:1.25}
+  .wa-pay .wa-t small{display:block;font-family:"Space Mono",monospace;font-size:10.5px;font-weight:400;opacity:.72;margin-top:4px;letter-spacing:.04em}
+  .orline{display:flex;align-items:center;gap:12px;margin:6px 0 14px;color:var(--muted-2);
+    font-family:"Space Mono",monospace;font-size:10px;letter-spacing:.18em;text-transform:uppercase}
+  .orline::before,.orline::after{content:"";flex:1;height:1px;background:var(--border)}
+  .drop{display:flex;flex-direction:column;align-items:center;gap:6px;border:1.5px dashed var(--border);border-radius:16px;
+    padding:34px 20px;cursor:pointer;text-align:center;transition:.18s;background:rgba(255,255,255,.02)}
+  .drop:hover,.drop.over{border-color:var(--cyan);background:rgba(92,225,230,.07)}
+  .drop .d-i{font-size:26px;color:var(--cyan)}
+  .drop .d-t{font-size:15.5px;font-weight:500}
+  .drop .d-s{font-family:"Space Mono",monospace;font-size:10.5px;color:var(--muted-2);letter-spacing:.08em}
+  .shot-preview{border:1px solid var(--border-cyan);border-radius:16px;overflow:hidden;background:rgba(92,225,230,.05)}
+  .shot-preview img{display:block;width:100%;max-height:330px;object-fit:contain;background:#0a0e10}
+  .sp-x{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:11px 14px}
+  .sp-n{font-family:"Space Mono",monospace;font-size:11px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .sp-c{border:1px solid var(--border);background:none;color:var(--muted);font-family:"Space Mono",monospace;font-size:10px;
+    letter-spacing:.14em;text-transform:uppercase;padding:7px 12px;border-radius:99px;cursor:pointer;transition:.16s}
+  .sp-c:hover{border-color:var(--cyan);color:var(--cyan)}
+  .checking{display:flex;align-items:center;justify-content:center;gap:11px;color:var(--muted);font-size:14px;padding:14px 0}
+  .spin{width:15px;height:15px;border-radius:50%;border:2px solid rgba(92,225,230,.25);border-top-color:var(--cyan);animation:sp .7s linear infinite}
+  @keyframes sp{to{transform:rotate(360deg)}}
+  @media (prefers-reduced-motion:reduce){.spin{animation-duration:2s}}
+
   /* order lines */
   .lines{display:flex;flex-direction:column;gap:10px}
   .line{display:flex;align-items:center;gap:14px;border:1px solid var(--border);border-radius:14px;padding:13px 15px;background:rgba(255,255,255,.02)}
@@ -149,6 +178,8 @@
 
   .receipt{border:1px solid var(--border-cyan);border-radius:20px;padding:30px 26px;text-align:center;
     background:linear-gradient(180deg,rgba(92,225,230,.09),rgba(12,16,18,.5));box-shadow:0 0 46px rgba(92,225,230,.14)}
+  .receipt.good{border-color:rgba(110,231,168,.45);box-shadow:0 0 46px rgba(110,231,168,.16)}
+  .pending.good{color:var(--good);border-color:rgba(110,231,168,.4);background:rgba(110,231,168,.09)}
   .receipt .big{font-family:"Instrument Serif",serif;font-size:34px;line-height:1.15;margin:14px 0 6px}
   .receipt .rno{font-family:"Space Mono",monospace;font-size:13px;color:var(--cyan);letter-spacing:.14em}
   .rows{margin:22px auto 0;max-width:400px;text-align:left}
@@ -249,8 +280,13 @@
 
       <!-- 3 · pay -->
       <div class="step locked" id="s3">
-        <div class="step-head"><span class="num">3</span> Pay by UPI</div>
+        <div class="step-head"><span class="num">3</span> Pay</div>
         <div class="sum"><div class="l" id="sumLabel">—</div><div class="r" id="sumAmt">—</div></div>
+        <a class="wa-pay" id="waPay" target="_blank" rel="noopener">
+          <span class="wa-i">✆</span>
+          <span class="wa-t">Pay on WhatsApp<small id="waSub">opens our chat with the amount ready</small></span>
+        </a>
+        <div class="orline"><span>or pay from any UPI app</span></div>
         <div class="apps" id="apps"></div>
         <div class="ref-tag">Payment reference · <b id="refOut">—</b></div>
         <div class="qr-box" id="qrBox">
@@ -259,18 +295,29 @@
           <div class="vpa"><span id="vpaOut">—</span><button type="button" id="copyVpa">Copy</button></div>
         </div>
         <div class="hint">The amount is filled in for you. Keep the reference — it helps us match your payment.</div>
-        <button class="btn btn-ghost btn-wide" id="paidBtn">I’ve completed the payment →</button>
+        <button class="btn btn-ghost btn-wide" id="paidBtn">Payment completed →</button>
       </div>
 
       <!-- 4 · confirm -->
       <div class="step locked" id="s4">
-        <div class="step-head"><span class="num">4</span> Confirm your payment</div>
+        <div class="step-head"><span class="num">4</span> Upload your payment screenshot</div>
         <p class="lead" style="margin:0 0 16px;font-size:14.5px;text-align:left">
-          Paste the UPI transaction ID (UTR) from your payment app. It’s a 12-digit number on the success screen — this is how we verify and confirm your spot.
+          Screenshot the success screen in your payment app and upload it here. We read the amount and
+          the date off it and confirm you straight away.
         </p>
-        <div><label for="fUtr">UPI transaction ID / UTR</label><input id="fUtr" type="text" inputmode="numeric" maxlength="24" placeholder="e.g. 412345678901"></div>
+        <label class="drop" id="drop">
+          <input type="file" accept="image/*" id="shot" hidden>
+          <span class="d-i">⬆</span>
+          <span class="d-t">Choose your screenshot</span>
+          <span class="d-s">JPG or PNG, straight from your gallery</span>
+        </label>
+        <div class="shot-preview" id="preview" hidden>
+          <img id="pimg" alt="Your payment screenshot">
+          <div class="sp-x"><div class="sp-n" id="pname">—</div>
+            <button type="button" class="sp-c" id="reshoot">Change</button></div>
+        </div>
         <div class="err" id="e4"></div>
-        <button class="btn btn-cyan btn-wide" id="submitBtn">Submit &amp; get my receipt</button>
+        <button class="btn btn-cyan btn-wide" id="submitBtn" disabled>Confirm my payment</button>
       </div>
 
     </div>
@@ -299,7 +346,8 @@ var CONFIG = {
   UPI_VPA:     "rohitchoudhary91.rc-1@okicici",      /* iMAP payments */
   PAYEE_NAME:  "Indie Movement Art Project",
   ENDPOINT:    "REPLACE_WITH_APPS_SCRIPT_URL",       /* https://script.google.com/macros/s/.../exec */
-  WHATSAPP:    "919870538332"                        /* payments only; enquiries use 8454880061 */
+  WHATSAPP:         "919870538332",   /* Rohit — money */
+  ENQUIRY_WHATSAPP: "918454880061"    /* Ruchika — enquiries + screenshots */
 };
 
 /* ---------- QR encoder (byte mode, ECC L, versions 1-9) ---------- */
@@ -534,6 +582,12 @@ $('toPay').addEventListener('click', function(){
   $('refOut').textContent = REF;
   $('vpaOut').textContent = CONFIG.UPI_VPA;
 
+  /* WhatsApp has no public deep link that pre-fills a payment, so this opens the
+     chat with the amount and reference written out and the payer taps ₹ in there. */
+  $('waPay').href = 'https://wa.me/' + CONFIG.WHATSAPP + '?text=' +
+    encodeURIComponent('Hi iMAP! I\'m paying ' + money(total) + ' for: ' + order.lines +
+      '. Reference ' + REF + '. (' + n + ', ' + p + ')');
+
   var uri = upiURI(CONFIG.UPI_VPA, CONFIG.PAYEE_NAME, total, REF);
   var q = uri.slice(uri.indexOf('?'));
   $('apps').innerHTML =
@@ -561,74 +615,132 @@ $('paidBtn').addEventListener('click', function(){
   $('fUtr').focus();
 });
 
-/* ---------- confirm ---------- */
+/* ---------- confirm: screenshot in, verdict out ---------- */
+var shotData = null;
+
+/* Screenshots off a phone are several MB. Shrink before upload so it's quick
+   on mobile data and small enough for the backend to OCR. */
+function shrink(file, maxPx, quality){
+  return new Promise(function(res, rej){
+    var url = URL.createObjectURL(file), img = new Image();
+    img.onload = function(){
+      var s = Math.min(1, maxPx / Math.max(img.width, img.height));
+      var c = document.createElement('canvas');
+      c.width = Math.max(1, Math.round(img.width * s));
+      c.height = Math.max(1, Math.round(img.height * s));
+      c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+      URL.revokeObjectURL(url);
+      try { res(c.toDataURL('image/jpeg', quality)); } catch(err){ rej(err); }
+    };
+    img.onerror = function(){ URL.revokeObjectURL(url); rej(new Error('unreadable')); };
+    img.src = url;
+  });
+}
+
+function takeFile(file){
+  if(!file) return;
+  if(!/^image\//.test(file.type)){ $('e4').textContent = 'That’s not an image — upload the screenshot from your gallery.'; return; }
+  if(file.size > 20 * 1024 * 1024){ $('e4').textContent = 'That image is very large. Try another screenshot.'; return; }
+  $('e4').textContent = 'Reading your screenshot…';
+  shrink(file, 1400, 0.82).then(function(data){
+    shotData = data;
+    $('pimg').src = data;
+    $('pname').textContent = file.name || 'screenshot.jpg';
+    $('preview').hidden = false;
+    $('drop').style.display = 'none';
+    $('submitBtn').disabled = false;
+    $('e4').textContent = '';
+  }).catch(function(){
+    $('e4').textContent = 'We couldn’t read that image. Try a different screenshot.';
+  });
+}
+
+$('shot').addEventListener('change', function(){ takeFile(this.files && this.files[0]); });
+$('drop').addEventListener('click', function(e){ if(e.target !== $('shot')) $('shot').click(); });
+['dragenter','dragover'].forEach(function(ev){
+  $('drop').addEventListener(ev, function(e){ e.preventDefault(); $('drop').classList.add('over'); });
+});
+['dragleave','drop'].forEach(function(ev){
+  $('drop').addEventListener(ev, function(e){ e.preventDefault(); $('drop').classList.remove('over'); });
+});
+$('drop').addEventListener('drop', function(e){
+  if(e.dataTransfer && e.dataTransfer.files) takeFile(e.dataTransfer.files[0]);
+});
+$('reshoot').addEventListener('click', function(){
+  shotData = null; $('shot').value = '';
+  $('preview').hidden = true; $('drop').style.display = 'flex';
+  $('submitBtn').disabled = true;
+});
+
 $('submitBtn').addEventListener('click', function(){
   if(sent || !order) return;
-  var utr = $('fUtr').value.trim().replace(/\s+/g,'');
-  if(!/^[A-Za-z0-9]{8,24}$/.test(utr)){
-    $('fUtr').classList.add('bad');
-    $('e4').textContent = 'Please enter the transaction ID exactly as your UPI app shows it.';
-    return;
-  }
-  $('fUtr').classList.remove('bad'); $('e4').textContent = '';
-  var btn = this; btn.disabled = true; btn.textContent = 'Sending…';
+  if(!shotData){ $('e4').textContent = 'Please upload your payment screenshot first.'; return; }
+  var btn = this;
+  btn.disabled = true;
+  $('e4').innerHTML = '<span class="checking"><span class="spin"></span>Checking your screenshot…</span>';
 
   var payload = {
     ref: order.ref, items: order.items, totalShown: order.total,
     name: order.name, phone: order.phone, email: order.email,
-    utr: utr, page: location.href, ua: navigator.userAgent.slice(0,180)
+    screenshot: shotData, page: location.href
   };
 
   function fallback(){
+    /* backend not reachable — hand everything to Ruchika on WhatsApp instead */
     var msg = 'Hi iMAP! I have paid ' + money(order.total) + ' for: ' + order.lines +
-              '. Reference ' + order.ref + ', UPI transaction ID ' + utr +
-              '. Name: ' + order.name + ', phone: ' + order.phone +
-              (order.email ? ', email: ' + order.email : '') + '.';
-    showReceipt({ receipt: order.ref, viaWhatsApp: true }, utr);
-    window.open('https://wa.me/' + CONFIG.WHATSAPP + '?text=' + encodeURIComponent(msg), '_blank', 'noopener');
+              '. Reference ' + order.ref + '. Name: ' + order.name + ', contact: ' + order.phone +
+              (order.email ? ', email: ' + order.email : '') +
+              '. Sending my payment screenshot here.';
+    showReceipt({ receipt: order.ref, verified: false, viaWhatsApp: true });
+    window.open('https://wa.me/' + CONFIG.ENQUIRY_WHATSAPP + '?text=' + encodeURIComponent(msg), '_blank', 'noopener');
   }
 
   if(CONFIG.ENDPOINT.indexOf('REPLACE_WITH') !== -1){ sent = true; fallback(); return; }
 
   fetch(CONFIG.ENDPOINT, {
     method: 'POST',
-    /* text/plain keeps this a "simple" CORS request — no preflight, which Apps Script can't answer */
     headers: { 'Content-Type': 'text/plain;charset=utf-8' },
     body: JSON.stringify(payload)
   }).then(function(r){ return r.json(); })
     .then(function(res){
-      if(res && res.ok){ sent = true; showReceipt(res, utr); }
+      if(res && res.ok){ sent = true; showReceipt(res); }
       else {
         $('e4').textContent = (res && res.error) ? res.error : 'Something went wrong.';
-        btn.disabled = false; btn.textContent = 'Submit & get my receipt';
+        btn.disabled = false;
       }
     })
     .catch(function(){ sent = true; fallback(); });
 });
 
-function showReceipt(res, utr){
+function showReceipt(res){
   var items = Cart.items(), i;
-  var html = '<div class="receipt"><div class="tick-big">✓</div>'+
-    '<div class="big">Thank you, '+esc((order.name.split(/\s+/)[0]) || 'dancer')+'.</div>'+
-    '<div class="rno">'+esc(res.receipt || order.ref)+'</div>'+
-    '<div class="pending">● Confirming your payment</div><div class="rows">';
-  for(i=0;i<items.length;i++){
-    html += '<div class="rrow"><span class="k">'+esc(items[i].title)+
-            (items[i].qty > 1 ? ' ×'+items[i].qty : '')+'</span>'+
-            '<span class="v">'+money(items[i].amount * items[i].qty)+'</span></div>';
+  var good = !!res.verified;
+  var html = '<div class="receipt' + (good ? ' good' : '') + '"><div class="tick-big">✓</div>' +
+    '<div class="big">' + (good
+        ? 'Thank you, your payment is confirmed.'
+        : 'Thank you, ' + esc((order.name.split(/\s+/)[0]) || 'dancer') + '.') + '</div>' +
+    '<div class="rno">' + esc(res.receipt || order.ref) + '</div>' +
+    (good ? '<div class="pending good">● Confirmed</div>'
+          : '<div class="pending">● Checking with the studio</div>') +
+    '<div class="rows">';
+  for(i = 0; i < items.length; i++){
+    html += '<div class="rrow"><span class="k">' + esc(items[i].title) +
+            (items[i].qty > 1 ? ' ×' + items[i].qty : '') + '</span>' +
+            '<span class="v">' + money(items[i].amount * items[i].qty) + '</span></div>';
   }
   var rows = [['Total paid', money(order.total)], ['Name', order.name], ['Contact', order.phone]];
   if(order.email) rows.push(['Email', order.email]);
-  rows.push(['UPI transaction ID', utr]);
   rows.push(['Reference', order.ref]);
-  for(i=0;i<rows.length;i++)
-    html += '<div class="rrow"><span class="k">'+esc(rows[i][0])+'</span><span class="v">'+esc(rows[i][1])+'</span></div>';
-  html += '</div><p class="lead" style="font-size:13.5px;margin-top:20px">'+
+  for(i = 0; i < rows.length; i++)
+    html += '<div class="rrow"><span class="k">' + esc(rows[i][0]) + '</span><span class="v">' + esc(rows[i][1]) + '</span></div>';
+
+  html += '</div><p class="lead" style="font-size:13.5px;margin-top:20px">' +
     (res.viaWhatsApp
-      ? 'We’ve opened WhatsApp with your payment details — send that message and we’ll confirm your spot shortly.'
-      : (order.email
-          ? 'A copy is on its way to your email. As soon as the payment shows up on our side you’ll get a confirmation — usually within a minute or two.'
-          : 'As soon as the payment shows up on our side we’ll confirm your spot on WhatsApp — usually within a minute or two.'))+
+      ? 'We’ve opened WhatsApp — send that message with your screenshot and we’ll confirm your spot shortly.'
+      : good
+        ? 'Here’s your receipt. ' + (order.email ? 'A copy is on its way to your email. ' : '') + 'See you in the studio!'
+        : 'We’ve got your screenshot and passed it to the studio. ' +
+          esc(res.reason || '') + ' We’ll confirm on WhatsApp shortly.') +
     '</p><a class="btn btn-ghost" style="margin-top:18px" href="index.html">Back to site</a></div>';
 
   $('receiptBox').innerHTML = html;

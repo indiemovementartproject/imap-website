@@ -8,45 +8,47 @@ no business verification. Money goes straight from the payer's UPI app into iMAP
 | Part | Where | Does what |
 |---|---|---|
 | `cart.js` | this repo | The cart, and the single source of truth for what's on sale and at what price |
-| `pay.html` | this repo (GitHub Pages) | Checkout: shows the order, opens the UPI app with the total pre-filled, collects the transaction ID |
-| `Code.gs` | Google Apps Script | Writes every order to a Google Sheet, emails the payer and iMAP |
-| Payments sheet | Google Sheets | Live log you reconcile against your bank statement |
+| `pay.html` | this repo (GitHub Pages) | Checkout: order → details → pay → upload screenshot |
+| `Code.gs` | Google Apps Script | Reads the screenshot, checks it, logs the order, forwards the image |
+| Payments sheet | Google Sheets | Live log of every order and how it was checked |
 
-**How someone buys:** they tap a workshop (or open a batch page and hit *Join Now*), items collect
-in a cart, and they pay for everything in one UPI transaction at checkout.
+**How someone buys:** they add workshops or classes to a cart, enter name + contact (email optional),
+pay — on WhatsApp or from any UPI app — then upload a screenshot of the success screen. The script
+reads the amount and date off that image; if both check out the customer is confirmed on the spot,
+and either way the screenshot lands with Ruchika.
 
 **Two phone numbers, on purpose:** payments and payment fallbacks go to **+91 98705 38332**;
 every *enquiry* CTA still goes to **+91 84548 80061**.
 
 ---
 
-## Read this first — what "secure" means here, honestly
+## What the screenshot check does and doesn't prove
 
-The money side is genuinely safe: payments travel over UPI, and this site never touches a
-PIN, card number or bank login. **Nobody can steal money through this page.**
+The money side is safe: payments travel over UPI or WhatsApp, and this site never touches a PIN,
+card number or bank login. **Nobody can steal money through this page.**
 
-What it *cannot* do is prove a payment happened. A web page can open a UPI app, but it never
-finds out what the user did next — that confirmation only exists between the bank and the app.
-So anyone could claim to have paid without paying.
+The screenshot check reads the image and confirms it shows *your exact amount* and *today's date*.
+That reliably catches honest mistakes — wrong amount, an old screenshot reused, the wrong order —
+and it deters casual chancers.
 
-That is why every payment lands as **PENDING** and the receipt says *pending verification*.
-The Sheet is a **claims log, not a bank statement**. Your bank/UPI app remains the source of truth.
+What it can't do is prove money actually arrived, because an image can be edited. So treat a green
+"auto-verified" as *very probably fine*, not as a bank statement. This is why **every screenshot is
+still emailed to a human**, with the amount and date verdict written at the top so a glance is
+usually enough. Your other backstop is physical: these are studio classes, and the door is the
+final check.
 
-**Your one job: match each row against your actual UPI transactions before marking it VERIFIED.**
-The transaction ID (UTR) column makes that a quick eyeball check. If you ever want true automatic
-confirmation, that needs a payment gateway with a webhook — Cashfree and PhonePe onboard sole
-proprietors and small businesses more leniently than Razorpay did, and this page can be pointed
-at one later without redesigning anything.
+Also built in:
 
-Other protections already built in:
-
-- **Prices are re-checked on the server.** If someone edits the page to pay ₹1 for a ₹3000 pass,
-  the Sheet records the real price, flags the row, and the alert email is marked ⚠️.
-- **Duplicate transaction IDs are rejected**, so one UTR can't be reused for several bookings.
-- **Every field is validated and escaped** on the server before it reaches a Sheet or an email.
+- **Prices are re-checked on the server.** Edit the page to pay ₹1 for a ₹4500 pass and the Sheet
+  still records ₹4500, flags the row, and the email is marked ⚠️.
+- **Every field is validated and escaped** before it reaches a Sheet or an email.
 - **A hidden honeypot field** silently drops basic bots.
-- The endpoint URL is public by necessity — treat it as a form anyone can post to. That is why
-  nothing it receives is trusted without your check.
+- The endpoint is public by necessity — treat it as a form anyone can post to.
+
+If you ever want certainty at the moment of payment, that needs a payment gateway with a webhook.
+Cashfree and PhonePe onboard sole proprietors more leniently than Razorpay did, and a very common
+reason for rejection is simply missing Terms / Privacy / Refund pages on the website — cheap to
+add, and worth doing before reapplying.
 
 ---
 
@@ -56,6 +58,9 @@ Other protections already built in:
    a blank spreadsheet. Name it something like `iMAP Payments`.
 2. In that sheet: **Extensions → Apps Script**.
 3. Delete the placeholder code, paste in all of [`Code.gs`](Code.gs), and save.
+3b. **Turn on Drive for OCR** — in the left sidebar next to **Services**, press **+**, pick
+   **Drive API**, and click Add. Without this the screenshot still reaches Ruchika, but nothing is
+   read automatically and every order waits for a human.
 4. Run the `setup` function once (select it in the toolbar, press **Run**). Google will ask for
    permission — approve it. It'll warn "Google hasn't verified this app"; choose
    **Advanced → Go to (project name)**. This is your own script, so that warning is expected.
@@ -94,8 +99,12 @@ var CONFIG = {
 };
 ```
 
-**Until then payments still work** — the checkout simply falls back to opening WhatsApp with the
-full order and transaction ID, so nothing is lost. You just won't get the sheet row or the emails.
+**Until then payments still work** — the checkout falls back to opening WhatsApp with the full
+order so the customer can send their screenshot to Ruchika by hand. You just don't get the
+automatic check, the sheet row or the emails.
+
+Also in `Code.gs`, set `SCREENSHOT_TO` to whichever inbox Ruchika actually reads. It defaults to
+`indiemovementartproject@gmail.com`.
 
 **Prices live in two files and must agree:**
 - `cart.js` — the catalogue the site shows
@@ -119,97 +128,30 @@ next visit, because the cart re-reads the catalogue on every load.
 
 ## 5 · Test it end to end
 
-Pay yourself ₹1: temporarily set one item's amount to `1` in **both** `cart.js` and `Code.gs`, run through the flow,
-and confirm you get the receipt email, the alert email, and a new Sheet row. Then set it back.
+Run `testJudge` from the editor first — it prints how the checker rates a good screenshot, a
+wrong amount and a stale date, without spending anything.
+
+Then pay yourself ₹1: temporarily set one item's amount to `1` in **both** `cart.js` and `Code.gs`,
+run the full flow with a real screenshot, and confirm you get the email with the image attached and
+a new Sheet row marked VERIFIED. Then set it back.
 
 
 ---
-
-## 6 · Automatic verification from Rohit's bank SMS
-
-The bank texts **+91 98705 38332** whenever money lands. Forward that text to the script and
-it verifies the matching order by itself — no manual reconciliation, no gateway, no fees.
-
-**How the match works.** The 12-digit UPI reference the payer copies off their success screen is
-the same number the bank reports to you, so matching is exact rather than guesswork. If a
-particular alert has no reference, the script falls back to matching on amount — but only when
-exactly one recent pending order could explain that credit. Anything ambiguous or unrecognised
-stays PENDING and emails you instead. It can only ever flip an existing order to VERIFIED; it can
-never create an order or move money.
-
-### a. Set a secret
-
-In `Code.gs`, replace `SMS_TOKEN: 'CHANGE_ME_TO_A_LONG_RANDOM_STRING'` with a long random string
-(30+ characters). Unlike anything in the website's JavaScript this genuinely is secret — it lives
-only in the script and on Rohit's phone. Re-deploy after changing it.
-
-### b. Check the parser against real messages
-
-Open `testParse` in the editor and paste in two or three **real** ICICI credit texts from Rohit's
-phone, then **Run** and read **Execution log**. Each should print an amount and a reference.
-Bank wording varies, and this is the one part that depends on their exact format — five minutes
-here saves a lot of confusion later. Send me a real message if it doesn't parse and I'll adjust it.
-
-### c. Get the SMS off the phone — pick one route
-
-**Android (instant, recommended).** Install a forwarding app that can POST — *MacroDroid*,
-*Tasker*, or any "SMS to URL/Webhook" app. One rule:
-
-- Trigger: SMS received, sender contains `ICICI` (or the exact sender ID on Rohit's phone)
-- Action: HTTP POST to your `/exec` URL
-- Content type: `text/plain`
-- Body:
-
-```json
-{"type":"sms","token":"YOUR_SMS_TOKEN","text":"{sms_message}"}
-```
-
-Replace `{sms_message}` with whatever placeholder your app uses for the message body
-(MacroDroid: `[sms_message]`, Tasker: `%SMSRB`).
-
-**iPhone.** iOS won't let apps read SMS, so use Shortcuts: **Automation → Message →
-Message contains `credited`** → *Run Immediately*, action **Get Contents of URL** with the same
-POST body. If that proves fiddly, use the email route below instead.
-
-**Either phone (simpler, ~5 min delay).** Forward bank SMS to
-`indiemovementartproject@gmail.com` — Android forwarding apps do this natively, and on iPhone you
-can ask ICICI to enable email alerts as well as SMS. Then run `installGmailPoll` **once** from the
-editor and the script checks Gmail every 5 minutes. No token needed for this route.
-
-### d. Watch it work
-
-A new **Bank alerts** tab logs every credit the script sees: amount, reference, which receipt it
-matched, and how. That is your audit trail — if something doesn't auto-verify, the reason is there.
-
-Unmatched credits email you, since they usually mean someone paid without using the site, paid the
-wrong amount, or hasn't submitted the form yet.
-
-You can still set **Status** by hand at any time; manual and automatic paths send the same
-confirmation email and don't tread on each other.
-
-### What this does and doesn't fix
-
-It removes the manual checking, and confirmations now go out in seconds instead of hours. What it
-doesn't do is make the *website* certain at the moment of payment — certainty still arrives with
-the bank's message a few seconds later. That's fine for bookings. Only a real payment gateway
-closes that last gap, which is worth revisiting if you get an account approved.
-
-**One caution worth naming:** this collects business payments into a personal account. It works,
-but for volume you'd want a current account, and a gateway ultimately gives you cleaner books.
 
 ---
 
 ## Day to day
 
-**With SMS forwarding set up (§6), most of this happens by itself:**
+1. Someone pays and uploads their screenshot.
+2. The script reads it. Amount and date both good → the row is `VERIFIED`, the customer sees
+   "your payment is confirmed", and Ruchika gets a ✅ email with the image attached.
+3. Anything it couldn't confirm → the row stays `PENDING`, the customer is told the studio is
+   checking, and Ruchika gets a ⚠️ email saying exactly what didn't line up.
+4. For those, glance at the image and set **Status** to `VERIFIED` (or `REJECTED`). Marking it
+   VERIFIED emails the customer their confirmation.
 
-1. An order arrives → a `PENDING` row appears instantly and you get an email.
-2. The bank texts Rohit → the script matches it and flips the row to `VERIFIED`, and the
-   customer is emailed their confirmation. Usually within seconds.
-3. You only touch the ones that didn't match — they stay `PENDING` and email you why.
-
-The **Flags** column calls out amount mismatches, and **Verified by** shows `auto · UPI ref`,
-`auto · amount`, or your email address for manual ones. A ⚠️ in a subject line means look closer.
+**Auto-check** shows the verdict (`amount ✓ · date ✓ · success ✓`), **Screenshot** links to the
+image in Drive, and **Flags** calls out a tampered total.
 
 ## If something breaks
 
@@ -219,6 +161,6 @@ The **Flags** column calls out amount mismatches, and **Verified by** shows `aut
 | No emails | Gmail's daily quota (100/day on free accounts), the `setup` permission was never granted, or the buyer left email blank (it's optional — confirm those on WhatsApp) |
 | "Unknown item" error | An item exists in `pay.html` but not in `PRICES` in `Code.gs` |
 | Nothing happens on "Open UPI app" (desktop) | Expected — UPI links only work on phones; use the QR code |
-| SMS arrives but nothing verifies | Run `testParse` with that exact message; if it prints `null` the wording needs a tweak in `parseBankSms` |
-| `not authorised` from the webhook | `SMS_TOKEN` in the phone app doesn't match `Code.gs`, or the script wasn't re-deployed after changing it |
-| Two orders share an amount | Deliberate — the script won't guess. Both stay `PENDING`; verify by hand, or give amounts unique paise |
+| Everything lands as PENDING | The Drive API service isn't switched on (step 3b), so nothing can be read |
+| A genuine payment isn't auto-confirmed | Usually a cropped screenshot missing the date, or an unusual date format. Check **Auto-check** for which half failed |
+| "Pay on WhatsApp" doesn't pre-fill the amount | Expected — WhatsApp has no public link that fills a payment. It opens the chat with the amount written out; the UPI buttons and QR do pre-fill |

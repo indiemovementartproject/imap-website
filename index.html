@@ -225,7 +225,7 @@
   .ws-groups{max-width:680px;margin:26px auto 0;text-align:left}
   .ws-group{display:none;flex-direction:column;gap:12px}
   .ws-group.on{display:flex}
-  .ws-row{width:100%;font-family:inherit;text-align:left;cursor:pointer;display:flex;align-items:center;gap:18px;background:var(--glass);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border:1px solid var(--border);border-radius:16px;padding:16px 20px;text-decoration:none;color:inherit;opacity:0;transform:translateY(14px);transition:opacity .5s ease,transform .5s ease,border-color .2s,box-shadow .2s}
+  .ws-row{display:flex;align-items:center;gap:18px;background:var(--glass);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border:1px solid var(--border);border-radius:16px;padding:16px 20px;text-decoration:none;color:inherit;opacity:0;transform:translateY(14px);transition:opacity .5s ease,transform .5s ease,border-color .2s,box-shadow .2s}
   .ws-row.in{opacity:1;transform:none}
   .ws-row:hover{border-color:var(--border-cyan);box-shadow:0 0 32px rgba(92,225,230,.13),0 10px 34px rgba(0,0,0,.35)}
   .ws-date{flex:0 0 54px;text-align:center;border-right:1px solid var(--border);padding-right:16px}
@@ -242,9 +242,18 @@
   .ws-empty{display:none;text-align:center;color:var(--muted);font-size:15px;padding:34px 20px;border:1px dashed var(--border);border-radius:16px}
   .ws-note{font-family:"Space Mono",monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted-2);margin-top:22px;text-align:center}
   .ws-note span{color:var(--cyan)}
-  .ws-pass:active,.ws-row:active{transform:scale(.988)}
-  .ws-row.added{border-color:var(--cyan);background:rgba(92,225,230,.07)}
-  .ws-row.added .ws-go{color:var(--cyan)}
+  .ws-pass:active{transform:scale(.988)}
+  .ws-add{flex:0 0 auto;display:inline-flex;align-items:center;gap:9px;font-family:"Space Grotesk",sans-serif;font-size:13.5px;font-weight:500;
+    cursor:pointer;border:1px solid var(--border-cyan);background:rgba(92,225,230,.08);color:var(--cyan);
+    padding:10px 16px;border-radius:11px;white-space:nowrap;transition:.16s}
+  .ws-add span{font-family:"Space Mono",monospace;font-size:11.5px;opacity:.75}
+  .ws-add:hover{background:var(--cyan);color:#04181a;box-shadow:0 0 22px rgba(92,225,230,.35)}
+  .ws-add:hover span{opacity:.7}
+  .ws-add:active{transform:scale(.96)}
+  .ws-add.added{background:var(--cyan);color:#04181a;border-color:var(--cyan)}
+  .ws-cta{margin-top:11px;font-family:"Space Mono",monospace;font-size:10px;letter-spacing:.16em;text-transform:uppercase;
+    color:var(--cyan);border:1px solid var(--border-cyan);background:rgba(92,225,230,.09);border-radius:999px;padding:7px 13px;transition:.16s}
+  .ws-pass:hover .ws-cta{background:var(--cyan);color:#04181a}
   .ws-pass.added{border-color:var(--cyan);box-shadow:0 0 26px rgba(92,225,230,.2)}
   @media (max-width:620px){
     .ws-row{flex-wrap:wrap;gap:12px 14px;padding:15px 16px}
@@ -307,9 +316,9 @@
 
     <div class="ws-passes">
       <button type="button" class="ws-pass" id="pickWorkshop"><span class="k">Try any workshop</span><span class="v">₹500</span><span class="s">pick one below ↓</span></button>
-      <button type="button" class="ws-pass hot" data-add="ws-pass-vashi"><span class="k">All workshops · Vashi</span><span class="v">₹2000</span><span class="s">full series pass</span></button>
-      <button type="button" class="ws-pass hot" data-add="ws-pass-seawoods"><span class="k">All workshops · Seawoods</span><span class="v">₹3000</span><span class="s">full series pass</span></button>
-      <button type="button" class="ws-pass hot" data-add="ws-pass-both"><span class="k">All workshops · Both studios</span><span class="v">₹4500</span><span class="s">everything, everywhere</span></button>
+      <button type="button" class="ws-pass hot" data-add="ws-pass-vashi"><span class="k">All workshops · Vashi</span><span class="v">₹2000</span><span class="s">full series pass</span><span class="ws-cta">Add to cart</span></button>
+      <button type="button" class="ws-pass hot" data-add="ws-pass-seawoods"><span class="k">All workshops · Seawoods</span><span class="v">₹3000</span><span class="s">full series pass</span><span class="ws-cta">Add to cart</span></button>
+      <button type="button" class="ws-pass hot" data-add="ws-pass-both"><span class="k">All workshops · Both studios</span><span class="v">₹4500</span><span class="s">everything, everywhere</span><span class="ws-cta">Add to cart</span></button>
     </div>
 
     <div class="ws-tabs" role="tablist" aria-label="Studio">
@@ -320,148 +329,148 @@
 
     <div class="ws-groups">
       <div class="ws-group on" data-loc="vashi">
-        <button type="button" class="ws-row" data-date="2026-08-17" data-add="ws-v-17aug">
+        <div class="ws-row" data-date="2026-08-17">
           <div class="ws-date"><span class="d">17</span><span class="m">Aug</span></div>
           <div class="ws-info">
             <div class="ws-title">Choreography Workshop <span class="song">· Chura Liya Hai</span></div>
             <div class="ws-sub">Rohit Choudhary</div>
           </div>
           <div class="ws-time">Mon · 7:00 PM</div>
-          <div class="ws-go">Add · ₹500 →</div>
-        </button>
-        <button type="button" class="ws-row" data-date="2026-08-18" data-add="ws-v-18aug">
+          <button type="button" class="ws-add" data-add="ws-v-17aug">Add to cart<span>₹500</span></button>
+        </div>
+        <div class="ws-row" data-date="2026-08-18">
           <div class="ws-date"><span class="d">18</span><span class="m">Aug</span></div>
           <div class="ws-info">
             <div class="ws-title">Kids Dance Workshop <span class="song">· Dance Ka Bhoot</span></div>
             <div class="ws-sub">Jeevak</div>
           </div>
           <div class="ws-time">Tue · 6:30 PM</div>
-          <div class="ws-go">Add · ₹500 →</div>
-        </button>
-        <button type="button" class="ws-row" data-date="2026-08-19" data-add="ws-v-19aug-a">
+          <button type="button" class="ws-add" data-add="ws-v-18aug">Add to cart<span>₹500</span></button>
+        </div>
+        <div class="ws-row" data-date="2026-08-19">
           <div class="ws-date"><span class="d">19</span><span class="m">Aug</span></div>
           <div class="ws-info">
             <div class="ws-title">Bollywood Workshop <span class="song">· Gun Gun Guna Re</span></div>
             <div class="ws-sub">Ruchika</div>
           </div>
           <div class="ws-time">Wed · 5:30 PM</div>
-          <div class="ws-go">Add · ₹500 →</div>
-        </button>
-        <button type="button" class="ws-row" data-date="2026-08-19" data-add="ws-v-19aug-b">
+          <button type="button" class="ws-add" data-add="ws-v-19aug-a">Add to cart<span>₹500</span></button>
+        </div>
+        <div class="ws-row" data-date="2026-08-19">
           <div class="ws-date"><span class="d">19</span><span class="m">Aug</span></div>
           <div class="ws-info">
             <div class="ws-title">Jazz Funk Workshop <span class="song">· Taki Taki</span></div>
             <div class="ws-sub">Ruchika</div>
           </div>
           <div class="ws-time">Wed · 8:00 PM</div>
-          <div class="ws-go">Add · ₹500 →</div>
-        </button>
-        <button type="button" class="ws-row" data-date="2026-08-27" data-add="ws-v-27aug">
+          <button type="button" class="ws-add" data-add="ws-v-19aug-b">Add to cart<span>₹500</span></button>
+        </div>
+        <div class="ws-row" data-date="2026-08-27">
           <div class="ws-date"><span class="d">27</span><span class="m">Aug</span></div>
           <div class="ws-info">
             <div class="ws-title">Contemporary Workshop <span class="song">· Ae Dil Hai Mushkil</span></div>
             <div class="ws-sub">Shreya</div>
           </div>
           <div class="ws-time">Thu · 5:00 PM</div>
-          <div class="ws-go">Add · ₹500 →</div>
-        </button>
-        <button type="button" class="ws-row" data-date="2026-08-31" data-add="ws-v-31aug">
+          <button type="button" class="ws-add" data-add="ws-v-27aug">Add to cart<span>₹500</span></button>
+        </div>
+        <div class="ws-row" data-date="2026-08-31">
           <div class="ws-date"><span class="d">31</span><span class="m">Aug</span></div>
           <div class="ws-info">
             <div class="ws-title">Hip Hop Workshop <span class="song">· Song TBA</span></div>
             <div class="ws-sub">Rohit Mankar</div>
           </div>
           <div class="ws-time">Mon · 6:30 PM</div>
-          <div class="ws-go">Add · ₹500 →</div>
-        </button>
+          <button type="button" class="ws-add" data-add="ws-v-31aug">Add to cart<span>₹500</span></button>
+        </div>
         <div class="ws-empty">That’s a wrap at Vashi for this series — new workshops dropping soon. 🔮</div>
       </div>
       <div class="ws-group" data-loc="seawoods">
-        <button type="button" class="ws-row" data-date="2026-08-23" data-add="ws-s-23aug">
+        <div class="ws-row" data-date="2026-08-23">
           <div class="ws-date"><span class="d">23</span><span class="m">Aug</span></div>
           <div class="ws-info">
             <div class="ws-title">Semi Classical Choreography <span class="song">· Vachindamma</span></div>
             <div class="ws-sub">Anamika</div>
           </div>
           <div class="ws-time">Sun · 1:00 PM</div>
-          <div class="ws-go">Add · ₹500 →</div>
-        </button>
-        <button type="button" class="ws-row" data-date="2026-08-27" data-add="ws-s-27aug">
+          <button type="button" class="ws-add" data-add="ws-s-23aug">Add to cart<span>₹500</span></button>
+        </div>
+        <div class="ws-row" data-date="2026-08-27">
           <div class="ws-date"><span class="d">27</span><span class="m">Aug</span></div>
           <div class="ws-info">
             <div class="ws-title">Juniors Demo Class <span class="song">· Lut Put Gaya</span></div>
             <div class="ws-sub">Jeevak</div>
           </div>
           <div class="ws-time">Thu · 4:45 PM</div>
-          <div class="ws-go">Add · ₹500 →</div>
-        </button>
-        <button type="button" class="ws-row" data-date="2026-08-29" data-add="ws-s-29aug-a">
+          <button type="button" class="ws-add" data-add="ws-s-27aug">Add to cart<span>₹500</span></button>
+        </div>
+        <div class="ws-row" data-date="2026-08-29">
           <div class="ws-date"><span class="d">29</span><span class="m">Aug</span></div>
           <div class="ws-info">
             <div class="ws-title">Kids Ballet Demo Class</div>
             <div class="ws-sub">Shreya</div>
           </div>
           <div class="ws-time">Sat · 1:00 PM</div>
-          <div class="ws-go">Add · ₹500 →</div>
-        </button>
-        <button type="button" class="ws-row" data-date="2026-08-29" data-add="ws-s-29aug-b">
+          <button type="button" class="ws-add" data-add="ws-s-29aug-a">Add to cart<span>₹500</span></button>
+        </div>
+        <div class="ws-row" data-date="2026-08-29">
           <div class="ws-date"><span class="d">29</span><span class="m">Aug</span></div>
           <div class="ws-info">
             <div class="ws-title">Bollywood Workshop <span class="song">· Just Chill</span></div>
             <div class="ws-sub">Ruchika</div>
           </div>
           <div class="ws-time">Sat · 5:00 PM</div>
-          <div class="ws-go">Add · ₹500 →</div>
-        </button>
-        <button type="button" class="ws-row" data-date="2026-08-29" data-add="ws-s-29aug-c">
+          <button type="button" class="ws-add" data-add="ws-s-29aug-b">Add to cart<span>₹500</span></button>
+        </div>
+        <div class="ws-row" data-date="2026-08-29">
           <div class="ws-date"><span class="d">29</span><span class="m">Aug</span></div>
           <div class="ws-info">
             <div class="ws-title">Jazz Choreography Workshop <span class="song">· Way I Are</span></div>
             <div class="ws-sub">Rohit Choudhary</div>
           </div>
           <div class="ws-time">Sat · 7:00 PM</div>
-          <div class="ws-go">Add · ₹500 →</div>
-        </button>
-        <button type="button" class="ws-row" data-date="2026-08-30" data-add="ws-s-30aug-a">
+          <button type="button" class="ws-add" data-add="ws-s-29aug-c">Add to cart<span>₹500</span></button>
+        </div>
+        <div class="ws-row" data-date="2026-08-30">
           <div class="ws-date"><span class="d">30</span><span class="m">Aug</span></div>
           <div class="ws-info">
             <div class="ws-title">Jazz Funk Choreography <span class="song">· Whine Up</span></div>
             <div class="ws-sub">Ruchika</div>
           </div>
           <div class="ws-time">Sun · 3:00 PM</div>
-          <div class="ws-go">Add · ₹500 →</div>
-        </button>
-        <button type="button" class="ws-row" data-date="2026-08-30" data-add="ws-s-30aug-b">
+          <button type="button" class="ws-add" data-add="ws-s-30aug-a">Add to cart<span>₹500</span></button>
+        </div>
+        <div class="ws-row" data-date="2026-08-30">
           <div class="ws-date"><span class="d">30</span><span class="m">Aug</span></div>
           <div class="ws-info">
             <div class="ws-title">Afro &amp; Dancehall Workshop <span class="song">· Haseen</span></div>
             <div class="ws-sub">Tanvi</div>
           </div>
           <div class="ws-time">Sun · 5:00 PM</div>
-          <div class="ws-go">Add · ₹500 →</div>
-        </button>
-        <button type="button" class="ws-row" data-date="2026-08-30" data-add="ws-s-30aug-c">
+          <button type="button" class="ws-add" data-add="ws-s-30aug-b">Add to cart<span>₹500</span></button>
+        </div>
+        <div class="ws-row" data-date="2026-08-30">
           <div class="ws-date"><span class="d">30</span><span class="m">Aug</span></div>
           <div class="ws-info">
             <div class="ws-title">Open Style Choreography <span class="song">· Pal Pal</span></div>
             <div class="ws-sub">Tej</div>
           </div>
           <div class="ws-time">Sun · 7:00 PM</div>
-          <div class="ws-go">Add · ₹500 →</div>
-        </button>
-        <button type="button" class="ws-row" data-date="2026-09-06" data-add="ws-s-06sep">
+          <button type="button" class="ws-add" data-add="ws-s-30aug-c">Add to cart<span>₹500</span></button>
+        </div>
+        <div class="ws-row" data-date="2026-09-06">
           <div class="ws-date"><span class="d">6</span><span class="m">Sept</span></div>
           <div class="ws-info">
             <div class="ws-title">Ballet Training Class</div>
             <div class="ws-sub">Akash</div>
           </div>
           <div class="ws-time">Sun · 11:00 AM</div>
-          <div class="ws-go">Add · ₹500 →</div>
-        </button>
+          <button type="button" class="ws-add" data-add="ws-s-06sep">Add to cart<span>₹500</span></button>
+        </div>
         <div class="ws-empty">That’s a wrap at Seawoods for this series — new workshops dropping soon. 🔮</div>
       </div>
     </div>
-    <p class="ws-note"><span>Tap a workshop</span> to add it to your cart · pay for everything together</p>
+    <p class="ws-note"><span>Add what you want</span> to your cart · pay for everything together</p>
   </section>
 
   <script src="cart.js"></script>
@@ -512,8 +521,14 @@
 
     /* add-to-cart on workshop rows and pass tiles */
     function markAdded(el){
-      el.classList.add('added');
-      setTimeout(function(){ el.classList.remove('added'); }, 2600);
+      if(el.classList.contains('ws-add')){
+        var was = el.innerHTML;
+        el.classList.add('added'); el.innerHTML = 'Added ✓';
+        setTimeout(function(){ el.classList.remove('added'); el.innerHTML = was; }, 1900);
+      } else {
+        el.classList.add('added');
+        setTimeout(function(){ el.classList.remove('added'); }, 2200);
+      }
     }
     document.addEventListener('click', function(e){
       var el = e.target.closest('[data-add]');
