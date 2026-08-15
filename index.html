@@ -207,6 +207,48 @@
   .cf-dot{width:8px;height:8px;border-radius:50%;background:var(--muted-2);border:none;opacity:.5;cursor:pointer;padding:0}
   .cf-dot.on{background:var(--cyan);opacity:1;box-shadow:0 0 10px rgba(92,225,230,.7)}
   @media (max-width:560px){.carousel.is-carousel{height:540px}.cf-card{width:212px}}
+
+  /* ===== What's New: Orientation Series workshops ===== */
+  .ws-passes{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin:34px auto 0;max-width:760px}
+  .ws-pass{flex:1 1 180px;max-width:240px;background:var(--glass-2);border:1px solid var(--border);border-radius:16px;padding:18px 14px 15px;display:flex;flex-direction:column;align-items:center;gap:5px;transition:border-color .2s,transform .2s,box-shadow .2s}
+  .ws-pass:hover{border-color:var(--border-cyan);transform:translateY(-2px);box-shadow:0 0 28px rgba(92,225,230,.14)}
+  .ws-pass .k{font-family:"Space Mono",monospace;font-size:9.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted-2)}
+  .ws-pass .v{font-family:"Instrument Serif",serif;font-size:30px;line-height:1.05}
+  .ws-pass .s{font-size:12.5px;color:var(--muted)}
+  .ws-pass.hot{border-color:var(--border-cyan);background:rgba(92,225,230,.07)}
+  .ws-pass.hot .v{color:var(--cyan)}
+  .ws-tabs{position:relative;display:inline-flex;gap:0;margin:38px auto 0;background:var(--glass-2);border:1px solid var(--border);border-radius:999px;padding:4px}
+  .ws-tab{position:relative;z-index:1;border:0;background:none;cursor:pointer;color:var(--muted);font-family:"Space Mono",monospace;font-size:12px;letter-spacing:.14em;text-transform:uppercase;padding:10px 26px;border-radius:999px;transition:color .25s}
+  .ws-tab.on{color:#04181a;font-weight:700}
+  .ws-pill{position:absolute;top:4px;bottom:4px;left:4px;width:50%;border-radius:999px;background:linear-gradient(100deg,#5ce1e6,#93f1f4);box-shadow:0 0 22px rgba(92,225,230,.4);transition:transform .35s cubic-bezier(.22,.61,.36,1),width .35s cubic-bezier(.22,.61,.36,1)}
+  .ws-groups{max-width:680px;margin:26px auto 0;text-align:left}
+  .ws-group{display:none;flex-direction:column;gap:12px}
+  .ws-group.on{display:flex}
+  .ws-row{display:flex;align-items:center;gap:18px;background:var(--glass);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border:1px solid var(--border);border-radius:16px;padding:16px 20px;text-decoration:none;color:inherit;opacity:0;transform:translateY(14px);transition:opacity .5s ease,transform .5s ease,border-color .2s,box-shadow .2s}
+  .ws-row.in{opacity:1;transform:none}
+  .ws-row:hover{border-color:var(--border-cyan);box-shadow:0 0 32px rgba(92,225,230,.13),0 10px 34px rgba(0,0,0,.35)}
+  .ws-date{flex:0 0 54px;text-align:center;border-right:1px solid var(--border);padding-right:16px}
+  .ws-date .d{display:block;font-family:"Instrument Serif",serif;font-size:30px;line-height:1}
+  .ws-date .m{display:block;font-family:"Space Mono",monospace;font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:var(--cyan);margin-top:4px}
+  .ws-info{flex:1;min-width:0}
+  .ws-title{font-size:16.5px;font-weight:500;line-height:1.35}
+  .ws-title .song{font-family:"Instrument Serif",serif;font-style:italic;color:var(--cyan);font-weight:400;font-size:17.5px}
+  .ws-sub{font-family:"Space Mono",monospace;font-size:11.5px;color:var(--muted);margin-top:4px;letter-spacing:.05em}
+  .ws-time{flex:0 0 auto;font-family:"Space Mono",monospace;font-size:11.5px;color:var(--muted);border:1px solid var(--border);border-radius:999px;padding:7px 13px;white-space:nowrap}
+  .ws-go{flex:0 0 auto;font-family:"Space Mono",monospace;font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted-2);transition:color .2s,transform .2s;white-space:nowrap}
+  .ws-row:hover .ws-go{color:var(--cyan);transform:translateX(3px)}
+  .ws-row:hover .ws-time{border-color:var(--border-cyan);color:var(--cyan)}
+  .ws-empty{display:none;text-align:center;color:var(--muted);font-size:15px;padding:34px 20px;border:1px dashed var(--border);border-radius:16px}
+  .ws-note{font-family:"Space Mono",monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted-2);margin-top:22px;text-align:center}
+  .ws-note span{color:var(--cyan)}
+  @media (max-width:620px){
+    .ws-row{flex-wrap:wrap;gap:12px 14px;padding:15px 16px}
+    .ws-date{flex-basis:46px;padding-right:12px}
+    .ws-date .d{font-size:25px}
+    .ws-info{flex:1 1 calc(100% - 80px)}
+    .ws-time{margin-left:72px}
+    .ws-go{margin-left:auto}
+  }
 </style>
 </head>
 <body class="home">
@@ -218,6 +260,7 @@
   <button class="burger" id="burger" aria-label="Menu" aria-expanded="false">☰</button>
   <div class="nav-links" id="navLinks">
     <a href="#about">About</a>
+    <a href="#events">What’s new</a>
     <a href="#classes">Classes</a>
     <a href="count-me-in.html">Count Me In</a>
     <a href="sync-studio.html">Sync Studio</a>
@@ -250,9 +293,219 @@
     </div>
   </section>
 
-  <!-- REGULAR CLASSES -->
+  <!-- WHAT'S NEW: ORIENTATION SERIES -->
   <span id="tickets" aria-hidden="true"></span>
-  <span id="events" aria-hidden="true"></span>
+  <section class="section" id="events" style="padding-bottom:44px">
+    <div class="eyebrow">Events &amp; workshops</div>
+    <h2>What's <span class="i">new</span>.</h2>
+    <p class="lead">The <span class="i">Orientation Series</span> — back to dancing with iMAP. Drop into any workshop, or grab an all-access pass and dance through the whole series at your studio.</p>
+
+    <div class="ws-passes">
+      <div class="ws-pass hot"><span class="k">Try any class</span><span class="v">₹500</span><span class="s">per workshop</span></div>
+      <div class="ws-pass"><span class="k">All classes · Vashi</span><span class="v">₹2000</span><span class="s">full series pass</span></div>
+      <div class="ws-pass"><span class="k">All classes · Seawoods</span><span class="v">₹3000</span><span class="s">full series pass</span></div>
+    </div>
+
+    <div class="ws-tabs" role="tablist" aria-label="Studio">
+      <span class="ws-pill" id="wsPill" aria-hidden="true"></span>
+      <button class="ws-tab on" id="tabVashi" role="tab" aria-selected="true" data-loc="vashi">Vashi</button>
+      <button class="ws-tab" id="tabSeawoods" role="tab" aria-selected="false" data-loc="seawoods">Seawoods</button>
+    </div>
+
+    <div class="ws-groups">
+      <div class="ws-group on" data-loc="vashi">
+        <a class="ws-row" data-date="2026-08-17" data-wa="Hey! I would like to join the Choreography Workshop (Chura Liya Hai) on 17 Aug at iMAP, Vashi">
+          <div class="ws-date"><span class="d">17</span><span class="m">Aug</span></div>
+          <div class="ws-info">
+            <div class="ws-title">Choreography Workshop <span class="song">· Chura Liya Hai</span></div>
+            <div class="ws-sub">Rohit Choudhary</div>
+          </div>
+          <div class="ws-time">Mon · 7:00 PM</div>
+          <div class="ws-go">Join →</div>
+        </a>
+        <a class="ws-row" data-date="2026-08-18" data-wa="Hey! I would like to join the Kids Dance Workshop (Dance Ka Bhoot) on 18 Aug at iMAP, Vashi">
+          <div class="ws-date"><span class="d">18</span><span class="m">Aug</span></div>
+          <div class="ws-info">
+            <div class="ws-title">Kids Dance Workshop <span class="song">· Dance Ka Bhoot</span></div>
+            <div class="ws-sub">Jeevak</div>
+          </div>
+          <div class="ws-time">Tue · 6:30 PM</div>
+          <div class="ws-go">Join →</div>
+        </a>
+        <a class="ws-row" data-date="2026-08-19" data-wa="Hey! I would like to join the Bollywood Workshop (Gun Gun Guna Re) on 19 Aug at iMAP, Vashi">
+          <div class="ws-date"><span class="d">19</span><span class="m">Aug</span></div>
+          <div class="ws-info">
+            <div class="ws-title">Bollywood Workshop <span class="song">· Gun Gun Guna Re</span></div>
+            <div class="ws-sub">Ruchika</div>
+          </div>
+          <div class="ws-time">Wed · 5:30 PM</div>
+          <div class="ws-go">Join →</div>
+        </a>
+        <a class="ws-row" data-date="2026-08-19" data-wa="Hey! I would like to join the Jazz Funk Workshop (Taki Taki) on 19 Aug at iMAP, Vashi">
+          <div class="ws-date"><span class="d">19</span><span class="m">Aug</span></div>
+          <div class="ws-info">
+            <div class="ws-title">Jazz Funk Workshop <span class="song">· Taki Taki</span></div>
+            <div class="ws-sub">Ruchika</div>
+          </div>
+          <div class="ws-time">Wed · 8:00 PM</div>
+          <div class="ws-go">Join →</div>
+        </a>
+        <a class="ws-row" data-date="2026-08-27" data-wa="Hey! I would like to join the Contemporary Workshop (Ae Dil Hai Mushkil) on 27 Aug at iMAP, Vashi">
+          <div class="ws-date"><span class="d">27</span><span class="m">Aug</span></div>
+          <div class="ws-info">
+            <div class="ws-title">Contemporary Workshop <span class="song">· Ae Dil Hai Mushkil</span></div>
+            <div class="ws-sub">Shreya</div>
+          </div>
+          <div class="ws-time">Thu · 5:00 PM</div>
+          <div class="ws-go">Join →</div>
+        </a>
+        <a class="ws-row" data-date="2026-08-31" data-wa="Hey! I would like to join the Hip Hop Workshop on 31 Aug at iMAP, Vashi">
+          <div class="ws-date"><span class="d">31</span><span class="m">Aug</span></div>
+          <div class="ws-info">
+            <div class="ws-title">Hip Hop Workshop <span class="song">· Song TBA</span></div>
+            <div class="ws-sub">Rohit Mankar</div>
+          </div>
+          <div class="ws-time">Mon · 6:30 PM</div>
+          <div class="ws-go">Join →</div>
+        </a>
+        <div class="ws-empty">That’s a wrap at Vashi for this series — new workshops dropping soon. 🔮</div>
+      </div>
+      <div class="ws-group" data-loc="seawoods">
+        <a class="ws-row" data-date="2026-08-23" data-wa="Hey! I would like to join the Semi Classical Choreography (Vachindamma) on 23 Aug at iMAP, Seawoods">
+          <div class="ws-date"><span class="d">23</span><span class="m">Aug</span></div>
+          <div class="ws-info">
+            <div class="ws-title">Semi Classical Choreography <span class="song">· Vachindamma</span></div>
+            <div class="ws-sub">Anamika</div>
+          </div>
+          <div class="ws-time">Sun · 1:00 PM</div>
+          <div class="ws-go">Join →</div>
+        </a>
+        <a class="ws-row" data-date="2026-08-27" data-wa="Hey! I would like to join the Juniors Demo Class (Lut Put Gaya) on 27 Aug at iMAP, Seawoods">
+          <div class="ws-date"><span class="d">27</span><span class="m">Aug</span></div>
+          <div class="ws-info">
+            <div class="ws-title">Juniors Demo Class <span class="song">· Lut Put Gaya</span></div>
+            <div class="ws-sub">Jeevak</div>
+          </div>
+          <div class="ws-time">Thu · 4:45 PM</div>
+          <div class="ws-go">Join →</div>
+        </a>
+        <a class="ws-row" data-date="2026-08-29" data-wa="Hey! I would like to join the Kids Ballet Demo Class on 29 Aug at iMAP, Seawoods">
+          <div class="ws-date"><span class="d">29</span><span class="m">Aug</span></div>
+          <div class="ws-info">
+            <div class="ws-title">Kids Ballet Demo Class</div>
+            <div class="ws-sub">Shreya</div>
+          </div>
+          <div class="ws-time">Sat · 1:00 PM</div>
+          <div class="ws-go">Join →</div>
+        </a>
+        <a class="ws-row" data-date="2026-08-29" data-wa="Hey! I would like to join the Bollywood Workshop (Just Chill) on 29 Aug at iMAP, Seawoods">
+          <div class="ws-date"><span class="d">29</span><span class="m">Aug</span></div>
+          <div class="ws-info">
+            <div class="ws-title">Bollywood Workshop <span class="song">· Just Chill</span></div>
+            <div class="ws-sub">Ruchika</div>
+          </div>
+          <div class="ws-time">Sat · 5:00 PM</div>
+          <div class="ws-go">Join →</div>
+        </a>
+        <a class="ws-row" data-date="2026-08-29" data-wa="Hey! I would like to join the Jazz Choreography Workshop (Way I Are) on 29 Aug at iMAP, Seawoods">
+          <div class="ws-date"><span class="d">29</span><span class="m">Aug</span></div>
+          <div class="ws-info">
+            <div class="ws-title">Jazz Choreography Workshop <span class="song">· Way I Are</span></div>
+            <div class="ws-sub">Rohit Choudhary</div>
+          </div>
+          <div class="ws-time">Sat · 7:00 PM</div>
+          <div class="ws-go">Join →</div>
+        </a>
+        <a class="ws-row" data-date="2026-08-30" data-wa="Hey! I would like to join the Jazz Funk Choreography (Whine Up) on 30 Aug at iMAP, Seawoods">
+          <div class="ws-date"><span class="d">30</span><span class="m">Aug</span></div>
+          <div class="ws-info">
+            <div class="ws-title">Jazz Funk Choreography <span class="song">· Whine Up</span></div>
+            <div class="ws-sub">Ruchika</div>
+          </div>
+          <div class="ws-time">Sun · 3:00 PM</div>
+          <div class="ws-go">Join →</div>
+        </a>
+        <a class="ws-row" data-date="2026-08-30" data-wa="Hey! I would like to join the Afro & Dancehall Workshop (Haseen) on 30 Aug at iMAP, Seawoods">
+          <div class="ws-date"><span class="d">30</span><span class="m">Aug</span></div>
+          <div class="ws-info">
+            <div class="ws-title">Afro &amp; Dancehall Workshop <span class="song">· Haseen</span></div>
+            <div class="ws-sub">Tanvi</div>
+          </div>
+          <div class="ws-time">Sun · 5:00 PM</div>
+          <div class="ws-go">Join →</div>
+        </a>
+        <a class="ws-row" data-date="2026-08-30" data-wa="Hey! I would like to join the Open Style Choreography (Pal Pal) on 30 Aug at iMAP, Seawoods">
+          <div class="ws-date"><span class="d">30</span><span class="m">Aug</span></div>
+          <div class="ws-info">
+            <div class="ws-title">Open Style Choreography <span class="song">· Pal Pal</span></div>
+            <div class="ws-sub">Tej</div>
+          </div>
+          <div class="ws-time">Sun · 7:00 PM</div>
+          <div class="ws-go">Join →</div>
+        </a>
+        <a class="ws-row" data-date="2026-09-06" data-wa="Hey! I would like to join the Ballet Training Class on 6 Sept at iMAP, Seawoods">
+          <div class="ws-date"><span class="d">6</span><span class="m">Sept</span></div>
+          <div class="ws-info">
+            <div class="ws-title">Ballet Training Class</div>
+            <div class="ws-sub">Akash</div>
+          </div>
+          <div class="ws-time">Sun · 11:00 AM</div>
+          <div class="ws-go">Join →</div>
+        </a>
+        <div class="ws-empty">That’s a wrap at Seawoods for this series — new workshops dropping soon. 🔮</div>
+      </div>
+    </div>
+    <p class="ws-note"><span>Tap a workshop</span> to reserve your spot on WhatsApp</p>
+  </section>
+
+  <script>
+  /* Orientation Series: studio tabs, reveal animation, auto-hide past dates */
+  (function(){
+    var tabs=[].slice.call(document.querySelectorAll('.ws-tab')),
+        pill=document.getElementById('wsPill'),
+        groups=[].slice.call(document.querySelectorAll('.ws-group'));
+    function movePill(btn){ pill.style.width=btn.offsetWidth+'px'; pill.style.transform='translateX('+(btn.offsetLeft-4)+'px)'; }
+    function select(btn){
+      tabs.forEach(function(t){ var on=t===btn; t.classList.toggle('on',on); t.setAttribute('aria-selected',on?'true':'false'); });
+      groups.forEach(function(g){ g.classList.toggle('on',g.dataset.loc===btn.dataset.loc); });
+      movePill(btn); reveal();
+    }
+    tabs.forEach(function(t){ t.addEventListener('click',function(){ select(t); }); });
+    window.addEventListener('resize',function(){ movePill(document.querySelector('.ws-tab.on')); });
+    movePill(tabs[0]);
+
+    /* hide workshops whose date has passed; show a note when a studio's list empties */
+    var today=new Date(); today.setHours(0,0,0,0);
+    groups.forEach(function(g){
+      var live=0;
+      [].slice.call(g.querySelectorAll('.ws-row')).forEach(function(r){
+        var d=new Date(r.dataset.date+'T00:00:00');
+        if(d<today){ r.remove(); } else { live++; }
+      });
+      if(!live) g.querySelector('.ws-empty').style.display='block';
+    });
+
+    /* staggered reveal on scroll */
+    function reveal(){
+      var rows=[].slice.call(document.querySelectorAll('.ws-group.on .ws-row'));
+      rows.forEach(function(r,i){ r.classList.remove('in'); });
+      if(!('IntersectionObserver' in window)){ rows.forEach(function(r){ r.classList.add('in'); }); return; }
+      var io=new IntersectionObserver(function(es){
+        es.forEach(function(e){
+          if(e.isIntersecting){
+            var el=e.target, i=[].indexOf.call(el.parentNode.querySelectorAll('.ws-row'),el);
+            setTimeout(function(){ el.classList.add('in'); }, Math.min(i*70,420));
+            io.unobserve(el);
+          }
+        });
+      },{threshold:.15});
+      rows.forEach(function(r){ io.observe(r); });
+    }
+    reveal();
+  })();
+  </script>
+
+  <!-- REGULAR CLASSES -->
   <section class="section" id="classes" style="padding-bottom:40px">
     <div class="eyebrow">Regular Classes</div>
     <h2>Find your <span class="i">groove</span>.</h2>
