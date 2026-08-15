@@ -200,7 +200,8 @@ image in Drive, and **Flags** calls out a tampered total.
 | No emails | Gmail's daily quota (100/day on free accounts), the `setup` permission was never granted, or the buyer left email blank (it's optional — confirm those on WhatsApp) |
 | "Unknown item" error | An item exists in `pay.html` but not in `PRICES` in `Code.gs` |
 | Nothing happens on "Open UPI app" (desktop) | Expected — UPI links only work on phones; use the QR code |
-| Everything lands as PENDING | The Drive API service isn't switched on (step 3b), so nothing can be read |
+| Auto-check says "not readable" | Run `testOcr` from the editor — it OCRs the last real screenshot and prints exactly what failed. Usually the Drive service isn't switched on (step 3b) |
+| Everything lands as PENDING | Same as above — without Drive nothing can be read, though orders and emails still arrive |
 | "Unable to open the file at present" | Multiple Google accounts in the browser — see the box in step 1, or use a standalone script |
 | "Attempted to execute myFunction, but it was deleted" | The toolbar dropdown still points at the blank project's placeholder. Save, then pick `setup` from it |
 | "Found a service identifier used more than once: Drive" | Drive was added twice. Remove one under **Services**, or show `appsscript.json` via Project Settings and leave a single Drive block in `enabledAdvancedServices` |

@@ -17,7 +17,7 @@
 
 /* Bump this whenever you paste a new copy in. Visiting the /exec URL in a browser
    prints it, so you can always tell which version the web app is actually serving. */
-var BUILD = '2026-08-15-b';
+var BUILD = '2026-08-15-c';
 
 var CONFIG = {
   ADMIN_EMAIL:   'indiemovementartproject@gmail.com',
@@ -202,29 +202,49 @@ function readScreenshot(dataUrl, d) {
     url = folder.createFile(blob).getUrl();
   } catch (err) {}
 
-  var text = '';
-  try { text = ocrImage(blob); } catch (err) { text = ''; }
+  var text = '', ocrError = '';
+  try { text = ocrImage(blob); }
+  catch (err) { text = ''; ocrError = String((err && err.message) || err).slice(0, 120); }
 
   var verdict = judge(text, d.expected);
+  if (!text && ocrError) {
+    verdict.summary = 'not readable — ' + ocrError;
+    verdict.reason  = 'We couldn\'t read the screenshot automatically (' + ocrError + ').';
+  }
   verdict.blob = blob;
   verdict.url = url;
   verdict.text = text;
   return verdict;
 }
 
-/** Google Drive will OCR an image if you ask it to convert to a Doc. */
+/**
+ * Google Drive will OCR an image if you ask it to convert to a Doc.
+ * v2 and v3 of the advanced service take different arguments — v3 has no `ocr`
+ * flag and rejects it, so passing one there quietly produced no text at all.
+ * Throws with a readable reason rather than returning '' so the cause reaches
+ * the sheet instead of a bare "not readable".
+ */
 function ocrImage(blob) {
-  var meta = { title: 'imap-ocr-tmp', name: 'imap-ocr-tmp', mimeType: 'application/vnd.google-apps.document' };
-  var opts = { ocr: true, ocrLanguage: 'en' };
+  if (typeof Drive === 'undefined' || !Drive.Files) {
+    throw new Error('Drive advanced service is not switched on');
+  }
   var file;
-  if (typeof Drive === 'undefined' || !Drive.Files) return '';       /* advanced service off */
-  if (Drive.Files.insert) file = Drive.Files.insert(meta, blob, opts);   /* Drive v2 */
-  else if (Drive.Files.create) file = Drive.Files.create(meta, blob, opts); /* Drive v3 */
-  else return '';
-  var id = file.id || file.getId();
+  if (Drive.Files.insert) {                       /* Drive v2 */
+    file = Drive.Files.insert(
+      { title: 'imap-ocr-tmp', mimeType: 'application/vnd.google-apps.document' },
+      blob, { ocr: true, ocrLanguage: 'en' });
+  } else if (Drive.Files.create) {                /* Drive v3 — conversion comes from the mimeType */
+    file = Drive.Files.create(
+      { name: 'imap-ocr-tmp', mimeType: 'application/vnd.google-apps.document' },
+      blob, { ocrLanguage: 'en' });
+  } else {
+    throw new Error('Drive service present but Files.insert/create missing');
+  }
+  var id = file.id || (file.getId && file.getId());
+  if (!id) throw new Error('Drive returned no file id');
   var text = '';
-  try { text = DocumentApp.openById(id).getBody().getText(); } catch (err) {}
-  try { DriveApp.getFileById(id).setTrashed(true); } catch (err) {}
+  try { text = DocumentApp.openById(id).getBody().getText(); }
+  finally { try { DriveApp.getFileById(id).setTrashed(true); } catch (err) {} }
   return text;
 }
 
@@ -474,6 +494,52 @@ function installEditTrigger() {
   }
   ScriptApp.newTrigger('onStatusEdit').forSpreadsheet(id).onEdit().create();
   Logger.log('Edit trigger installed on ' + id);
+}
+
+/**
+ * Run this from the editor if Auto-check says "not readable".
+ * It takes the most recent screenshot a customer actually uploaded, pushes it
+ * through the real OCR path, and prints what Drive could read plus the verdict.
+ * Read the output under Execution log.
+ */
+function testOcr() {
+  Logger.log('build ' + BUILD);
+
+  if (typeof Drive === 'undefined' || !Drive.Files) {
+    Logger.log('FAIL — the Drive advanced service is not switched on.');
+    Logger.log('Fix: editor sidebar > Services > + > Drive API > Add, then re-deploy.');
+    return;
+  }
+  Logger.log('Drive service: ' + (Drive.Files.insert ? 'v2 (Files.insert)' : 'v3 (Files.create)'));
+
+  var folders = DriveApp.getFoldersByName(CONFIG.DRIVE_FOLDER);
+  if (!folders.hasNext()) {
+    Logger.log('No "' + CONFIG.DRIVE_FOLDER + '" folder yet — take a payment first, then run this.');
+    return;
+  }
+  var files = folders.next().getFiles(), newest = null;
+  while (files.hasNext()) {
+    var f = files.next();
+    if (!newest || f.getDateCreated() > newest.getDateCreated()) newest = f;
+  }
+  if (!newest) { Logger.log('The folder is empty — no screenshot has arrived yet.'); return; }
+  Logger.log('Testing on: ' + newest.getName() + ' (' + Math.round(newest.getSize() / 1024) + ' KB)');
+
+  try {
+    var text = ocrImage(newest.getBlob());
+    if (!text || !text.replace(/\s/g, '')) {
+      Logger.log('FAIL — Drive accepted the image but read no text from it.');
+      Logger.log('Try a full, uncropped screenshot rather than a photo of a screen.');
+      return;
+    }
+    Logger.log('Drive read this:');
+    Logger.log(text.slice(0, 500));
+    Logger.log('---');
+    Logger.log('Verdict against ₹500: ' + JSON.stringify(judge(text, 500)));
+    Logger.log('If amount/date show ✗ above, the wording just needs matching — send me this log.');
+  } catch (err) {
+    Logger.log('FAIL — ' + ((err && err.message) || err));
+  }
 }
 
 /** Check the screenshot reader without spending a real payment. */
