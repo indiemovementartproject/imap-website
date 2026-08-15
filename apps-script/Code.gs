@@ -17,7 +17,19 @@ var CONFIG = {
   SITE: 'https://indiemovementartproject.com',
   WHATSAPP: '918454880061',
   SHEET_NAME: 'Payments',
-  CYAN: '#0f9aa0'                    // readable on white email backgrounds
+  ALERTS_SHEET: 'Bank alerts',
+  CYAN: '#0f9aa0',                   // readable on white email backgrounds
+
+  /* --- automatic verification from Rohit's bank SMS --- */
+  // Long random string. Put the SAME value in the phone's forwarding app.
+  // Unlike anything in the website's JavaScript this really is secret:
+  // it lives only on the phone and here.
+  SMS_TOKEN: 'CHANGE_ME_TO_A_LONG_RANDOM_STRING',
+  // Fallback route: if the phone forwards SMS to Gmail instead of POSTing,
+  // pollGmail() picks them up with this search.
+  GMAIL_QUERY: 'newer_than:3d (ICICI OR "UPI" OR credited) -label:imap-processed',
+  // How far back an unmatched credit may reach when matching on amount alone.
+  MATCH_WINDOW_HOURS: 72
 };
 
 /** Authoritative prices. MUST match the ITEMS table in pay.html. */
@@ -75,6 +87,9 @@ function doPost(e) {
   try {
     var body = {};
     try { body = JSON.parse(e.postData.contents); } catch (err) { return json({ ok: false, error: 'Bad request.' }); }
+
+    /* a forwarded bank SMS, not a customer order */
+    if (body.type === 'sms') return handleSms(body);
 
     var v = validate(body);
     if (!v.ok) return json({ ok: false, error: v.error });
@@ -275,8 +290,212 @@ function mailAdmin(receipt, d) {
   });
 }
 
-/* ------------------------------------------------------------------ */
-/** Installable onEdit trigger: emails the payer when you mark a row VERIFIED. */
+/* ==================================================================
+   AUTOMATIC VERIFICATION FROM ROHIT'S BANK SMS
+   ==================================================================
+   The bank texts +91 98705 38332 on every credit. The phone forwards
+   that text here (webhook or email), we read the amount and the 12-digit
+   UPI reference out of it, and match it to a PENDING order.
+
+   The reference the payer copies off their success screen is the same
+   number the bank reports to the payee, so matches are exact rather
+   than guesswork. Amount-only matching is a fallback and is used only
+   when exactly one pending order could explain the credit.
+
+   This can only ever flip an EXISTING order to VERIFIED. It cannot
+   create an order and it cannot move money.
+   ================================================================== */
+
+var ALERT_HEADERS = ['Received', 'Amount', 'UPI ref', 'Matched receipt', 'How', 'Source', 'Raw message'];
+
+function alertsSheet() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sh = ss.getSheetByName(CONFIG.ALERTS_SHEET);
+  if (!sh) {
+    sh = ss.insertSheet(CONFIG.ALERTS_SHEET);
+    sh.appendRow(ALERT_HEADERS);
+    sh.getRange(1, 1, 1, ALERT_HEADERS.length).setFontWeight('bold')
+      .setBackground('#0b2b2e').setFontColor('#ffffff');
+    sh.setFrozenRows(1);
+  }
+  return sh;
+}
+
+/** Pull the amount and UPI reference out of a bank credit SMS. */
+function parseBankSms(text) {
+  var t = String(text == null ? '' : text).replace(/\s+/g, ' ').trim();
+  if (!t) return null;
+
+  /* Only money actually arriving. "credit" alone is far too loose — a
+     "get a credit card, limit Rs 5,00,000" promo would sail through it. */
+  if (!/credited|credit of|received in your/i.test(t)) return null;
+  if (!/a\/c|acct|account/i.test(t)) return null;
+  if (/credit card|apply now|pre-?approved|loan|eligible|reward point|cashback offer/i.test(t)) return null;
+  if (/debited|withdrawn|OTP|password/i.test(t) && !/credited/i.test(t)) return null;
+
+  var m = t.match(/(?:rs\.?|inr)\s*([0-9][0-9,]*(?:\.[0-9]{1,2})?)/i);
+  if (!m) return null;
+  var amount = Number(m[1].replace(/,/g, ''));
+  if (!isFinite(amount) || amount <= 0) return null;
+
+  /* UPI reference / RRN: labelled if we're lucky, else any bare 12-digit run */
+  var utr = '';
+  var r = t.match(/(?:UPI|UPIR|RRN|Ref(?:erence)?(?:\s*No)?)[\s:\/#-]*([0-9]{9,14})/i);
+  if (r) utr = r[1];
+  else { r = t.match(/\b(\d{12})\b/); if (r) utr = r[1]; }
+
+  return { amount: amount, utr: utr, text: t.slice(0, 400) };
+}
+
+/** Find a PENDING order this credit explains, and verify it. */
+function reconcile(parsed, source) {
+  var lock = LockService.getScriptLock();
+  lock.waitLock(20000);
+  try {
+    var sh = sheet(), last = sh.getLastRow();
+    var matchedRow = 0, how = '';
+
+    if (last >= 2) {
+      var vals = sh.getRange(2, 1, last - 1, HEADERS.length).getValues();
+      var i, cutoff = new Date().getTime() - CONFIG.MATCH_WINDOW_HOURS * 3600 * 1000;
+
+      /* 1. exact — same UPI reference */
+      if (parsed.utr) {
+        for (i = 0; i < vals.length; i++) {
+          if (String(vals[i][2]).toUpperCase() !== 'PENDING') continue;
+          if (String(vals[i][12]).replace(/^'/, '').trim() === parsed.utr) {
+            matchedRow = i + 2; how = 'auto · UPI ref'; break;
+          }
+        }
+      }
+
+      /* 2. fallback — same amount, recent, and unambiguous */
+      if (!matchedRow) {
+        var candidates = [];
+        for (i = 0; i < vals.length; i++) {
+          if (String(vals[i][2]).toUpperCase() !== 'PENDING') continue;
+          if (Number(vals[i][6]) !== parsed.amount) continue;
+          var when = Date.parse(String(vals[i][0]).replace(' ', 'T') + '+05:30');
+          if (isFinite(when) && when < cutoff) continue;
+          candidates.push(i + 2);
+        }
+        if (candidates.length === 1) { matchedRow = candidates[0]; how = 'auto · amount'; }
+        else if (candidates.length > 1) { how = 'ambiguous — ' + candidates.length + ' orders share this amount'; }
+      }
+    }
+
+    var receipt = '';
+    if (matchedRow) {
+      receipt = String(sh.getRange(matchedRow, 2).getValue());
+      markVerified(sh, matchedRow, how);
+    }
+
+    alertsSheet().appendRow([
+      Utilities.formatDate(new Date(), 'Asia/Kolkata', 'yyyy-MM-dd HH:mm:ss'),
+      parsed.amount, parsed.utr ? "'" + parsed.utr : '',
+      receipt, how || 'no match', source, parsed.text
+    ]);
+
+    if (!matchedRow) notifyUnmatched(parsed, how);
+    return { matched: !!matchedRow, receipt: receipt, how: how };
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+/** Flip a row to VERIFIED and tell the customer. */
+function markVerified(sh, r, how) {
+  sh.getRange(r, 3).setValue('VERIFIED');
+  sh.getRange(r, 15).setValue(how);
+  sh.getRange(r, 16).setValue(Utilities.formatDate(new Date(), 'Asia/Kolkata', 'yyyy-MM-dd HH:mm:ss'));
+  var vals = sh.getRange(r, 1, 1, HEADERS.length).getValues()[0];
+  try { sendConfirmation(vals); } catch (err) {}
+}
+
+/** The "you're confirmed" email. Shared by the automatic and manual paths. */
+function sendConfirmation(vals) {
+  var receipt = vals[1], label = vals[3], amount = vals[6],
+      name = vals[9], email = vals[11], utr = String(vals[12]).replace(/^'/, '');
+  if (!email) return;                 /* no email given — confirm on WhatsApp instead */
+  var body = '<p style="font:15px/1.65 -apple-system,Segoe UI,sans-serif;color:#12211f;margin:0 0 18px">' +
+      'Hi ' + esc(String(name).split(/\s+/)[0]) + ', your payment is confirmed and your spot is booked. See you in the studio!</p>' +
+    '<table style="width:100%;border-collapse:collapse">' +
+      row('Receipt', receipt) + row('For', label) +
+      row('Total', '₹' + amount) + row('UPI transaction ID', utr) +
+    '</table>';
+  MailApp.sendEmail({
+    to: email,
+    subject: 'Confirmed! Your iMAP booking · ' + receipt,
+    htmlBody: shell('Payment confirmed', 'Confirmed', '#1c8f5a', body),
+    name: CONFIG.BRAND,
+    replyTo: CONFIG.ADMIN_EMAIL
+  });
+}
+
+/** A credit we could not tie to an order still deserves a look. */
+function notifyUnmatched(parsed, why) {
+  var body = '<p style="font:15px/1.65 -apple-system,Segoe UI,sans-serif;color:#12211f;margin:0 0 16px">' +
+      'Money landed that doesn’t line up with a pending order. Usually that means someone paid ' +
+      'without going through the site, paid the wrong amount, or hasn’t submitted the form yet.</p>' +
+    '<table style="width:100%;border-collapse:collapse">' +
+      row('Amount', '₹' + parsed.amount) +
+      row('UPI ref', parsed.utr || '— not in the message —') +
+      (why ? row('Note', why) : '') +
+    '</table>' +
+    '<p style="font:12px/1.6 -apple-system,Segoe UI,sans-serif;color:#8a9a9c;margin:16px 0 0">' +
+      esc(parsed.text) + '</p>';
+  MailApp.sendEmail({
+    to: CONFIG.ADMIN_EMAIL,
+    subject: 'Unmatched credit · ₹' + parsed.amount,
+    htmlBody: shell('Unmatched credit', 'Needs a look', '#c07a20', body),
+    name: 'iMAP Payments'
+  });
+}
+
+/* ---------------- ingestion route 1: webhook from the phone ---------------- */
+
+function handleSms(body) {
+  var given = String(body.token || '');
+  var want = String(CONFIG.SMS_TOKEN || '');
+  if (want.length < 12 || given.length !== want.length || given !== want) {
+    Utilities.sleep(400);                       /* slow down guessing */
+    return json({ ok: false, error: 'not authorised' });
+  }
+  var parsed = parseBankSms(body.text);
+  if (!parsed) return json({ ok: true, ignored: true });   /* not a credit alert */
+
+  if (seenBefore(parsed)) return json({ ok: true, duplicate: true });
+  var res = reconcile(parsed, 'sms webhook');
+  return json({ ok: true, matched: res.matched, receipt: res.receipt });
+}
+
+/** Don't process the same alert twice if the phone retries. */
+function seenBefore(parsed) {
+  var key = 'sms:' + parsed.amount + ':' + (parsed.utr || parsed.text.slice(0, 60));
+  var props = PropertiesService.getScriptProperties();
+  if (props.getProperty(key)) return true;
+  props.setProperty(key, String(Date.now()));
+  return false;
+}
+
+/* ---------------- ingestion route 2: SMS forwarded to Gmail ---------------- */
+
+function pollGmail() {
+  var label = GmailApp.getUserLabelByName('imap-processed') || GmailApp.createLabel('imap-processed');
+  var threads = GmailApp.search(CONFIG.GMAIL_QUERY, 0, 25);
+  for (var t = 0; t < threads.length; t++) {
+    var msgs = threads[t].getMessages();
+    for (var m = 0; m < msgs.length; m++) {
+      var parsed = parseBankSms(msgs[m].getPlainBody());
+      if (parsed && !seenBefore(parsed)) reconcile(parsed, 'gmail');
+    }
+    threads[t].addLabel(label);
+  }
+}
+
+/* ---------------- manual override still works ---------------- */
+
+/** Installable onEdit trigger: emails the payer when you mark a row VERIFIED by hand. */
 function onStatusEdit(e) {
   try {
     if (!e || !e.range) return;
@@ -286,32 +505,40 @@ function onStatusEdit(e) {
     if (String(e.value).toUpperCase() !== 'VERIFIED') return;
 
     var r = e.range.getRow();
-    var vals = sh.getRange(r, 1, 1, HEADERS.length).getValues()[0];
-    var receipt = vals[1], label = vals[3], amount = vals[6],
-        name = vals[9], email = vals[11], utr = String(vals[12]).replace(/^'/, '');
-    if (!email) return;                        /* nothing to confirm to; tell them on WhatsApp */
-
+    if (String(sh.getRange(r, 15).getValue()).indexOf('auto') === 0) return;  /* already done automatically */
     sh.getRange(r, 15).setValue(Session.getActiveUser().getEmail() || 'admin');
     sh.getRange(r, 16).setValue(Utilities.formatDate(new Date(), 'Asia/Kolkata', 'yyyy-MM-dd HH:mm:ss'));
-
-    var body = '<p style="font:15px/1.65 -apple-system,Segoe UI,sans-serif;color:#12211f;margin:0 0 18px">' +
-        'Hi ' + esc(String(name).split(/\s+/)[0]) + ', your payment is confirmed and your spot is booked. See you in the studio!</p>' +
-      '<table style="width:100%;border-collapse:collapse">' +
-        row('Receipt', receipt) + row('For', label) +
-        row('Total', '₹' + amount) + row('UPI transaction ID', utr) +
-      '</table>';
-    MailApp.sendEmail({
-      to: email,
-      subject: 'Confirmed! Your iMAP booking · ' + receipt,
-      htmlBody: shell('Payment confirmed', 'Confirmed', '#1c8f5a', body),
-      name: CONFIG.BRAND,
-      replyTo: CONFIG.ADMIN_EMAIL
-    });
+    sendConfirmation(sh.getRange(r, 1, 1, HEADERS.length).getValues()[0]);
   } catch (err) {}
 }
 
-/** Run once from the editor to create the sheet and grant permissions. */
+/* ---------------- one-time setup ---------------- */
+
+/** Run once from the editor: creates both sheets and grants permissions. */
 function setup() {
   sheet();
-  SpreadsheetApp.getActiveSpreadsheet().toast('Payments sheet ready.');
+  alertsSheet();
+  SpreadsheetApp.getActiveSpreadsheet().toast('Payments + Bank alerts sheets ready.');
+}
+
+/** Run once to schedule the Gmail poll (only needed for the email route). */
+function installGmailPoll() {
+  var all = ScriptApp.getProjectTriggers();
+  for (var i = 0; i < all.length; i++) {
+    if (all[i].getHandlerFunction() === 'pollGmail') ScriptApp.deleteTrigger(all[i]);
+  }
+  ScriptApp.newTrigger('pollGmail').timeBased().everyMinutes(5).create();
+  SpreadsheetApp.getActiveSpreadsheet().toast('Gmail poll scheduled every 5 minutes.');
+}
+
+/** Paste a real SMS in here and run it to check the parser before going live. */
+function testParse() {
+  var samples = [
+    'Dear Customer, Acct XX123 is credited with Rs 500.00 on 15-Aug-26 from asha@okaxis. UPI:419988776655-ICICI Bank',
+    'ICICI Bank Acct XX456 credited Rs.2,800.00 on 16-Aug-26; ASHA MENON credited. UPI:519988776655. Call 18002662 for dispute.',
+    'Your a/c XX789 debited Rs.200.00 - ignore this one'
+  ];
+  for (var i = 0; i < samples.length; i++) {
+    Logger.log(samples[i].slice(0, 40) + ' -> ' + JSON.stringify(parseBankSms(samples[i])));
+  }
 }

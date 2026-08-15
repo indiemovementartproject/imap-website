@@ -122,17 +122,94 @@ next visit, because the cart re-reads the catalogue on every load.
 Pay yourself ₹1: temporarily set one item's amount to `1` in **both** `cart.js` and `Code.gs`, run through the flow,
 and confirm you get the receipt email, the alert email, and a new Sheet row. Then set it back.
 
+
+---
+
+## 6 · Automatic verification from Rohit's bank SMS
+
+The bank texts **+91 98705 38332** whenever money lands. Forward that text to the script and
+it verifies the matching order by itself — no manual reconciliation, no gateway, no fees.
+
+**How the match works.** The 12-digit UPI reference the payer copies off their success screen is
+the same number the bank reports to you, so matching is exact rather than guesswork. If a
+particular alert has no reference, the script falls back to matching on amount — but only when
+exactly one recent pending order could explain that credit. Anything ambiguous or unrecognised
+stays PENDING and emails you instead. It can only ever flip an existing order to VERIFIED; it can
+never create an order or move money.
+
+### a. Set a secret
+
+In `Code.gs`, replace `SMS_TOKEN: 'CHANGE_ME_TO_A_LONG_RANDOM_STRING'` with a long random string
+(30+ characters). Unlike anything in the website's JavaScript this genuinely is secret — it lives
+only in the script and on Rohit's phone. Re-deploy after changing it.
+
+### b. Check the parser against real messages
+
+Open `testParse` in the editor and paste in two or three **real** ICICI credit texts from Rohit's
+phone, then **Run** and read **Execution log**. Each should print an amount and a reference.
+Bank wording varies, and this is the one part that depends on their exact format — five minutes
+here saves a lot of confusion later. Send me a real message if it doesn't parse and I'll adjust it.
+
+### c. Get the SMS off the phone — pick one route
+
+**Android (instant, recommended).** Install a forwarding app that can POST — *MacroDroid*,
+*Tasker*, or any "SMS to URL/Webhook" app. One rule:
+
+- Trigger: SMS received, sender contains `ICICI` (or the exact sender ID on Rohit's phone)
+- Action: HTTP POST to your `/exec` URL
+- Content type: `text/plain`
+- Body:
+
+```json
+{"type":"sms","token":"YOUR_SMS_TOKEN","text":"{sms_message}"}
+```
+
+Replace `{sms_message}` with whatever placeholder your app uses for the message body
+(MacroDroid: `[sms_message]`, Tasker: `%SMSRB`).
+
+**iPhone.** iOS won't let apps read SMS, so use Shortcuts: **Automation → Message →
+Message contains `credited`** → *Run Immediately*, action **Get Contents of URL** with the same
+POST body. If that proves fiddly, use the email route below instead.
+
+**Either phone (simpler, ~5 min delay).** Forward bank SMS to
+`indiemovementartproject@gmail.com` — Android forwarding apps do this natively, and on iPhone you
+can ask ICICI to enable email alerts as well as SMS. Then run `installGmailPoll` **once** from the
+editor and the script checks Gmail every 5 minutes. No token needed for this route.
+
+### d. Watch it work
+
+A new **Bank alerts** tab logs every credit the script sees: amount, reference, which receipt it
+matched, and how. That is your audit trail — if something doesn't auto-verify, the reason is there.
+
+Unmatched credits email you, since they usually mean someone paid without using the site, paid the
+wrong amount, or hasn't submitted the form yet.
+
+You can still set **Status** by hand at any time; manual and automatic paths send the same
+confirmation email and don't tread on each other.
+
+### What this does and doesn't fix
+
+It removes the manual checking, and confirmations now go out in seconds instead of hours. What it
+doesn't do is make the *website* certain at the moment of payment — certainty still arrives with
+the bank's message a few seconds later. That's fine for bookings. Only a real payment gateway
+closes that last gap, which is worth revisiting if you get an account approved.
+
+**One caution worth naming:** this collects business payments into a personal account. It works,
+but for volume you'd want a current account, and a gateway ultimately gives you cleaner books.
+
 ---
 
 ## Day to day
 
-1. An order arrives → you get an email, and a `PENDING` row appears in the sheet instantly.
-   One row per order, however many items were in the cart.
-2. Check the UTR against your UPI app or bank statement.
-3. Set **Status** to `VERIFIED` → the payer is emailed a confirmation automatically.
-   Use `REJECTED` for anything that doesn't check out.
+**With SMS forwarding set up (§6), most of this happens by itself:**
 
-The **Flags** column calls out amount mismatches. A ⚠️ in the email subject means look closer.
+1. An order arrives → a `PENDING` row appears instantly and you get an email.
+2. The bank texts Rohit → the script matches it and flips the row to `VERIFIED`, and the
+   customer is emailed their confirmation. Usually within seconds.
+3. You only touch the ones that didn't match — they stay `PENDING` and email you why.
+
+The **Flags** column calls out amount mismatches, and **Verified by** shows `auto · UPI ref`,
+`auto · amount`, or your email address for manual ones. A ⚠️ in a subject line means look closer.
 
 ## If something breaks
 
@@ -142,3 +219,6 @@ The **Flags** column calls out amount mismatches. A ⚠️ in the email subject 
 | No emails | Gmail's daily quota (100/day on free accounts), the `setup` permission was never granted, or the buyer left email blank (it's optional — confirm those on WhatsApp) |
 | "Unknown item" error | An item exists in `pay.html` but not in `PRICES` in `Code.gs` |
 | Nothing happens on "Open UPI app" (desktop) | Expected — UPI links only work on phones; use the QR code |
+| SMS arrives but nothing verifies | Run `testParse` with that exact message; if it prints `null` the wording needs a tweak in `parseBankSms` |
+| `not authorised` from the webhook | `SMS_TOKEN` in the phone app doesn't match `Code.gs`, or the script wasn't re-deployed after changing it |
+| Two orders share an amount | Deliberate — the script won't guess. Both stay `PENDING`; verify by hand, or give amounts unique paise |
