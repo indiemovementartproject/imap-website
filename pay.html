@@ -78,7 +78,8 @@
   .item .amt.ask{font-family:"Space Mono",monospace;font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted-2)}
 
   /* pay + upload */
-  .drop{display:flex;flex-direction:column;align-items:center;gap:6px;border:1.5px dashed var(--border);border-radius:16px;
+  .vh{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
+  .drop{position:relative;display:flex;flex-direction:column;align-items:center;gap:6px;border:1.5px dashed var(--border);border-radius:16px;
     padding:34px 20px;cursor:pointer;text-align:center;transition:.18s;background:rgba(255,255,255,.02)}
   .drop:hover,.drop.over{border-color:var(--cyan);background:rgba(92,225,230,.07)}
   .drop .d-i{font-size:26px;color:var(--cyan)}
@@ -285,11 +286,11 @@
       <div class="step locked" id="s4">
         <div class="step-head"><span class="num">4</span> Upload your payment screenshot</div>
         <p class="lead" style="margin:0 0 16px;font-size:14.5px;text-align:left">
-          Screenshot the success screen in your payment app and upload it here. We read the amount and
-          the date off it and confirm you straight away.
+          <span id="upLead">Screenshot the success screen in your payment app and upload it here. We read the amount and
+          the date off it and confirm you straight away.</span>
         </p>
         <label class="drop" id="drop" tabindex="0">
-          <input type="file" accept="image/*" id="shot" hidden>
+          <input type="file" accept="image/*" id="shot" class="vh">
           <span class="d-i">⬆</span>
           <span class="d-t">Choose your screenshot</span>
           <span class="d-s">JPG or PNG, straight from your gallery</span>
@@ -592,7 +593,7 @@ $('paidBtn').addEventListener('click', function(){
 });
 
 /* ---------- confirm: screenshot in, verdict out ---------- */
-var shotData = null;
+var shotData = null, shotBlob = null;
 
 /* Screenshots off a phone are several MB. Shrink before upload so it's quick
    on mobile data and small enough for the backend to OCR. */
@@ -606,7 +607,11 @@ function shrink(file, maxPx, quality){
       c.height = Math.max(1, Math.round(img.height * s));
       c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
       URL.revokeObjectURL(url);
-      try { res(c.toDataURL('image/jpeg', quality)); } catch(err){ rej(err); }
+      c.toBlob(function(blob){
+        if(!blob){ rej(new Error('encode failed')); return; }
+        try { res({ dataUrl: c.toDataURL('image/jpeg', quality), blob: blob }); }
+        catch(err){ rej(err); }
+      }, 'image/jpeg', quality);
     };
     img.onerror = function(){ URL.revokeObjectURL(url); rej(new Error('unreadable')); };
     img.src = url;
@@ -618,9 +623,10 @@ function takeFile(file){
   if(!/^image\//.test(file.type)){ $('e4').textContent = 'That’s not an image — upload the screenshot from your gallery.'; return; }
   if(file.size > 20 * 1024 * 1024){ $('e4').textContent = 'That image is very large. Try another screenshot.'; return; }
   $('e4').textContent = 'Reading your screenshot…';
-  shrink(file, 1400, 0.82).then(function(data){
-    shotData = data;
-    $('pimg').src = data;
+  shrink(file, 1400, 0.82).then(function(out){
+    shotData = out.dataUrl;
+    shotBlob = out.blob;
+    $('pimg').src = out.dataUrl;
     $('pname').textContent = file.name || 'screenshot.jpg';
     $('preview').hidden = false;
     $('drop').style.display = 'none';
@@ -632,7 +638,11 @@ function takeFile(file){
 }
 
 $('shot').addEventListener('change', function(){ takeFile(this.files && this.files[0]); });
-$('drop').addEventListener('click', function(e){ if(e.target !== $('shot')) $('shot').click(); });
+/* the <label> already forwards clicks to the input — clicking it again here
+   opened the picker twice, which on phones drops the selection entirely */
+$('drop').addEventListener('keydown', function(e){
+  if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); $('shot').click(); }
+});
 ['dragenter','dragover'].forEach(function(ev){
   $('drop').addEventListener(ev, function(e){ e.preventDefault(); $('drop').classList.add('over'); });
 });
@@ -643,7 +653,7 @@ $('drop').addEventListener('drop', function(e){
   if(e.dataTransfer && e.dataTransfer.files) takeFile(e.dataTransfer.files[0]);
 });
 $('reshoot').addEventListener('click', function(){
-  shotData = null; $('shot').value = '';
+  shotData = null; shotBlob = null; $('shot').value = '';
   $('preview').hidden = true; $('drop').style.display = 'flex';
   $('submitBtn').disabled = true;
 });
@@ -661,15 +671,38 @@ $('submitBtn').addEventListener('click', function(){
     screenshot: shotData, page: location.href
   };
 
-  function fallback(){
-    /* backend not reachable — hand everything to Ruchika on WhatsApp instead */
-    var msg = 'Hi iMAP! I have paid ' + money(order.total) + ' for: ' + order.lines +
-              '. Reference ' + order.ref + '. Name: ' + order.name + ', contact: ' + order.phone +
-              (order.email ? ', email: ' + order.email : '') +
-              '. Sending my payment screenshot here.';
-    showReceipt({ receipt: order.ref, verified: false, viaWhatsApp: true });
-    window.open('https://wa.me/' + CONFIG.ENQUIRY_WHATSAPP + '?text=' + encodeURIComponent(msg), '_blank', 'noopener');
+  function orderMessage(){
+    return 'Hi iMAP! I have paid ' + money(order.total) + ' for: ' + order.lines +
+           '. Reference ' + order.ref + '. Name: ' + order.name + ', contact: ' + order.phone +
+           (order.email ? ', email: ' + order.email : '') + '.';
   }
+
+  /* No backend to receive the image, so hand the actual file to the phone's share
+     sheet — the customer picks WhatsApp and the screenshot goes with the message.
+     Must run inside the tap that triggered it or the browser blocks the share. */
+  function handoff(){
+    var msg = orderMessage();
+    var shared = false;
+    try {
+      if(shotBlob && navigator.canShare){
+        var f = new File([shotBlob], 'imap-payment-' + order.ref + '.jpg', {type:'image/jpeg'});
+        if(navigator.canShare({ files: [f] })){
+          shared = true;
+          navigator.share({ files: [f], text: msg + ' Screenshot attached.' })
+            .catch(function(){ openChat(msg); });
+        }
+      }
+    } catch(err){ shared = false; }
+    if(!shared) openChat(msg);
+    showReceipt({ receipt: order.ref, verified: false, viaWhatsApp: true, shared: shared });
+  }
+
+  function openChat(msg){
+    window.open('https://wa.me/' + CONFIG.ENQUIRY_WHATSAPP + '?text=' +
+      encodeURIComponent(msg + ' Sending my payment screenshot next.'), '_blank', 'noopener');
+  }
+
+  var fallback = handoff;
 
   if(CONFIG.ENDPOINT.indexOf('REPLACE_WITH') !== -1){ sent = true; fallback(); return; }
 
@@ -712,7 +745,9 @@ function showReceipt(res){
 
   html += '</div><p class="lead" style="font-size:13.5px;margin-top:20px">' +
     (res.viaWhatsApp
-      ? 'We’ve opened WhatsApp — send that message with your screenshot and we’ll confirm your spot shortly.'
+      ? (res.shared
+          ? 'Pick WhatsApp in the share sheet to send your screenshot to the studio — we’ll confirm your spot shortly.'
+          : 'We’ve opened WhatsApp with your details. Attach the screenshot you just uploaded and send it — we’ll confirm your spot shortly.')
       : good
         ? 'Here’s your receipt. ' + (order.email ? 'A copy is on its way to your email. ' : '') + 'See you in the studio!'
         : 'We’ve got your screenshot and passed it to the studio. ' +
@@ -726,6 +761,12 @@ function showReceipt(res){
   $('receiptBox').scrollIntoView({behavior:'smooth', block:'center'});
 }
 
+if(CONFIG.ENDPOINT.indexOf('REPLACE_WITH') !== -1){
+  var ul = $('upLead');
+  if(ul) ul.textContent = 'Screenshot the success screen in your payment app and upload it here. ' +
+    'We’ll pass it straight to the studio on WhatsApp and confirm your spot.';
+  var sb = $('submitBtn'); if(sb) sb.textContent = 'Send to the studio';
+}
 renderLines();
 $('yr').textContent=new Date().getFullYear();
 (function(){var b=$('burger'),l=$('navLinks');if(!b)return;
