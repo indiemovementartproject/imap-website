@@ -137,9 +137,9 @@
   .is-dragging .cf-card{transition:none!important}
   .deck:not(.is-carousel) .cf-card{position:relative;transform:none!important;opacity:1!important;filter:none!important}
   .cf-card.is-active{border-color:var(--border-cyan);box-shadow:0 0 52px rgba(92,225,230,.30),0 18px 60px rgba(0,0,0,.55)}
-  .cf-photo{flex:0 0 auto;aspect-ratio:4/5;width:100%;position:relative;display:flex;align-items:center;justify-content:center;background:repeating-linear-gradient(45deg,rgba(255,255,255,.025) 0 12px,rgba(255,255,255,.05) 12px 24px);color:var(--muted-2);font-family:"Space Mono",monospace;font-size:11px;letter-spacing:.22em;text-transform:uppercase;border-bottom:1px solid var(--border)}
+  .cf-photo{flex:0 0 auto;overflow:hidden;aspect-ratio:4/5;width:100%;position:relative;display:flex;align-items:center;justify-content:center;background:repeating-linear-gradient(45deg,rgba(255,255,255,.025) 0 12px,rgba(255,255,255,.05) 12px 24px);color:var(--muted-2);font-family:"Space Mono",monospace;font-size:11px;letter-spacing:.22em;text-transform:uppercase}
   .cf-photo img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;z-index:1;transition:transform .6s ease}
-  .cf-photo::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(12,16,18,0) 58%,rgba(12,16,18,.62) 100%);z-index:2;pointer-events:none}
+  .cf-photo::after{content:"";position:absolute;inset:0;background:linear-gradient(to top,rgba(12,16,18,.78) 0%,rgba(12,16,18,.38) 22%,rgba(12,16,18,0) 45%);z-index:2;pointer-events:none}
   .cf-card.is-active .cf-photo img{transform:scale(1.05)}
   .cf-photo:has(img)>span{display:none}
   .cf-photo .cam{font-size:24px;opacity:.5;display:block;margin-bottom:6px}
