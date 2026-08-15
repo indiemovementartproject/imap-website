@@ -13,7 +13,7 @@ no business verification. Money goes straight from the payer's UPI app into iMAP
 | Payments sheet | Google Sheets | Live log of every order and how it was checked |
 
 **How someone buys:** they add workshops or classes to a cart, enter name + contact (email optional),
-pay — on WhatsApp or from any UPI app — then upload a screenshot of the success screen. The script
+pay with Google Pay, PhonePe or Paytm (or scan the QR) then upload a screenshot of the success screen. The script
 reads the amount and date off that image; if both check out the customer is confirmed on the spot,
 and either way the screenshot lands with Ruchika.
 
@@ -163,4 +163,4 @@ image in Drive, and **Flags** calls out a tampered total.
 | Nothing happens on "Open UPI app" (desktop) | Expected — UPI links only work on phones; use the QR code |
 | Everything lands as PENDING | The Drive API service isn't switched on (step 3b), so nothing can be read |
 | A genuine payment isn't auto-confirmed | Usually a cropped screenshot missing the date, or an unusual date format. Check **Auto-check** for which half failed |
-| "Pay on WhatsApp" doesn't pre-fill the amount | Expected — WhatsApp has no public link that fills a payment. It opens the chat with the amount written out; the UPI buttons and QR do pre-fill |
+| A payment app button does nothing on desktop | Expected — those links only work on a phone. Use the QR code, or copy the UPI ID |

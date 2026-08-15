@@ -78,16 +78,6 @@
   .item .amt.ask{font-family:"Space Mono",monospace;font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted-2)}
 
   /* pay + upload */
-  .wa-pay{display:flex;align-items:center;gap:14px;background:linear-gradient(100deg,#25D366,#4ae585);color:#04231a;
-    text-decoration:none;border-radius:15px;padding:16px 20px;margin-bottom:16px;transition:.18s;box-shadow:0 10px 30px rgba(37,211,102,.22)}
-  .wa-pay:hover{transform:translateY(-2px);box-shadow:0 0 36px rgba(37,211,102,.45)}
-  .wa-pay .wa-i{flex:0 0 auto;width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,.28);
-    display:flex;align-items:center;justify-content:center;font-size:19px}
-  .wa-pay .wa-t{font-size:16.5px;font-weight:600;line-height:1.25}
-  .wa-pay .wa-t small{display:block;font-family:"Space Mono",monospace;font-size:10.5px;font-weight:400;opacity:.72;margin-top:4px;letter-spacing:.04em}
-  .orline{display:flex;align-items:center;gap:12px;margin:6px 0 14px;color:var(--muted-2);
-    font-family:"Space Mono",monospace;font-size:10px;letter-spacing:.18em;text-transform:uppercase}
-  .orline::before,.orline::after{content:"";flex:1;height:1px;background:var(--border)}
   .drop{display:flex;flex-direction:column;align-items:center;gap:6px;border:1.5px dashed var(--border);border-radius:16px;
     padding:34px 20px;cursor:pointer;text-align:center;transition:.18s;background:rgba(255,255,255,.02)}
   .drop:hover,.drop.over{border-color:var(--cyan);background:rgba(92,225,230,.07)}
@@ -157,11 +147,9 @@
   .sum .r{font-family:"Instrument Serif",serif;font-size:31px;color:var(--cyan);white-space:nowrap}
 
   .apps{display:grid;grid-template-columns:repeat(auto-fit,minmax(132px,1fr));gap:10px}
-  .app{display:flex;align-items:center;justify-content:center;gap:8px;padding:14px 10px;border-radius:13px;border:1px solid var(--border);
-    background:rgba(255,255,255,.03);color:var(--text);text-decoration:none;font-size:14px;transition:.18s}
-  .app:hover{border-color:var(--border-cyan);background:rgba(92,225,230,.08);color:var(--cyan)}
-  .app.primary{border-color:var(--cyan);background:linear-gradient(100deg,#5ce1e6,#93f1f4);color:#04181a;font-weight:600}
-  .app.primary:hover{box-shadow:0 0 26px rgba(92,225,230,.45);color:#04181a}
+  .app{display:flex;align-items:center;justify-content:center;gap:8px;padding:17px 12px;border-radius:13px;border:1px solid var(--border-cyan);
+    background:rgba(92,225,230,.07);color:var(--text);text-decoration:none;font-size:15px;font-weight:500;transition:.18s}
+  .app:hover{border-color:var(--cyan);background:var(--cyan);color:#04181a;box-shadow:0 0 26px rgba(92,225,230,.35)}
 
   .qr-box{text-align:center;margin-top:18px;padding-top:18px;border-top:1px solid var(--border)}
   .qr-box canvas{background:#fff;border-radius:14px;padding:12px;margin:12px auto 0;display:block;max-width:100%;height:auto;image-rendering:pixelated}
@@ -232,7 +220,7 @@
   <section class="page-head">
     <div class="eyebrow">Payments</div>
     <h2>Secure <span class="i">checkout</span>.</h2>
-    <p class="lead">Pay by UPI from any app — GPay, PhonePe, Paytm, BHIM or your bank. We’ll confirm your spot once the payment lands.</p>
+    <p class="lead">Pay with Google Pay, PhonePe or Paytm — the amount is filled in for you. Upload your payment screenshot and we’ll confirm you on the spot.</p>
   </section>
 
   <div class="wrap">
@@ -280,13 +268,8 @@
 
       <!-- 3 · pay -->
       <div class="step locked" id="s3">
-        <div class="step-head"><span class="num">3</span> Pay</div>
+        <div class="step-head"><span class="num">3</span> Pay by UPI</div>
         <div class="sum"><div class="l" id="sumLabel">—</div><div class="r" id="sumAmt">—</div></div>
-        <a class="wa-pay" id="waPay" target="_blank" rel="noopener">
-          <span class="wa-i">✆</span>
-          <span class="wa-t">Pay on WhatsApp<small id="waSub">opens our chat with the amount ready</small></span>
-        </a>
-        <div class="orline"><span>or pay from any UPI app</span></div>
         <div class="apps" id="apps"></div>
         <div class="ref-tag">Payment reference · <b id="refOut">—</b></div>
         <div class="qr-box" id="qrBox">
@@ -305,7 +288,7 @@
           Screenshot the success screen in your payment app and upload it here. We read the amount and
           the date off it and confirm you straight away.
         </p>
-        <label class="drop" id="drop">
+        <label class="drop" id="drop" tabindex="0">
           <input type="file" accept="image/*" id="shot" hidden>
           <span class="d-i">⬆</span>
           <span class="d-t">Choose your screenshot</span>
@@ -582,17 +565,10 @@ $('toPay').addEventListener('click', function(){
   $('refOut').textContent = REF;
   $('vpaOut').textContent = CONFIG.UPI_VPA;
 
-  /* WhatsApp has no public deep link that pre-fills a payment, so this opens the
-     chat with the amount and reference written out and the payer taps ₹ in there. */
-  $('waPay').href = 'https://wa.me/' + CONFIG.WHATSAPP + '?text=' +
-    encodeURIComponent('Hi iMAP! I\'m paying ' + money(total) + ' for: ' + order.lines +
-      '. Reference ' + REF + '. (' + n + ', ' + p + ')');
-
   var uri = upiURI(CONFIG.UPI_VPA, CONFIG.PAYEE_NAME, total, REF);
   var q = uri.slice(uri.indexOf('?'));
   $('apps').innerHTML =
-    '<a class="app primary" href="'+esc(uri)+'">Open UPI app</a>'+
-    '<a class="app" href="'+esc('tez://upi/pay'+q)+'">Google Pay</a>'+
+    '<a class="app" href="'+esc('tez://upi/pay'+q)+'">Google&nbsp;Pay</a>'+
     '<a class="app" href="'+esc('phonepe://pay'+q)+'">PhonePe</a>'+
     '<a class="app" href="'+esc('paytmmp://pay'+q)+'">Paytm</a>';
   try { drawQR($('qr'), uri); } catch(err){ $('qrBox').style.display = 'none'; }
@@ -612,7 +588,7 @@ $('paidBtn').addEventListener('click', function(){
   $('s3').classList.add('done');
   $('s4').classList.remove('locked'); $('s4').classList.add('active');
   $('s4').scrollIntoView({behavior:'smooth', block:'center'});
-  $('fUtr').focus();
+  $('drop').focus();
 });
 
 /* ---------- confirm: screenshot in, verdict out ---------- */
