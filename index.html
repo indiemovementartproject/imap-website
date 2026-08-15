@@ -210,7 +210,7 @@
 
   /* ===== What's New: Orientation Series workshops ===== */
   .ws-passes{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin:34px auto 0;max-width:760px}
-  .ws-pass{flex:1 1 180px;max-width:240px;background:var(--glass-2);border:1px solid var(--border);border-radius:16px;padding:18px 14px 15px;display:flex;flex-direction:column;align-items:center;gap:5px;transition:border-color .2s,transform .2s,box-shadow .2s}
+  .ws-pass{flex:1 1 180px;max-width:240px;text-decoration:none;color:inherit;cursor:pointer;background:var(--glass-2);border:1px solid var(--border);border-radius:16px;padding:18px 14px 15px;display:flex;flex-direction:column;align-items:center;gap:5px;transition:border-color .2s,transform .2s,box-shadow .2s}
   .ws-pass:hover{border-color:var(--border-cyan);transform:translateY(-2px);box-shadow:0 0 28px rgba(92,225,230,.14)}
   .ws-pass .k{font-family:"Space Mono",monospace;font-size:9.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted-2)}
   .ws-pass .v{font-family:"Instrument Serif",serif;font-size:30px;line-height:1.05}
@@ -301,9 +301,9 @@
     <p class="lead">The <span class="i">Orientation Series</span> — back to dancing with iMAP. Drop into any workshop, or grab an all-access pass and dance through the whole series at your studio.</p>
 
     <div class="ws-passes">
-      <div class="ws-pass hot"><span class="k">Try any class</span><span class="v">₹500</span><span class="s">per workshop</span></div>
-      <div class="ws-pass"><span class="k">All classes · Vashi</span><span class="v">₹2000</span><span class="s">full series pass</span></div>
-      <div class="ws-pass"><span class="k">All classes · Seawoods</span><span class="v">₹3000</span><span class="s">full series pass</span></div>
+      <a class="ws-pass" data-wa="Hey! I would like to try a class from the Orientation Series at iMAP"><span class="k">Try any class</span><span class="v">₹500</span><span class="s">per workshop</span></a>
+      <a class="ws-pass hot" data-wa="Hey! I would like to get the all classes pass for the Orientation Series at iMAP, Vashi"><span class="k">All classes · Vashi</span><span class="v">₹2000</span><span class="s">full series pass</span></a>
+      <a class="ws-pass hot" data-wa="Hey! I would like to get the all classes pass for the Orientation Series at iMAP, Seawoods"><span class="k">All classes · Seawoods</span><span class="v">₹3000</span><span class="s">full series pass</span></a>
     </div>
 
     <div class="ws-tabs" role="tablist" aria-label="Studio">
