@@ -61,10 +61,18 @@ add, and worth doing before reapplying.
 3b. **Turn on Drive for OCR** — in the left sidebar next to **Services**, press **+**, pick
    **Drive API**, and click Add. Without this the screenshot still reaches Ruchika, but nothing is
    read automatically and every order waits for a human.
-4. Run the `setup` function once (select it in the toolbar, press **Run**). Google will ask for
-   permission — approve it. It'll warn "Google hasn't verified this app"; choose
-   **Advanced → Go to (project name)**. This is your own script, so that warning is expected.
-   You should see a `Payments` tab appear with the headers.
+4. **Save** (⌘S / Ctrl+S). Do this before anything else — the toolbar's function list only
+   refreshes once you've saved.
+5. In the toolbar next to **▷ Run**, open the **function dropdown** and change it from
+   `myFunction` to **`setup`**.
+
+   > The Run button runs whatever is selected there, not the whole file. If it still says
+   > `myFunction` you'll get *"Attempted to execute myFunction, but it was deleted"* — that's
+   > the placeholder from the blank project, which your pasted code replaced.
+
+6. Press **Run**. Google will ask for permission — approve it. It'll warn "Google hasn't verified
+   this app"; choose **Advanced → Go to (project name)**. This is your own script, so that warning
+   is expected. You should see a `Payments` tab appear with the headers.
 
 
 ### If "Extensions → Apps Script" won't open
