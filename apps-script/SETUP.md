@@ -66,6 +66,32 @@ add, and worth doing before reapplying.
    **Advanced → Go to (project name)**. This is your own script, so that warning is expected.
    You should see a `Payments` tab appear with the headers.
 
+
+### If "Extensions → Apps Script" won't open
+
+If you get *"Sorry, unable to open the file at present"*, that's Google, not the script.
+Almost always it's **more than one Google account signed into the browser** — Drive opens the
+editor under the wrong account and gives up. Fixes, quickest first:
+
+1. Open an **incognito window**, sign in as `indiemovementartproject@gmail.com` only, and try again.
+2. Or sign out of every Google account and back into just that one.
+3. Or open <https://script.google.com> directly first, check the account shown top-right is the
+   right one, then go back to the sheet.
+4. Allow third-party cookies for `google.com` (the editor needs them), and try with extensions
+   and ad-blockers off.
+
+**If none of that works, skip the menu entirely** — the script doesn't have to live inside the sheet:
+
+1. Go to <https://script.google.com/create> and start a blank project.
+2. Paste in `Code.gs` as normal.
+3. Open your payments spreadsheet and copy its id out of the URL — the long string between
+   `/d/` and `/edit`.
+4. Put it in `CONFIG.SHEET_ID` near the top of the script.
+5. Run `setup`, then run `installEditTrigger` once (a standalone script can't use the automatic
+   edit trigger, so this attaches it).
+
+Everything else — deploying, the Drive API step, the web app URL — is identical.
+
 ## 2 · Publish the endpoint
 
 1. **Deploy → New deployment → ⚙ → Web app**
@@ -162,5 +188,6 @@ image in Drive, and **Flags** calls out a tampered total.
 | "Unknown item" error | An item exists in `pay.html` but not in `PRICES` in `Code.gs` |
 | Nothing happens on "Open UPI app" (desktop) | Expected — UPI links only work on phones; use the QR code |
 | Everything lands as PENDING | The Drive API service isn't switched on (step 3b), so nothing can be read |
+| "Unable to open the file at present" | Multiple Google accounts in the browser — see the box in step 1, or use a standalone script |
 | A genuine payment isn't auto-confirmed | Usually a cropped screenshot missing the date, or an unusual date format. Check **Auto-check** for which half failed |
 | A payment app button does nothing on desktop | Expected — those links only work on a phone. Use the QR code, or copy the UPI ID |

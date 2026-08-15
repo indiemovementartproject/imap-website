@@ -23,6 +23,11 @@ var CONFIG = {
   ENQUIRY_WHATSAPP: '918454880061',   // Ruchika — enquiries + screenshots
   PAYMENT_WHATSAPP: '919870538332',   // Rohit — money
   SHEET_NAME:   'Payments',
+  /* Leave blank when the script lives inside the sheet (Extensions → Apps Script).
+     If you made a STANDALONE script at script.google.com instead, paste the
+     spreadsheet id here — it's the long string in the sheet's URL between
+     /d/ and /edit. Everything else works exactly the same either way. */
+  SHEET_ID:     '',
   DRIVE_FOLDER: 'iMAP payment screenshots',
   TZ:   'Asia/Kolkata',
   CYAN: '#0f9aa0'
@@ -273,8 +278,16 @@ function dateStrings(now) {
 
 /* ---------------- sheet ---------------- */
 
+/** The spreadsheet, whether the script is bound to it or standalone. */
+function book() {
+  if (CONFIG.SHEET_ID) return SpreadsheetApp.openById(CONFIG.SHEET_ID);
+  var active = SpreadsheetApp.getActiveSpreadsheet();
+  if (!active) throw new Error('No spreadsheet. Set CONFIG.SHEET_ID for a standalone script.');
+  return active;
+}
+
 function sheet() {
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var ss = book();
   var sh = ss.getSheetByName(CONFIG.SHEET_NAME);
   if (!sh) {
     sh = ss.insertSheet(CONFIG.SHEET_NAME);
@@ -422,8 +435,24 @@ function onStatusEdit(e) {
 
 /** Run once from the editor to create the sheet and grant permissions. */
 function setup() {
-  sheet();
-  SpreadsheetApp.getActiveSpreadsheet().toast('Payments sheet ready.');
+  var sh = sheet();
+  Logger.log('Payments sheet ready: ' + sh.getParent().getUrl());
+  try { SpreadsheetApp.getActiveSpreadsheet().toast('Payments sheet ready.'); } catch (err) {}
+}
+
+/**
+ * Standalone scripts can't use a simple onEdit trigger, so run this once to
+ * attach the "mark VERIFIED → email the customer" trigger to the sheet.
+ * Harmless to run for a bound script too.
+ */
+function installEditTrigger() {
+  var id = CONFIG.SHEET_ID || book().getId();
+  var all = ScriptApp.getProjectTriggers();
+  for (var i = 0; i < all.length; i++) {
+    if (all[i].getHandlerFunction() === 'onStatusEdit') ScriptApp.deleteTrigger(all[i]);
+  }
+  ScriptApp.newTrigger('onStatusEdit').forSpreadsheet(id).onEdit().create();
+  Logger.log('Edit trigger installed on ' + id);
 }
 
 /** Check the screenshot reader without spending a real payment. */
