@@ -77,6 +77,31 @@
   .item .amt{flex:0 0 auto;font-family:"Instrument Serif",serif;font-size:22px;white-space:nowrap}
   .item .amt.ask{font-family:"Space Mono",monospace;font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted-2)}
 
+  /* order lines */
+  .lines{display:flex;flex-direction:column;gap:10px}
+  .line{display:flex;align-items:center;gap:14px;border:1px solid var(--border);border-radius:14px;padding:13px 15px;background:rgba(255,255,255,.02)}
+  .line .lx{flex:1;min-width:0}
+  .line .lt{font-size:14.5px;line-height:1.35}
+  .line .ld{font-family:"Space Mono",monospace;font-size:10.5px;color:var(--muted-2);margin-top:4px;letter-spacing:.06em}
+  .line .lp{flex:0 0 auto;font-family:"Instrument Serif",serif;font-size:21px;white-space:nowrap;min-width:78px;text-align:right}
+  .qty{display:inline-flex;align-items:center;gap:2px;background:var(--glass-2);border:1px solid var(--border);border-radius:10px;padding:3px;flex:0 0 auto}
+  .qty button{width:29px;height:29px;border:0;border-radius:7px;background:none;cursor:pointer;color:var(--text);font-size:17px;line-height:1;font-family:"Space Grotesk",sans-serif;transition:.15s}
+  .qty button:hover:not(:disabled){background:rgba(92,225,230,.16);color:var(--cyan)}
+  .qty button:disabled{opacity:.3;cursor:not-allowed}
+  .qty .n{min-width:26px;text-align:center;font-family:"Space Mono",monospace;font-size:14px}
+  .line .del{flex:0 0 auto;border:0;background:none;color:var(--muted-2);cursor:pointer;font-size:18px;padding:4px 7px;border-radius:8px;transition:.15s;line-height:1}
+  .line .del:hover{color:#ff8f6b;background:rgba(255,143,107,.1)}
+  .total-row{display:flex;align-items:center;justify-content:space-between;margin-top:16px;padding-top:15px;border-top:1px solid var(--border);font-size:15px}
+  .total-row b{font-family:"Instrument Serif",serif;font-size:33px;color:var(--cyan);font-weight:400}
+  .addmore{display:inline-block;margin-top:14px;font-family:"Space Mono",monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);text-decoration:none;transition:.16s}
+  .addmore:hover{color:var(--cyan)}
+  .empty-cart{text-align:center;border:1px dashed var(--border);border-radius:20px;padding:52px 26px}
+  .empty-cart .ec-i{font-size:34px;color:var(--muted-2);margin-bottom:14px}
+  .empty-cart .ec-t{font-family:"Instrument Serif",serif;font-size:28px;margin-bottom:8px}
+  .empty-cart p{color:var(--muted);font-size:15px;margin-bottom:22px}
+  .ec-btns{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+  .opt{font-family:"Space Grotesk",sans-serif;letter-spacing:0;text-transform:none;color:var(--muted-2);font-size:10.5px;opacity:.85}
+  @media (max-width:560px){.line{flex-wrap:wrap}.line .lx{flex:1 1 100%}.line .lp{margin-left:auto}}
   .fields{display:grid;grid-template-columns:1fr 1fr;gap:12px}
   .fields .full{grid-column:1/-1}
   label{display:block;font-family:"Space Mono",monospace;font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted-2);margin-bottom:6px}
@@ -176,7 +201,7 @@
   <section class="page-head">
     <div class="eyebrow">Payments</div>
     <h2>Secure <span class="i">checkout</span>.</h2>
-    <p class="lead">Pay by UPI from any app — GPay, PhonePe, Paytm, BHIM or your bank. You’ll get a receipt by email, and we’ll confirm your spot once the payment lands.</p>
+    <p class="lead">Pay by UPI from any app — GPay, PhonePe, Paytm, BHIM or your bank. We’ll confirm your spot once the payment lands.</p>
   </section>
 
   <div class="wrap">
@@ -189,25 +214,33 @@
       <a href="https://wa.me/918454880061" target="_blank" rel="noopener" style="color:var(--cyan)">WhatsApp</a> and we’ll sort it out.
     </div>
 
+    <div class="empty-cart" id="emptyCart" hidden>
+      <div class="ec-i">◇</div>
+      <div class="ec-t">Your cart is empty</div>
+      <p>Add a workshop or a class and it’ll show up here.</p>
+      <div class="ec-btns">
+        <a class="btn btn-cyan" href="index.html#events">Browse workshops</a>
+        <a class="btn btn-ghost" href="index.html#classes">Regular classes</a>
+      </div>
+    </div>
+
     <div id="flow">
 
-      <!-- 1 · what -->
+      <!-- 1 · order -->
       <div class="step active" id="s1">
-        <div class="step-head"><span class="num">1</span> What are you paying for?</div>
-        <div class="seg" id="catSeg">
-          <button type="button" data-cat="workshop" class="on">Workshops</button>
-          <button type="button" data-cat="class">Regular classes</button>
-        </div>
-        <div class="items" id="items"></div>
+        <div class="step-head"><span class="num">1</span> Your order</div>
+        <div class="lines" id="lines"></div>
+        <div class="total-row"><span>Total</span><b id="grandTotal">₹0</b></div>
+        <a class="addmore" href="index.html#events">+ Add more workshops or classes</a>
       </div>
 
       <!-- 2 · who -->
-      <div class="step locked" id="s2">
+      <div class="step" id="s2">
         <div class="step-head"><span class="num">2</span> Your details</div>
         <div class="fields">
           <div class="full"><label for="fName">Full name</label><input id="fName" type="text" autocomplete="name" maxlength="60" placeholder="Your name"></div>
-          <div><label for="fPhone">Phone (WhatsApp)</label><input id="fPhone" type="tel" inputmode="numeric" autocomplete="tel" maxlength="14" placeholder="10-digit number"></div>
-          <div><label for="fEmail">Email</label><input id="fEmail" type="email" autocomplete="email" maxlength="90" placeholder="you@email.com"></div>
+          <div><label for="fPhone">Contact number (WhatsApp)</label><input id="fPhone" type="tel" inputmode="numeric" autocomplete="tel" maxlength="14" placeholder="10-digit number"></div>
+          <div><label for="fEmail">Email <span class="opt">optional</span></label><input id="fEmail" type="email" autocomplete="email" maxlength="90" placeholder="for your receipt"></div>
         </div>
         <input class="hp" id="fWebsite" tabindex="-1" autocomplete="off" aria-hidden="true" placeholder="Leave blank">
         <div class="err" id="e2"></div>
@@ -246,7 +279,7 @@
 
     <div class="safe">
       <h4>How your money moves</h4>
-      <p>Payments go straight from your UPI app to iMAP’s bank account. This site never sees or stores your UPI PIN, card or bank details — we only record your name, contact and the transaction reference so we can match your payment and confirm your seat.</p>
+      <p>Payments go straight from your UPI app to iMAP’s bank account. This site never sees or stores your UPI PIN, card or bank details — we only record your name, contact and the transaction reference so we can match your payment and confirm your seat. Email is optional — leave it out and we’ll confirm on WhatsApp.</p>
     </div>
 
   </div>
@@ -256,47 +289,17 @@
   <div class="foot-bottom">© <span id="yr"></span> Indie Movement Art Project · Questions? <a href="https://wa.me/918454880061" target="_blank" rel="noopener">WhatsApp us</a></div>
 </footer>
 
+<script src="cart.js"></script>
 <script>
 /* ==========================================================================
-   CONFIG — edit these three, then payments are live.
-   IMPORTANT: PRICES here must match the PRICES table in the Apps Script.
-   The server re-checks every amount, so a mismatch is flagged, not charged.
+   CONFIG. Prices live in cart.js; the Apps Script keeps its own copy and
+   re-checks every order, so editing this page cannot change what is charged.
    ========================================================================== */
 var CONFIG = {
-  UPI_VPA:     "REPLACE_WITH_UPI_ID@bank",           /* e.g. indiemovement@okhdfcbank */
+  UPI_VPA:     "rohitchoudhary91.rc-1@okicici",      /* iMAP payments */
   PAYEE_NAME:  "Indie Movement Art Project",
   ENDPOINT:    "REPLACE_WITH_APPS_SCRIPT_URL",       /* https://script.google.com/macros/s/.../exec */
-  WHATSAPP:    "918454880061"
-};
-
-/* Items. amount:null  =>  "fees on request", routes to WhatsApp instead of payment. */
-var ITEMS = {
-  workshop: [
-    {id:"ws-pass-vashi",    t:"All-classes pass — Vashi",        s:"Orientation Series · full series", amt:2000},
-    {id:"ws-pass-seawoods", t:"All-classes pass — Seawoods",     s:"Orientation Series · full series", amt:3000},
-    {id:"ws-v-17aug", t:"Choreography Workshop", song:"Chura Liya Hai",  s:"17 Aug · Vashi · Rohit Choudhary", amt:500},
-    {id:"ws-v-18aug", t:"Kids Dance Workshop",   song:"Dance Ka Bhoot",  s:"18 Aug · Vashi · Jeevak",          amt:500},
-    {id:"ws-v-19aug-a", t:"Bollywood Workshop",  song:"Gun Gun Guna Re", s:"19 Aug · Vashi · Ruchika",         amt:500},
-    {id:"ws-v-19aug-b", t:"Jazz Funk Workshop",  song:"Taki Taki",       s:"19 Aug · Vashi · Ruchika",         amt:500},
-    {id:"ws-v-27aug", t:"Contemporary Workshop", song:"Ae Dil Hai Mushkil", s:"27 Aug · Vashi · Shreya",       amt:500},
-    {id:"ws-v-31aug", t:"Hip Hop Workshop",      song:"",                s:"31 Aug · Vashi · Rohit Mankar",    amt:500},
-    {id:"ws-s-23aug", t:"Semi Classical Choreography", song:"Vachindamma", s:"23 Aug · Seawoods · Anamika",    amt:500},
-    {id:"ws-s-27aug", t:"Juniors Demo Class",    song:"Lut Put Gaya",    s:"27 Aug · Seawoods · Jeevak",       amt:500},
-    {id:"ws-s-29aug-a", t:"Kids Ballet Demo Class", song:"",             s:"29 Aug · Seawoods · Shreya",       amt:500},
-    {id:"ws-s-29aug-b", t:"Bollywood Workshop",  song:"Just Chill",      s:"29 Aug · Seawoods · Ruchika",      amt:500},
-    {id:"ws-s-29aug-c", t:"Jazz Choreography Workshop", song:"Way I Are", s:"29 Aug · Seawoods · Rohit Choudhary", amt:500},
-    {id:"ws-s-30aug-a", t:"Jazz Funk Choreography", song:"Whine Up",     s:"30 Aug · Seawoods · Ruchika",      amt:500},
-    {id:"ws-s-30aug-b", t:"Afro & Dancehall Workshop", song:"Haseen",    s:"30 Aug · Seawoods · Tanvi",        amt:500},
-    {id:"ws-s-30aug-c", t:"Open Style Choreography", song:"Pal Pal",     s:"30 Aug · Seawoods · Tej",          amt:500},
-    {id:"ws-s-06sep", t:"Ballet Training Class", song:"",                s:"6 Sept · Seawoods · Akash",        amt:500}
-  ],
-  /* CHECK THESE BEFORE GOING LIVE — set the real monthly fees. */
-  "class": [
-    {id:"rc-all",   t:"All classes — monthly",  s:"Any style, both studios", amt:4500},
-    {id:"rc-trial", t:"Try any class",          s:"Single drop-in session",  amt:500},
-    {id:"rc-single",t:"One batch — monthly",    s:"Pick your style",         amt:null},
-    {id:"rc-kids",  t:"Kids / Juniors — monthly", s:"Seawoods or Vashi",     amt:null}
-  ]
+  WHATSAPP:    "919870538332"                        /* payments only; enquiries use 8454880061 */
 };
 
 /* ---------- QR encoder (byte mode, ECC L, versions 1-9) ---------- */
@@ -440,184 +443,202 @@ function upiURI(vpa,name,amt,ref){
 
 /* ---------- state ---------- */
 var LIVE = CONFIG.UPI_VPA.indexOf('REPLACE_WITH') === -1;
-var sel=null, cat='workshop', REF=makeRef(), sent=false;
+var REF = makeRef(), sent = false, order = null;
 
-if(!LIVE){ $('setupNotice').hidden=false; $('flow').hidden=true; }
+if(!LIVE){ $('setupNotice').hidden = false; $('flow').hidden = true; }
 
-function renderItems(){
-  var list=ITEMS[cat]||[], html='';
-  for(var i=0;i<list.length;i++){
-    var it=list[i];
-    var amt = it.amt===null
-      ? '<div class="amt ask">Fees on request</div>'
-      : '<div class="amt">₹'+it.amt+'</div>';
-    html+='<div class="item" data-id="'+esc(it.id)+'" role="button" tabindex="0">'+
-            '<span class="tick"></span>'+
-            '<div class="lbl"><div class="t">'+esc(it.t)+
-              (it.song?' <em>· '+esc(it.song)+'</em>':'')+'</div>'+
-              '<div class="s">'+esc(it.s)+'</div></div>'+amt+'</div>';
+function money(n){ return '₹' + Number(n).toLocaleString('en-IN'); }
+
+/* ---------- order lines ---------- */
+function renderLines(){
+  if(!LIVE) return false;
+  var items = Cart.items();
+  if(!items.length){
+    $('emptyCart').hidden = false;
+    $('flow').hidden = true;
+    return false;
   }
-  $('items').innerHTML=html;
-}
-function findItem(id){
-  var all=ITEMS.workshop.concat(ITEMS['class']);
-  for(var i=0;i<all.length;i++) if(all[i].id===id) return all[i];
-  return null;
-}
-function unlock(step,on){
-  var el=$(step);
-  el.classList.toggle('locked',!on);
-}
-
-$('items').addEventListener('click',function(e){
-  var row=e.target.closest('.item'); if(!row) return;
-  var it=findItem(row.getAttribute('data-id')); if(!it) return;
-  if(it.amt===null){
-    window.open('https://wa.me/'+CONFIG.WHATSAPP+'?text='+
-      encodeURIComponent('Hey! I would like to know the fees for '+it.t+' at iMAP'),'_blank','noopener');
-    return;
+  $('emptyCart').hidden = true;
+  $('flow').hidden = false;
+  var html = '';
+  for(var i=0;i<items.length;i++){
+    var it = items[i];
+    html += '<div class="line" data-id="'+esc(it.id)+'">'+
+      '<div class="lx"><div class="lt">'+esc(it.title)+'</div><div class="ld">'+esc(it.detail)+'</div></div>'+
+      '<div class="qty">'+
+        '<button type="button" data-act="dec" aria-label="Reduce quantity"'+(it.qty<=1?' disabled':'')+'>−</button>'+
+        '<span class="n">'+it.qty+'</span>'+
+        '<button type="button" data-act="inc" aria-label="Increase quantity"'+(it.qty>=20?' disabled':'')+'>+</button>'+
+      '</div>'+
+      '<div class="lp">'+money(it.amount*it.qty)+'</div>'+
+      '<button type="button" class="del" data-act="del" aria-label="Remove">×</button>'+
+    '</div>';
   }
-  [].forEach.call($('items').querySelectorAll('.item'),function(n){n.classList.remove('on');});
-  row.classList.add('on');
-  sel=it;
-  $('s1').classList.add('done');
-  unlock('s2',true);
-  $('s2').classList.add('active');
-  $('s2').scrollIntoView({behavior:'smooth',block:'center'});
-});
-$('items').addEventListener('keydown',function(e){
-  if(e.key==='Enter'||e.key===' '){ var r=e.target.closest('.item'); if(r){ e.preventDefault(); r.click(); } }
+  $('lines').innerHTML = html;
+  $('grandTotal').textContent = money(Cart.total());
+  return true;
+}
+
+/* editing the order invalidates any payment already generated */
+function resetPayment(){
+  sent = false; order = null;
+  $('s3').classList.add('locked'); $('s3').classList.remove('active','done');
+  $('s4').classList.add('locked'); $('s4').classList.remove('active','done');
+  $('s2').classList.remove('done');
+}
+
+$('lines').addEventListener('click', function(e){
+  var btn = e.target.closest('[data-act]'); if(!btn) return;
+  var row = btn.closest('.line'); if(!row) return;
+  var id = row.getAttribute('data-id'), act = btn.getAttribute('data-act');
+  var cur = Cart.items().filter(function(i){ return i.id === id; })[0];
+  if(!cur) return;
+  if(act === 'inc') Cart.setQty(id, cur.qty + 1);
+  else if(act === 'dec') Cart.setQty(id, cur.qty - 1);
+  else Cart.remove(id);
+  renderLines();
+  resetPayment();
 });
 
-[].forEach.call(document.querySelectorAll('#catSeg button'),function(b){
-  b.addEventListener('click',function(){
-    [].forEach.call(document.querySelectorAll('#catSeg button'),function(x){x.classList.remove('on');});
-    b.classList.add('on'); cat=b.getAttribute('data-cat'); sel=null;
-    unlock('s2',false); unlock('s3',false); unlock('s4',false);
-    $('s1').classList.remove('done');
-    renderItems();
-  });
-});
+/* ---------- details ---------- */
+function validEmail(v){ return /^[^\s@]+@[^\s@]+\.[a-z]{2,}$/i.test(v); }
+function validPhone(v){ return /^[6-9]\d{9}$/.test(v.replace(/\D/g,'').replace(/^91(?=\d{10}$)/,'')); }
 
-function validEmail(v){return /^[^\s@]+@[^\s@]+\.[a-z]{2,}$/i.test(v);}
-function validPhone(v){return /^[6-9]\d{9}$/.test(v.replace(/\D/g,'').replace(/^91(?=\d{10}$)/,''));}
-
-$('toPay').addEventListener('click',function(){
-  var n=$('fName').value.trim(), p=$('fPhone').value.trim(), em=$('fEmail').value.trim();
-  var bad=[];
-  $('fName').classList.toggle('bad',n.length<2); if(n.length<2)bad.push('your name');
-  $('fPhone').classList.toggle('bad',!validPhone(p)); if(!validPhone(p))bad.push('a valid 10-digit phone');
-  $('fEmail').classList.toggle('bad',!validEmail(em)); if(!validEmail(em))bad.push('a valid email');
-  if($('fWebsite').value){ return; }              /* honeypot: silently stop bots */
-  if(bad.length){ $('e2').textContent='Please enter '+bad.join(', ')+'.'; return; }
-  $('e2').textContent='';
+$('toPay').addEventListener('click', function(){
+  if(!Cart.count()){ renderLines(); return; }
+  var n = $('fName').value.trim(), p = $('fPhone').value.trim(), em = $('fEmail').value.trim();
+  var bad = [];
+  $('fName').classList.toggle('bad', n.length < 2);
+  if(n.length < 2) bad.push('your name');
+  $('fPhone').classList.toggle('bad', !validPhone(p));
+  if(!validPhone(p)) bad.push('a valid 10-digit contact number');
+  var emailBad = em.length > 0 && !validEmail(em);      /* optional, but must look right if given */
+  $('fEmail').classList.toggle('bad', emailBad);
+  if(emailBad) bad.push('a valid email (or leave it blank)');
+  if($('fWebsite').value) return;                       /* honeypot */
+  if(bad.length){ $('e2').textContent = 'Please enter ' + bad.join(', ') + '.'; return; }
+  $('e2').textContent = '';
   $('s2').classList.add('done');
 
-  $('sumLabel').innerHTML=esc(sel.t)+(sel.song?' <em style="font-family:Instrument Serif,serif;font-style:italic;color:var(--cyan)">· '+esc(sel.song)+'</em>':'')+
-                          '<small>'+esc(sel.s)+'</small>';
-  $('sumAmt').textContent='₹'+sel.amt;
-  $('refOut').textContent=REF;
-  $('vpaOut').textContent=CONFIG.UPI_VPA;
+  var items = Cart.items(), total = Cart.total();
+  order = {
+    ref: REF, total: total,
+    items: items.map(function(i){ return { id: i.id, qty: i.qty }; }),
+    lines: items.map(function(i){ return i.title + (i.qty > 1 ? ' x' + i.qty : ''); }).join('; '),
+    name: n, phone: p, email: em
+  };
 
-  var uri=upiURI(CONFIG.UPI_VPA,CONFIG.PAYEE_NAME,sel.amt,REF);
-  var q=uri.slice(uri.indexOf('?'));
-  $('apps').innerHTML=
+  $('sumLabel').innerHTML = esc(items.length === 1 ? items[0].title : items.length + ' items') +
+    '<small>' + esc(items.length === 1 ? items[0].detail : order.lines) + '</small>';
+  $('sumAmt').textContent = money(total);
+  $('refOut').textContent = REF;
+  $('vpaOut').textContent = CONFIG.UPI_VPA;
+
+  var uri = upiURI(CONFIG.UPI_VPA, CONFIG.PAYEE_NAME, total, REF);
+  var q = uri.slice(uri.indexOf('?'));
+  $('apps').innerHTML =
     '<a class="app primary" href="'+esc(uri)+'">Open UPI app</a>'+
     '<a class="app" href="'+esc('tez://upi/pay'+q)+'">Google Pay</a>'+
     '<a class="app" href="'+esc('phonepe://pay'+q)+'">PhonePe</a>'+
     '<a class="app" href="'+esc('paytmmp://pay'+q)+'">Paytm</a>';
-  try{ drawQR($('qr'),uri); }catch(err){ $('qrBox').style.display='none'; }
+  try { drawQR($('qr'), uri); } catch(err){ $('qrBox').style.display = 'none'; }
 
-  unlock('s3',true); $('s3').classList.add('active');
-  $('s3').scrollIntoView({behavior:'smooth',block:'start'});
+  $('s3').classList.remove('locked'); $('s3').classList.add('active');
+  $('s3').scrollIntoView({behavior:'smooth', block:'start'});
 });
 
-$('copyVpa').addEventListener('click',function(){
-  var b=this;
+$('copyVpa').addEventListener('click', function(){
+  var b = this;
   navigator.clipboard.writeText(CONFIG.UPI_VPA).then(function(){
-    b.textContent='Copied'; setTimeout(function(){b.textContent='Copy';},1600);
+    b.textContent = 'Copied'; setTimeout(function(){ b.textContent = 'Copy'; }, 1600);
   }).catch(function(){});
 });
 
-$('paidBtn').addEventListener('click',function(){
+$('paidBtn').addEventListener('click', function(){
   $('s3').classList.add('done');
-  unlock('s4',true); $('s4').classList.add('active');
-  $('s4').scrollIntoView({behavior:'smooth',block:'center'});
+  $('s4').classList.remove('locked'); $('s4').classList.add('active');
+  $('s4').scrollIntoView({behavior:'smooth', block:'center'});
   $('fUtr').focus();
 });
 
-$('submitBtn').addEventListener('click',function(){
-  if(sent) return;
-  var utr=$('fUtr').value.trim().replace(/\s+/g,'');
+/* ---------- confirm ---------- */
+$('submitBtn').addEventListener('click', function(){
+  if(sent || !order) return;
+  var utr = $('fUtr').value.trim().replace(/\s+/g,'');
   if(!/^[A-Za-z0-9]{8,24}$/.test(utr)){
     $('fUtr').classList.add('bad');
-    $('e4').textContent='Please enter the transaction ID exactly as your UPI app shows it.';
+    $('e4').textContent = 'Please enter the transaction ID exactly as your UPI app shows it.';
     return;
   }
-  $('fUtr').classList.remove('bad'); $('e4').textContent='';
-  var btn=this; btn.disabled=true; btn.textContent='Sending…';
+  $('fUtr').classList.remove('bad'); $('e4').textContent = '';
+  var btn = this; btn.disabled = true; btn.textContent = 'Sending…';
 
-  var payload={
-    ref:REF, item:sel.id, itemLabel:sel.t+(sel.song?' ('+sel.song+')':''), detail:sel.s,
-    amountShown:sel.amt, category:cat,
-    name:$('fName').value.trim(), phone:$('fPhone').value.trim(), email:$('fEmail').value.trim(),
-    utr:utr, page:location.href, ua:navigator.userAgent.slice(0,180)
+  var payload = {
+    ref: order.ref, items: order.items, totalShown: order.total,
+    name: order.name, phone: order.phone, email: order.email,
+    utr: utr, page: location.href, ua: navigator.userAgent.slice(0,180)
   };
 
   function fallback(){
-    /* backend unreachable — hand the details to WhatsApp so nothing is lost */
-    var msg='Hi iMAP! I have paid for '+payload.itemLabel+' ('+payload.detail+') — ₹'+payload.amountShown+
-            '. Reference '+REF+', UPI transaction ID '+utr+'. Name: '+payload.name+', email: '+payload.email+'.';
-    showReceipt({receipt:REF,viaWhatsApp:true});
-    window.open('https://wa.me/'+CONFIG.WHATSAPP+'?text='+encodeURIComponent(msg),'_blank','noopener');
+    var msg = 'Hi iMAP! I have paid ' + money(order.total) + ' for: ' + order.lines +
+              '. Reference ' + order.ref + ', UPI transaction ID ' + utr +
+              '. Name: ' + order.name + ', phone: ' + order.phone +
+              (order.email ? ', email: ' + order.email : '') + '.';
+    showReceipt({ receipt: order.ref, viaWhatsApp: true }, utr);
+    window.open('https://wa.me/' + CONFIG.WHATSAPP + '?text=' + encodeURIComponent(msg), '_blank', 'noopener');
   }
 
-  if(CONFIG.ENDPOINT.indexOf('REPLACE_WITH')!==-1){ sent=true; fallback(); return; }
+  if(CONFIG.ENDPOINT.indexOf('REPLACE_WITH') !== -1){ sent = true; fallback(); return; }
 
-  fetch(CONFIG.ENDPOINT,{
-    method:'POST',
+  fetch(CONFIG.ENDPOINT, {
+    method: 'POST',
     /* text/plain keeps this a "simple" CORS request — no preflight, which Apps Script can't answer */
-    headers:{'Content-Type':'text/plain;charset=utf-8'},
-    body:JSON.stringify(payload)
-  }).then(function(r){return r.json();})
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify(payload)
+  }).then(function(r){ return r.json(); })
     .then(function(res){
-      sent=true;
-      if(res && res.ok) showReceipt(res);
-      else { $('e4').textContent=(res&&res.error)?res.error:'Something went wrong.'; btn.disabled=false; btn.textContent='Submit & get my receipt'; }
+      if(res && res.ok){ sent = true; showReceipt(res, utr); }
+      else {
+        $('e4').textContent = (res && res.error) ? res.error : 'Something went wrong.';
+        btn.disabled = false; btn.textContent = 'Submit & get my receipt';
+      }
     })
-    .catch(function(){ sent=true; fallback(); });
+    .catch(function(){ sent = true; fallback(); });
 });
 
-function showReceipt(res){
-  var r=$('receiptBox');
-  var rows=[
-    ['Receipt', res.receipt||REF],
-    ['For', sel.t+(sel.song?' · '+sel.song:'')],
-    ['Details', sel.s],
-    ['Amount', '₹'+sel.amt],
-    ['Name', $('fName').value.trim()],
-    ['Phone', $('fPhone').value.trim()],
-    ['Email', $('fEmail').value.trim()],
-    ['UPI transaction ID', $('fUtr').value.trim()],
-    ['Reference', REF]
-  ];
-  var html='<div class="receipt"><div class="tick-big">✓</div>'+
-    '<div class="big">Thank you, '+esc(($('fName').value.trim().split(/\s+/)[0])||'dancer')+'.</div>'+
-    '<div class="rno">'+esc(res.receipt||REF)+'</div>'+
+function showReceipt(res, utr){
+  var items = Cart.items(), i;
+  var html = '<div class="receipt"><div class="tick-big">✓</div>'+
+    '<div class="big">Thank you, '+esc((order.name.split(/\s+/)[0]) || 'dancer')+'.</div>'+
+    '<div class="rno">'+esc(res.receipt || order.ref)+'</div>'+
     '<div class="pending">● Pending verification</div><div class="rows">';
-  for(var i=0;i<rows.length;i++)
-    html+='<div class="rrow"><span class="k">'+esc(rows[i][0])+'</span><span class="v">'+esc(rows[i][1])+'</span></div>';
-  html+='</div><p class="lead" style="font-size:13.5px;margin-top:20px">'+
+  for(i=0;i<items.length;i++){
+    html += '<div class="rrow"><span class="k">'+esc(items[i].title)+
+            (items[i].qty > 1 ? ' ×'+items[i].qty : '')+'</span>'+
+            '<span class="v">'+money(items[i].amount * items[i].qty)+'</span></div>';
+  }
+  var rows = [['Total paid', money(order.total)], ['Name', order.name], ['Contact', order.phone]];
+  if(order.email) rows.push(['Email', order.email]);
+  rows.push(['UPI transaction ID', utr]);
+  rows.push(['Reference', order.ref]);
+  for(i=0;i<rows.length;i++)
+    html += '<div class="rrow"><span class="k">'+esc(rows[i][0])+'</span><span class="v">'+esc(rows[i][1])+'</span></div>';
+  html += '</div><p class="lead" style="font-size:13.5px;margin-top:20px">'+
     (res.viaWhatsApp
       ? 'We’ve opened WhatsApp with your payment details — send that message and we’ll confirm your spot shortly.'
-      : 'A copy is on its way to your email. We check the payment against our bank records and confirm your spot — usually within a few hours.')+
+      : (order.email
+          ? 'A copy is on its way to your email. We check the payment against our records and confirm your spot — usually within a few hours.'
+          : 'We check the payment against our records and confirm your spot on WhatsApp — usually within a few hours.'))+
     '</p><a class="btn btn-ghost" style="margin-top:18px" href="index.html">Back to site</a></div>';
-  r.innerHTML=html; r.hidden=false;
-  $('flow').hidden=true;
-  r.scrollIntoView({behavior:'smooth',block:'center'});
+
+  $('receiptBox').innerHTML = html;
+  $('receiptBox').hidden = false;
+  $('flow').hidden = true;
+  Cart.clear();
+  $('receiptBox').scrollIntoView({behavior:'smooth', block:'center'});
 }
 
-renderItems();
+renderLines();
 $('yr').textContent=new Date().getFullYear();
 (function(){var b=$('burger'),l=$('navLinks');if(!b)return;
   b.addEventListener('click',function(){var o=l.classList.toggle('open');b.setAttribute('aria-expanded',o);});})();

@@ -21,30 +21,51 @@ var CONFIG = {
 };
 
 /** Authoritative prices. MUST match the ITEMS table in pay.html. */
-var PRICES = {
-  'ws-pass-vashi':    { label: 'All-classes pass — Vashi',        amount: 2000 },
-  'ws-pass-seawoods': { label: 'All-classes pass — Seawoods',     amount: 3000 },
-  'ws-v-17aug':   { label: 'Choreography Workshop (Chura Liya Hai)',   amount: 500 },
-  'ws-v-18aug':   { label: 'Kids Dance Workshop (Dance Ka Bhoot)',     amount: 500 },
-  'ws-v-19aug-a': { label: 'Bollywood Workshop (Gun Gun Guna Re)',     amount: 500 },
-  'ws-v-19aug-b': { label: 'Jazz Funk Workshop (Taki Taki)',           amount: 500 },
-  'ws-v-27aug':   { label: 'Contemporary Workshop (Ae Dil Hai Mushkil)', amount: 500 },
-  'ws-v-31aug':   { label: 'Hip Hop Workshop',                        amount: 500 },
-  'ws-s-23aug':   { label: 'Semi Classical Choreography (Vachindamma)', amount: 500 },
-  'ws-s-27aug':   { label: 'Juniors Demo Class (Lut Put Gaya)',       amount: 500 },
-  'ws-s-29aug-a': { label: 'Kids Ballet Demo Class',                  amount: 500 },
-  'ws-s-29aug-b': { label: 'Bollywood Workshop (Just Chill)',         amount: 500 },
-  'ws-s-29aug-c': { label: 'Jazz Choreography Workshop (Way I Are)',  amount: 500 },
-  'ws-s-30aug-a': { label: 'Jazz Funk Choreography (Whine Up)',       amount: 500 },
-  'ws-s-30aug-b': { label: 'Afro & Dancehall Workshop (Haseen)',      amount: 500 },
-  'ws-s-30aug-c': { label: 'Open Style Choreography (Pal Pal)',       amount: 500 },
-  'ws-s-06sep':   { label: 'Ballet Training Class',                   amount: 500 },
-  'rc-all':       { label: 'All classes — monthly',                   amount: 4500 },
-  'rc-trial':     { label: 'Try any class',                           amount: 500 }
-};
+var PRICES = (function () {
+  var p = {
+    'ws-pass-vashi':    { label: 'All workshops — Vashi',        amount: 2000 },
+    'ws-pass-seawoods': { label: 'All workshops — Seawoods',     amount: 3000 },
+    'ws-pass-both':     { label: 'All workshops — both studios', amount: 4500 },
+    'ws-v-17aug':   { label: 'Choreography Workshop (Chura Liya Hai) · 17 Aug Vashi',   amount: 500 },
+    'ws-v-18aug':   { label: 'Kids Dance Workshop (Dance Ka Bhoot) · 18 Aug Vashi',     amount: 500 },
+    'ws-v-19aug-a': { label: 'Bollywood Workshop (Gun Gun Guna Re) · 19 Aug Vashi',     amount: 500 },
+    'ws-v-19aug-b': { label: 'Jazz Funk Workshop (Taki Taki) · 19 Aug Vashi',           amount: 500 },
+    'ws-v-27aug':   { label: 'Contemporary Workshop (Ae Dil Hai Mushkil) · 27 Aug Vashi', amount: 500 },
+    'ws-v-31aug':   { label: 'Hip Hop Workshop · 31 Aug Vashi',                         amount: 500 },
+    'ws-s-23aug':   { label: 'Semi Classical Choreography (Vachindamma) · 23 Aug Seawoods', amount: 500 },
+    'ws-s-27aug':   { label: 'Juniors Demo Class (Lut Put Gaya) · 27 Aug Seawoods',     amount: 500 },
+    'ws-s-29aug-a': { label: 'Kids Ballet Demo Class · 29 Aug Seawoods',                amount: 500 },
+    'ws-s-29aug-b': { label: 'Bollywood Workshop (Just Chill) · 29 Aug Seawoods',       amount: 500 },
+    'ws-s-29aug-c': { label: 'Jazz Choreography Workshop (Way I Are) · 29 Aug Seawoods', amount: 500 },
+    'ws-s-30aug-a': { label: 'Jazz Funk Choreography (Whine Up) · 30 Aug Seawoods',     amount: 500 },
+    'ws-s-30aug-b': { label: 'Afro & Dancehall Workshop (Haseen) · 30 Aug Seawoods',    amount: 500 },
+    'ws-s-30aug-c': { label: 'Open Style Choreography (Pal Pal) · 30 Aug Seawoods',     amount: 500 },
+    'ws-s-06sep':   { label: 'Ballet Training Class · 6 Sept Seawoods',                 amount: 500 }
+  };
+  /* Regular classes, from September: ₹2800 for 1 month, ₹7500 for 3. */
+  var BATCHES = {
+    'contemporary-seawoods': 'Contemporary (Seawoods)',
+    'contemporary-vashi': 'Contemporary (Vashi)',
+    'bollywood-seawoods': 'Bollywood (Seawoods)',
+    'bollywood-advance-vashi': 'Bollywood Advance (Vashi)',
+    'juniors-seawoods': 'Juniors (Seawoods)',
+    'kids-vashi': 'Kids (Vashi)',
+    'jazz-funk': 'Jazz Funk (Seawoods)',
+    'jazz-training': 'Jazz Training (Seawoods)',
+    'open-style': 'Open Style (Seawoods)',
+    'afro-dancehall': 'Afro & Dancehall (Seawoods)'
+  };
+  var PLANS = { '1m': { label: '1 month', amount: 2800 }, '3m': { label: '3 months', amount: 7500 } };
+  for (var slug in BATCHES) {
+    for (var k in PLANS) {
+      p['rc-' + slug + '-' + k] = { label: BATCHES[slug] + ' — ' + PLANS[k].label, amount: PLANS[k].amount };
+    }
+  }
+  return p;
+})();
 
-var HEADERS = ['Timestamp', 'Receipt', 'Status', 'Item', 'Item ID', 'Details',
-               'Amount (expected)', 'Amount (claimed)', 'Flags',
+var HEADERS = ['Timestamp', 'Receipt', 'Status', 'Items', 'Item IDs', 'Qty',
+               'Total (expected)', 'Total (claimed)', 'Flags',
                'Name', 'Phone', 'Email', 'UPI transaction ID', 'Reference',
                'Verified by', 'Verified at', 'Notes'];
 
@@ -90,31 +111,43 @@ function json(obj) {
 function validate(b) {
   function s(x, max) { return String(x == null ? '' : x).trim().slice(0, max || 120); }
 
-  var item = s(b.item, 40);
-  if (!PRICES.hasOwnProperty(item)) return { ok: false, error: 'Unknown item. Please reload the page and try again.' };
+  var raw = b.items;
+  if (!(raw instanceof Array) || !raw.length) return { ok: false, error: 'Your cart is empty.' };
+  if (raw.length > 30) return { ok: false, error: 'Too many items in one order.' };
+
+  var lines = [], ids = [], qtys = [], expected = 0, i;
+  for (i = 0; i < raw.length; i++) {
+    var id = s(raw[i] && raw[i].id, 40);
+    if (!PRICES.hasOwnProperty(id)) return { ok: false, error: 'One of the items is no longer available. Please reload and try again.' };
+    var qty = parseInt(raw[i].qty, 10);
+    if (!(qty >= 1 && qty <= 20)) qty = 1;
+    expected += PRICES[id].amount * qty;
+    lines.push(PRICES[id].label + (qty > 1 ? ' x' + qty : ''));
+    ids.push(id); qtys.push(qty);
+  }
 
   var name = s(b.name, 60);
   if (name.length < 2) return { ok: false, error: 'Please enter your name.' };
 
   var phone = s(b.phone, 14).replace(/\D/g, '').replace(/^91(?=\d{10}$)/, '');
-  if (!/^[6-9]\d{9}$/.test(phone)) return { ok: false, error: 'Please enter a valid 10-digit phone number.' };
+  if (!/^[6-9]\d{9}$/.test(phone)) return { ok: false, error: 'Please enter a valid 10-digit contact number.' };
 
+  /* email is optional; validated only when supplied */
   var email = s(b.email, 90);
-  if (!/^[^\s@]+@[^\s@]+\.[a-z]{2,}$/i.test(email)) return { ok: false, error: 'Please enter a valid email address.' };
+  if (email && !/^[^\s@]+@[^\s@]+\.[a-z]{2,}$/i.test(email)) return { ok: false, error: 'That email doesn\'t look right — fix it or leave it blank.' };
 
   var utr = s(b.utr, 24).replace(/\s+/g, '');
   if (!/^[A-Za-z0-9]{8,24}$/.test(utr)) return { ok: false, error: 'Please enter the UPI transaction ID from your payment app.' };
 
   var ref = s(b.ref, 20).replace(/[^A-Za-z0-9\-]/g, '');
-  var expected = PRICES[item].amount;
-  var claimed = Number(b.amountShown);
+  var claimed = Number(b.totalShown);
   if (!isFinite(claimed)) claimed = 0;
 
   var flags = [];
-  if (claimed !== expected) flags.push('AMOUNT MISMATCH: page showed ' + claimed + ', expected ' + expected);
+  if (claimed !== expected) flags.push('TOTAL MISMATCH: page showed ' + claimed + ', expected ' + expected);
 
   return { ok: true, data: {
-    item: item, label: PRICES[item].label, detail: s(b.detail, 120),
+    lines: lines.join(' | '), ids: ids.join(', '), qty: qtys.join(', '),
     expected: expected, claimed: claimed, flags: flags.join(' | '),
     name: name, phone: phone, email: email, utr: utr, ref: ref
   }};
@@ -155,7 +188,7 @@ function nextReceipt() {
 function appendRow(receipt, d) {
   sheet().appendRow([
     Utilities.formatDate(new Date(), 'Asia/Kolkata', 'yyyy-MM-dd HH:mm:ss'),
-    receipt, 'PENDING', d.label, d.item, d.detail,
+    receipt, 'PENDING', d.lines, d.ids, d.qty,
     d.expected, d.claimed, d.flags,
     d.name, "'" + d.phone, d.email, "'" + d.utr, d.ref,
     '', '', ''
@@ -198,12 +231,13 @@ function shell(title, badge, badgeColor, inner) {
 }
 
 function mailPayer(receipt, d) {
+  if (!d.email) return;                       /* email is optional — nothing to send to */
   var body = '<p style="font:15px/1.65 -apple-system,Segoe UI,sans-serif;color:#12211f;margin:0 0 18px">' +
       'Hi ' + esc(d.name.split(/\s+/)[0]) + ', thanks for your payment. Here’s your receipt. ' +
       'We’re checking it against our records and will confirm your spot shortly — usually within a few hours.</p>' +
     '<table style="width:100%;border-collapse:collapse">' +
-      row('Receipt', receipt) + row('For', d.label) + (d.detail ? row('Details', d.detail) : '') +
-      row('Amount', '₹' + d.expected) + row('UPI transaction ID', d.utr) + row('Reference', d.ref) +
+      row('Receipt', receipt) + row('For', d.lines) +
+      row('Total', '₹' + d.expected) + row('UPI transaction ID', d.utr) + row('Reference', d.ref) +
     '</table>';
   MailApp.sendEmail({
     to: d.email,
@@ -222,9 +256,9 @@ function mailAdmin(receipt, d) {
     : '';
   var body = flagBlock +
     '<table style="width:100%;border-collapse:collapse">' +
-      row('Receipt', receipt) + row('For', d.label) + (d.detail ? row('Details', d.detail) : '') +
-      row('Amount', '₹' + d.expected) + row('Name', d.name) + row('Phone', d.phone) +
-      row('Email', d.email) + row('UPI transaction ID', d.utr) + row('Reference', d.ref) +
+      row('Receipt', receipt) + row('For', d.lines) +
+      row('Total', '₹' + d.expected) + row('Name', d.name) + row('Phone', d.phone) +
+      row('Email', d.email || '— not given —') + row('UPI transaction ID', d.utr) + row('Reference', d.ref) +
     '</table>' +
     '<p style="margin:20px 0 0"><a href="' + esc(ss.getUrl()) + '" ' +
       'style="display:inline-block;background:#08171a;color:#fff;text-decoration:none;padding:12px 20px;' +
@@ -234,10 +268,10 @@ function mailAdmin(receipt, d) {
       'Setting VERIFIED emails the payer a confirmation automatically.</p>';
   MailApp.sendEmail({
     to: CONFIG.ADMIN_EMAIL,
-    subject: (d.flags ? '⚠️ ' : '') + 'New payment · ₹' + d.expected + ' · ' + d.label + ' · ' + d.name,
+    subject: (d.flags ? '⚠️ ' : '') + 'New payment · ₹' + d.expected + ' · ' + d.name,
     htmlBody: shell('New payment claim', d.flags ? 'Needs a look' : 'Pending verification', d.flags ? '#c0392b' : '#c07a20', body),
     name: 'iMAP Payments',
-    replyTo: d.email
+    replyTo: d.email || CONFIG.ADMIN_EMAIL
   });
 }
 
@@ -253,9 +287,9 @@ function onStatusEdit(e) {
 
     var r = e.range.getRow();
     var vals = sh.getRange(r, 1, 1, HEADERS.length).getValues()[0];
-    var receipt = vals[1], label = vals[3], detail = vals[5], amount = vals[6],
+    var receipt = vals[1], label = vals[3], amount = vals[6],
         name = vals[9], email = vals[11], utr = String(vals[12]).replace(/^'/, '');
-    if (!email) return;
+    if (!email) return;                        /* nothing to confirm to; tell them on WhatsApp */
 
     sh.getRange(r, 15).setValue(Session.getActiveUser().getEmail() || 'admin');
     sh.getRange(r, 16).setValue(Utilities.formatDate(new Date(), 'Asia/Kolkata', 'yyyy-MM-dd HH:mm:ss'));
@@ -263,8 +297,8 @@ function onStatusEdit(e) {
     var body = '<p style="font:15px/1.65 -apple-system,Segoe UI,sans-serif;color:#12211f;margin:0 0 18px">' +
         'Hi ' + esc(String(name).split(/\s+/)[0]) + ', your payment is confirmed and your spot is booked. See you in the studio!</p>' +
       '<table style="width:100%;border-collapse:collapse">' +
-        row('Receipt', receipt) + row('For', label) + (detail ? row('Details', detail) : '') +
-        row('Amount', '₹' + amount) + row('UPI transaction ID', utr) +
+        row('Receipt', receipt) + row('For', label) +
+        row('Total', '₹' + amount) + row('UPI transaction ID', utr) +
       '</table>';
     MailApp.sendEmail({
       to: email,

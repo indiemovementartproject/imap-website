@@ -7,9 +7,16 @@ no business verification. Money goes straight from the payer's UPI app into iMAP
 
 | Part | Where | Does what |
 |---|---|---|
-| `pay.html` | this repo (GitHub Pages) | Picks the item, opens the UPI app with the amount pre-filled, collects the transaction ID |
-| `Code.gs` | Google Apps Script | Writes every payment to a Google Sheet, emails the payer and iMAP |
+| `cart.js` | this repo | The cart, and the single source of truth for what's on sale and at what price |
+| `pay.html` | this repo (GitHub Pages) | Checkout: shows the order, opens the UPI app with the total pre-filled, collects the transaction ID |
+| `Code.gs` | Google Apps Script | Writes every order to a Google Sheet, emails the payer and iMAP |
 | Payments sheet | Google Sheets | Live log you reconcile against your bank statement |
+
+**How someone buys:** they tap a workshop (or open a batch page and hit *Join Now*), items collect
+in a cart, and they pay for everything in one UPI transaction at checkout.
+
+**Two phone numbers, on purpose:** payments and payment fallbacks go to **+91 98705 38332**;
+every *enquiry* CTA still goes to **+91 84548 80061**.
 
 ---
 
@@ -75,39 +82,52 @@ Now setting a row's **Status** to `VERIFIED` emails that person their confirmati
 
 ## 4 · Switch the website on
 
-Edit `pay.html` and fill in the `CONFIG` block near the bottom:
+The UPI ID is already set to `rohitchoudhary91.rc-1@okicici`. The one thing still missing is the
+backend URL — open `pay.html`, find the `CONFIG` block, and paste your `/exec` URL into `ENDPOINT`:
 
 ```js
 var CONFIG = {
-  UPI_VPA:    "yourname@okhdfcbank",                        // iMAP's UPI ID
+  UPI_VPA:    "rohitchoudhary91.rc-1@okicici",
   PAYEE_NAME: "Indie Movement Art Project",
-  ENDPOINT:   "https://script.google.com/macros/s/AKfy.../exec",
-  WHATSAPP:   "918454880061"
+  ENDPOINT:   "https://script.google.com/macros/s/AKfy.../exec",   // <- paste here
+  WHATSAPP:   "919870538332"
 };
 ```
 
-Until `UPI_VPA` is filled in, the page deliberately refuses to take money and shows a
-"payments aren't switched on yet" notice — so it's safe to have live before you're ready.
+**Until then payments still work** — the checkout simply falls back to opening WhatsApp with the
+full order and transaction ID, so nothing is lost. You just won't get the sheet row or the emails.
 
-**Then check the prices.** They appear in two places and must agree:
-- `ITEMS` in `pay.html` (what the payer sees)
-- `PRICES` in `Code.gs` (what the server enforces)
+**Prices live in two files and must agree:**
+- `cart.js` — the catalogue the site shows
+- `PRICES` in `Code.gs` — what the server enforces
 
-Regular-class fees are currently a guess taken from the standee (`₹4500` all-classes,
-`₹500` drop-in). Two entries — *One batch — monthly* and *Kids / Juniors — monthly* — are set to
-`amt: null`, which shows "Fees on request" and routes to WhatsApp instead of charging. Put the real
-numbers in both files before promoting the page.
+Current pricing:
+
+| | |
+|---|---|
+| Any single workshop | ₹500 |
+| All workshops — Vashi | ₹2000 |
+| All workshops — Seawoods | ₹3000 |
+| All workshops — both studios | ₹4500 |
+| Regular class — 1 month | ₹2800 |
+| Regular class — 3 months | ₹7500 |
+
+The workshop passes are Orientation Series only and stop being relevant after August;
+regular classes start in September. To retire the passes, delete them from `PASSES` in
+`cart.js` — anything already sitting in someone's cart is dropped automatically on their
+next visit, because the cart re-reads the catalogue on every load.
 
 ## 5 · Test it end to end
 
-Pay yourself ₹1: temporarily set one item's `amt` to `1` in **both** files, run through the flow,
+Pay yourself ₹1: temporarily set one item's amount to `1` in **both** `cart.js` and `Code.gs`, run through the flow,
 and confirm you get the receipt email, the alert email, and a new Sheet row. Then set it back.
 
 ---
 
 ## Day to day
 
-1. A payment arrives → you get an email, and a `PENDING` row appears in the sheet instantly.
+1. An order arrives → you get an email, and a `PENDING` row appears in the sheet instantly.
+   One row per order, however many items were in the cart.
 2. Check the UTR against your UPI app or bank statement.
 3. Set **Status** to `VERIFIED` → the payer is emailed a confirmation automatically.
    Use `REJECTED` for anything that doesn't check out.
@@ -119,6 +139,6 @@ The **Flags** column calls out amount mismatches. A ⚠️ in the email subject 
 | Symptom | Cause |
 |---|---|
 | Receipt shown but "we've opened WhatsApp" | `ENDPOINT` is wrong/undeployed — the page fell back so no booking is lost |
-| No emails | Gmail's daily quota (100/day on free accounts) or the `setup` permission was never granted |
+| No emails | Gmail's daily quota (100/day on free accounts), the `setup` permission was never granted, or the buyer left email blank (it's optional — confirm those on WhatsApp) |
 | "Unknown item" error | An item exists in `pay.html` but not in `PRICES` in `Code.gs` |
 | Nothing happens on "Open UPI app" (desktop) | Expected — UPI links only work on phones; use the QR code |

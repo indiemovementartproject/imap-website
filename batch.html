@@ -175,6 +175,19 @@
   .bd-meta .sep{color:var(--muted-2);margin:0 8px}
   .bd-theme{display:block;width:max-content;max-width:92%;margin:24px auto 2px;font-family:"Space Mono",monospace;font-size:11.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--cyan);border:1px solid var(--border-cyan);border-radius:999px;padding:7px 15px;background:rgba(92,225,230,.06);text-align:center}
   .bd-theme b{color:var(--text);font-weight:600}
+  .plans{margin-top:30px}
+  .plans-k{font-family:"Space Mono",monospace;font-size:10.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted-2);margin-bottom:12px}
+  .plan-row{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+  .plan{position:relative;min-width:158px;background:var(--glass-2);border:1px solid var(--border);border-radius:15px;padding:15px 20px;
+    cursor:pointer;font-family:inherit;color:var(--text);display:flex;flex-direction:column;align-items:center;gap:4px;transition:.18s}
+  .plan:hover{border-color:var(--border-cyan)}
+  .plan.on{border-color:var(--cyan);background:rgba(92,225,230,.09);box-shadow:0 0 26px rgba(92,225,230,.16)}
+  .plan .p-l{font-family:"Space Mono",monospace;font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted-2)}
+  .plan.on .p-l{color:var(--cyan)}
+  .plan .p-a{font-family:"Instrument Serif",serif;font-size:27px;line-height:1}
+  .plan .p-s{font-family:"Space Mono",monospace;font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--cyan)}
+  .backlink{font-family:"Space Mono",monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);text-decoration:none;transition:.16s}
+  .backlink:hover{color:var(--cyan)}
   /* event/showcase pages */
   .ev-bar{position:sticky;top:52px;z-index:6;text-align:center;padding:42px 22px 20px;background:rgba(7,10,12,.82);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom:1px solid var(--border)}
   .ev-bar .eyebrow{margin-bottom:10px}
@@ -195,6 +208,7 @@
   <button class="burger" id="burger" aria-label="Menu" aria-expanded="false">☰</button>
   <div class="nav-links" id="navLinks">
     <a href="index.html#about">About</a>
+    <a href="index.html#events">What’s new</a>
     <a href="index.html#classes">Classes</a>
     <a href="count-me-in.html">Count Me In</a>
     <a class="nav-cta" data-wa="Hi iMAP! I'd like to book a class.">Book</a>
@@ -210,10 +224,18 @@
     <div class="bd-photo"><img id="bImg" alt="" onerror="this.remove()"><span>photo coming soon</span></div>
     <div class="bd-theme" id="bTheme" hidden></div>
     <p class="lead" id="bDesc">Full details for this batch — level, what to expect, fees and what to bring — will be added here soon. For now, reach out on WhatsApp and we’ll help you join.</p>
-    <div class="hero-actions" style="margin-top:28px">
-      <a class="btn btn-cyan" id="bEnq">Enquire Now</a>
-      <a class="btn btn-ghost" href="batches.html">Back to batches</a>
+    <div class="plans" id="bPlans">
+      <div class="plans-k">Choose your plan · classes start September</div>
+      <div class="plan-row">
+        <button type="button" class="plan on" data-plan="1m"><span class="p-l">1 month</span><span class="p-a">₹2800</span></button>
+        <button type="button" class="plan" data-plan="3m"><span class="p-l">3 months</span><span class="p-a">₹7500</span><span class="p-s">save ₹900</span></button>
+      </div>
     </div>
+    <div class="hero-actions" style="margin-top:24px">
+      <button class="btn btn-cyan" id="bJoin">Join Now</button>
+      <a class="btn btn-ghost" id="bEnq">Ask a question</a>
+    </div>
+    <div style="margin-top:16px"><a class="backlink" href="batches.html">← Back to all batches</a></div>
   </section>
 </main>
 <footer>
@@ -233,6 +255,7 @@
   </div>
   <div class="foot-bottom">© <span id="yr"></span> Indie Movement Art Project · Movement. Method. Mindset</div>
 </footer>
+<script src="cart.js"></script>
 <script>
   
   (function(){
@@ -337,7 +360,26 @@
     if(b.desc){document.getElementById('bDesc').textContent=b.desc;}
     var msg="Hey! I would like to enquire about "+b.name+" at iMAP, "+b.region;
     var e=document.getElementById('bEnq'); e.setAttribute('data-wa',msg);
+
+    /* plan picker + Join Now -> cart */
+    var plan='1m';
+    [].forEach.call(document.querySelectorAll('.plan'),function(p){
+      p.addEventListener('click',function(){
+        [].forEach.call(document.querySelectorAll('.plan'),function(x){x.classList.remove('on');});
+        p.classList.add('on'); plan=p.getAttribute('data-plan');
+      });
+    });
+    var join=document.getElementById('bJoin');
+    join.addEventListener('click',function(){
+      if(!window.Cart) return;
+      if(Cart.add('rc-'+slug+'-'+plan)){
+        join.textContent='Added to cart ✓';
+        setTimeout(function(){ join.textContent='Join Now'; },2400);
+      }
+    });
   } else {
+    var pl=document.getElementById('bPlans'); if(pl) pl.hidden=true;
+    var jn=document.getElementById('bJoin'); if(jn) jn.hidden=true;
     document.getElementById('bMeta').textContent='Batch details coming soon';
     document.getElementById('bEnq').setAttribute('data-wa',"Hi iMAP! I'd like to know more about your batches.");
   }
