@@ -78,6 +78,10 @@
                  amount: WORKSHOP_PRICE };
       }
     }
+    if (id === 'test-1') {
+      return { id: id, type: 'test', title: 'Test payment',
+               detail: 'Checking the checkout works — not a real booking', amount: 1 };
+    }
     var m = /^rc-(.+)-(1m|3m)$/.exec(id);
     if (m && BATCHES[m[1]]) {
       var b = BATCHES[m[1]], p = null;

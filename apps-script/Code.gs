@@ -42,6 +42,7 @@ var CONFIG = {
 /** Authoritative prices. Must match cart.js. */
 var PRICES = (function () {
   var p = {
+    'test-1':           { label: 'Test payment',                 amount: 1 },
     'ws-pass-vashi':    { label: 'All workshops — Vashi',        amount: 2000 },
     'ws-pass-seawoods': { label: 'All workshops — Seawoods',     amount: 3000 },
     'ws-pass-both':     { label: 'All workshops — both studios', amount: 4500 },

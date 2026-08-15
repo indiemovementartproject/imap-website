@@ -767,6 +767,10 @@ if(CONFIG.ENDPOINT.indexOf('REPLACE_WITH') !== -1){
     'We’ll pass it straight to the studio on WhatsApp and confirm your spot.';
   var sb = $('submitBtn'); if(sb) sb.textContent = 'Send to the studio';
 }
+/* ?test=1 drops a ₹1 item in so the whole flow can be run for a rupee.
+   Nothing links here, so it never appears to customers. */
+if(/[?&]test=1\b/.test(location.search) && !Cart.has('test-1')) Cart.add('test-1');
+
 renderLines();
 $('yr').textContent=new Date().getFullYear();
 (function(){var b=$('burger'),l=$('navLinks');if(!b)return;
