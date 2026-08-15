@@ -189,8 +189,14 @@ a new Sheet row marked VERIFIED. Then set it back.
 4. For those, glance at the image and set **Status** to `VERIFIED` (or `REJECTED`). Marking it
    VERIFIED emails the customer their confirmation.
 
-**Auto-check** shows the verdict (`amount ✓ · date ✓ · success ✓`), **Screenshot** links to the
-image in Drive, and **Flags** calls out a tampered total.
+**Auto-check** shows the verdict (`amount ✓ · date ✓ · success ✓ · ref ✓`), **Screenshot** links
+to the image in Drive, and **Flags** calls out a tampered total.
+
+The checker looks at four things: the amount matches the order, the date is today, the screenshot
+says it succeeded, and — when legible — the payment note carries *this order's* reference. A
+screenshot bearing a different iMAP reference is a recycled image from another booking and never
+auto-confirms. Nor does a transaction ID that already paid for something: that row is flagged
+`DUPLICATE TRANSACTION ID`.
 
 ## If something breaks
 

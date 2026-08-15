@@ -17,7 +17,7 @@
 
 /* Bump this whenever you paste a new copy in. Visiting the /exec URL in a browser
    prints it, so you can always tell which version the web app is actually serving. */
-var BUILD = '2026-08-15-d';
+var BUILD = '2026-08-15-e';
 
 var CONFIG = {
   ADMIN_EMAIL:   'indiemovementartproject@gmail.com',
@@ -113,6 +113,13 @@ function doPost(e) {
     var lock = LockService.getScriptLock();
     lock.waitLock(25000);
     try {
+      /* One transaction can only pay for one booking. */
+      if (shot && shot.utr && utrAlreadyUsed(shot.utr)) {
+        shot.verified = false;
+        shot.summary = (shot.summary || '') + ' · DUPLICATE TXN';
+        shot.reason = 'This transaction has already been used for another booking.';
+        d.flags = (d.flags ? d.flags + ' | ' : '') + 'DUPLICATE TRANSACTION ID ' + shot.utr;
+      }
       var receipt = nextReceipt();
       appendRow(receipt, d, shot);
       try { mailAdmin(receipt, d, shot); } catch (err) {}
@@ -206,7 +213,7 @@ function readScreenshot(dataUrl, d) {
   try { text = ocrImage(blob); }
   catch (err) { text = ''; ocrError = String((err && err.message) || err).slice(0, 120); }
 
-  var verdict = judge(text, d.expected);
+  var verdict = judge(text, d.expected, d.ref);
   if (!text && ocrError) {
     verdict.summary = 'not readable — ' + ocrError;
     verdict.reason  = 'We couldn\'t read the screenshot automatically (' + ocrError + ').';
@@ -252,9 +259,9 @@ function ocrImage(blob) {
 }
 
 /** Does this screenshot show the right amount, paid today? */
-function judge(text, expected) {
+function judge(text, expected, ref) {
   if (!text) {
-    return { verified: false, amountOK: false, dateOK: false, statusOK: false, utr: '',
+    return { verified: false, amountOK: false, dateOK: false, statusOK: false, utr: '', refState: 'absent',
              reason: 'The screenshot could not be read automatically.', summary: 'not readable' };
   }
   var t = String(text).toLowerCase().replace(/\s+/g, ' ');
@@ -273,21 +280,37 @@ function judge(text, expected) {
   var r = t.match(/(?:upi|utr|txn|transaction)[^0-9]{0,20}(\d{9,14})/) || t.match(/\b(\d{12})\b/);
   if (r) utr = r[1];
 
-  var verified = amountOK && dateOK;
+  /* Payment apps copy our reference into the note, so when it's legible it ties
+     the screenshot to THIS order. A different iMAP reference means a recycled
+     image from another booking, which must never auto-confirm. */
+  var refState = 'absent', seen = t.match(/imap-[a-z0-9]{6}/gi);
+  if (seen && ref) {
+    var want = String(ref).toLowerCase(), hit = false, other = false;
+    for (i = 0; i < seen.length; i++) {
+      if (seen[i].toLowerCase() === want) hit = true; else other = true;
+    }
+    refState = hit ? 'match' : (other ? 'mismatch' : 'absent');
+  }
+
+  var verified = amountOK && dateOK && refState !== 'mismatch';
   var why = [];
   if (!amountOK) why.push('the amount on the screenshot doesn\'t match the order total');
   if (!dateOK) why.push('we couldn\'t see today\'s date on it');
+  if (refState === 'mismatch') why.push('it carries a different payment reference');
 
   return {
-    verified: verified, amountOK: amountOK, dateOK: dateOK, statusOK: statusOK, utr: utr,
-    reason: verified ? 'Amount and date check out.' : ('We couldn\'t auto-confirm: ' + why.join(' and ') + '.'),
+    verified: verified, amountOK: amountOK, dateOK: dateOK, statusOK: statusOK,
+    utr: utr, refState: refState,
+    reason: verified ? 'Amount and date check out.' : ('We couldn\'t auto-confirm: ' + why.join(', ') + '.'),
     summary: (amountOK ? 'amount ✓' : 'amount ✗') + ' · ' + (dateOK ? 'date ✓' : 'date ✗') +
-             ' · ' + (statusOK ? 'success ✓' : 'success ?')
+             ' · ' + (statusOK ? 'success ✓' : 'success ?') +
+             (refState === 'match' ? ' · ref ✓' : refState === 'mismatch' ? ' · REF MISMATCH' : '')
   };
 }
 
 function hasAmount(t, expected, currencyOnly) {
-  var re = currencyOnly ? /(?:₹|rs\.?|inr)\s*([0-9][0-9,]*(?:\.[0-9]{1,2})?)/g
+  /* OCR routinely reads ₹ as € or R, so treat those as rupee marks too */
+  var re = currencyOnly ? /(?:₹|€|rs\.?|inr|r)\s*([0-9][0-9,]*(?:\.[0-9]{1,2})?)/gi
                         : /([0-9][0-9,]*(?:\.[0-9]{1,2})?)/g;
   var m;
   while ((m = re.exec(t)) !== null) {
@@ -334,6 +357,18 @@ function sheet() {
       SpreadsheetApp.newDataValidation().requireValueInList(['PENDING', 'VERIFIED', 'REJECTED'], true).build());
   }
   return sh;
+}
+
+/** Has this UPI transaction already paid for something? */
+function utrAlreadyUsed(utr) {
+  var sh = sheet(), last = sh.getLastRow();
+  if (last < 2) return false;
+  var seen = sh.getRange(2, 13, last - 1, 1).getValues();   /* column M — UPI ref */
+  var want = String(utr).replace(/^'/, '').trim();
+  for (var i = 0; i < seen.length; i++) {
+    if (String(seen[i][0]).replace(/^'/, '').trim() === want) return true;
+  }
+  return false;
 }
 
 function nextReceipt() {
@@ -538,7 +573,7 @@ function testOcr() {
     Logger.log('Drive read this:');
     Logger.log(text.slice(0, 500));
     Logger.log('---');
-    Logger.log('Verdict against ₹500: ' + JSON.stringify(judge(text, 500)));
+    Logger.log('Verdict against ₹500: ' + JSON.stringify(judge(text, 500, '')));
     Logger.log('If amount/date show ✗ above, the wording just needs matching — send me this log.');
   } catch (err) {
     Logger.log('FAIL — ' + ((err && err.message) || err));
