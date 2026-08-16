@@ -256,29 +256,43 @@ function esc(s) {
   });
 }
 
+/**
+ * One field per row, label stacked above value.
+ * A two-column layout cannot shrink below its widest cell, so a long item list
+ * or email address pushed the whole card wider than a phone screen. Stacked
+ * rows are a single column — there is nothing left that can overflow.
+ */
 function row(k, v) {
-  return '<tr><td style="padding:9px 0;color:#6b7b7d;font:12px -apple-system,Segoe UI,sans-serif;' +
-         'text-transform:uppercase;letter-spacing:.08em">' + esc(k) + '</td>' +
-         '<td style="padding:9px 0;text-align:right;font:15px -apple-system,Segoe UI,sans-serif;color:#12211f">' +
-         esc(v) + '</td></tr>';
+  return '<tr><td style="padding:11px 0;border-bottom:1px solid #eef1f2">' +
+    '<div style="font:11px -apple-system,Segoe UI,sans-serif;color:#6b7b7d;' +
+      'letter-spacing:.08em;text-transform:uppercase">' + esc(k) + '</div>' +
+    '<div style="font:15px/1.45 -apple-system,Segoe UI,sans-serif;color:#12211f;' +
+      'margin-top:4px;word-break:break-word;overflow-wrap:break-word">' + esc(v) + '</div>' +
+    '</td></tr>';
 }
 
 function shell(title, badge, badgeColor, inner) {
-  return '<div style="background:#f4f7f7;padding:28px 16px;font-family:-apple-system,Segoe UI,sans-serif">' +
-    '<div style="max-width:520px;margin:0 auto;background:#fff;border-radius:18px;overflow:hidden;box-shadow:0 8px 30px rgba(0,0,0,.08)">' +
-      '<div style="background:#08171a;padding:26px 28px">' +
-        '<div style="color:' + CONFIG.CYAN + ';font-size:11px;letter-spacing:.22em;text-transform:uppercase">' + esc(CONFIG.BRAND) + '</div>' +
-        '<div style="color:#fff;font-size:26px;margin-top:8px">' + esc(title) + '</div>' +
-        '<div style="display:inline-block;margin-top:12px;padding:5px 12px;border-radius:99px;font-size:11px;' +
-          'letter-spacing:.12em;text-transform:uppercase;background:' + badgeColor + '22;color:' + badgeColor +
-          ';border:1px solid ' + badgeColor + '55">' + esc(badge) + '</div>' +
-      '</div>' +
-      '<div style="padding:24px 28px">' + inner + '</div>' +
-      '<div style="padding:16px 28px 24px;border-top:1px solid #eceff0;color:#8a9a9c;font-size:12px;line-height:1.6">' +
+  return '<div style="margin:0;padding:16px 10px;background:#f4f7f7">' +
+    '<table role="presentation" cellpadding="0" cellspacing="0" border="0" ' +
+      'style="width:100%;max-width:520px;margin:0 auto;border-collapse:collapse;' +
+      'background:#ffffff;border-radius:16px;overflow:hidden">' +
+      '<tr><td style="background:#08171a;padding:22px 20px">' +
+        '<div style="font:11px -apple-system,Segoe UI,sans-serif;color:' + CONFIG.CYAN + ';' +
+          'letter-spacing:.18em;text-transform:uppercase">' + esc(CONFIG.BRAND) + '</div>' +
+        '<div style="font:24px/1.25 -apple-system,Segoe UI,sans-serif;color:#ffffff;margin-top:7px">' +
+          esc(title) + '</div>' +
+        (badge ? '<div style="display:inline-block;margin-top:11px;padding:5px 11px;border-radius:99px;' +
+          'font:11px -apple-system,Segoe UI,sans-serif;letter-spacing:.1em;text-transform:uppercase;' +
+          'background:' + badgeColor + '22;color:' + badgeColor + ';border:1px solid ' + badgeColor + '55">' +
+          esc(badge) + '</div>' : '') +
+      '</td></tr>' +
+      '<tr><td style="padding:20px">' + inner + '</td></tr>' +
+      '<tr><td style="padding:14px 20px 20px;border-top:1px solid #eceff0;' +
+        'font:12px/1.6 -apple-system,Segoe UI,sans-serif;color:#8a9a9c;word-break:break-word">' +
         'Questions? WhatsApp +91 ' + esc(CONFIG.ENQUIRY_WHATSAPP.slice(2)) + '.<br>' +
         '<a href="' + esc(CONFIG.SITE) + '" style="color:' + CONFIG.CYAN + '">' + esc(CONFIG.SITE) + '</a>' +
-      '</div>' +
-    '</div></div>';
+      '</td></tr>' +
+    '</table></div>';
 }
 
 /** To the team: everything needed to confirm the payment and reach the payer. */
@@ -290,7 +304,7 @@ function mailTeam(receipt, d, shot) {
     '</div>' +
     (d.flags ? '<div style="margin:0 0 16px;padding:12px 14px;border-radius:10px;background:#fdecea;border:1px solid #f0a9a1;' +
         'color:#8a2018;font:13px/1.6 -apple-system,Segoe UI,sans-serif"><b>Check this:</b> ' + esc(d.flags) + '</div>' : '') +
-    '<table style="width:100%;border-collapse:collapse">' +
+    '<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="width:100%;border-collapse:collapse;table-layout:fixed">' +
       row('Name', d.name) + row('Contact', '+91 ' + d.phone) +
       row('Email', d.email || '— not given —') +
       row('Paid', '₹' + d.expected) + row('For', d.lines) +
@@ -302,7 +316,7 @@ function mailTeam(receipt, d, shot) {
       encodeURIComponent('Hi ' + d.name.split(/\s+/)[0] + '! Thanks for registering with iMAP — ₹' + d.expected +
         ' received for ' + d.lines + ' (receipt ' + receipt + '). Here are the details:') + '" ' +
       'style="display:inline-block;background:#25D366;color:#fff;text-decoration:none;padding:12px 20px;' +
-      'border-radius:10px;font:14px -apple-system,Segoe UI,sans-serif">WhatsApp ' + esc(d.name.split(/\s+/)[0]) + '</a></p>' +
+      'border-radius:10px;font:14px -apple-system,Segoe UI,sans-serif;word-break:break-word">WhatsApp ' + esc(d.name.split(/\s+/)[0]) + '</a></p>' +
     (shot && shot.url ? '<p style="font:12px -apple-system,Segoe UI,sans-serif;margin:14px 0 0">' +
       '<a href="' + esc(shot.url) + '" style="color:' + CONFIG.CYAN + '">Open the screenshot in Drive</a></p>' : '');
 
@@ -325,7 +339,7 @@ function mailPayer(receipt, d) {
   var body = '<p style="font:15px/1.65 -apple-system,Segoe UI,sans-serif;color:#12211f;margin:0 0 18px">' +
       'Hi ' + esc(String(d.name).split(/\s+/)[0]) + ', thank you for registering. Your payment is confirmed, ' +
       'and our team will reach out to you on WhatsApp with more details shortly.</p>' +
-    '<table style="width:100%;border-collapse:collapse">' +
+    '<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="width:100%;border-collapse:collapse;table-layout:fixed">' +
       row('Receipt', receipt) + row('For', d.lines) +
       row('Amount paid', '₹' + d.expected) + row('Reference', d.ref) +
     '</table>' +
