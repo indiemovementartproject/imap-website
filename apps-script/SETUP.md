@@ -14,41 +14,35 @@ no business verification. Money goes straight from the payer's UPI app into iMAP
 
 **How someone buys:** they add workshops or classes to a cart, enter name + contact (email optional),
 pay with Google Pay, PhonePe or Paytm (or scan the QR) then upload a screenshot of the success screen. The script
-reads the amount and date off that image; if both check out the customer is confirmed on the spot,
-and either way the screenshot lands with Ruchika.
+files the screenshot, thanks them, and emails it to the team to confirm against the bank.
 
 **Two phone numbers, on purpose:** payments and payment fallbacks go to **+91 98705 38332**;
 every *enquiry* CTA still goes to **+91 84548 80061**.
 
 ---
 
-## What the screenshot check does and doesn't prove
+## How verification works
 
-The money side is safe: payments travel over UPI or WhatsApp, and this site never touches a PIN,
-card number or bank login. **Nobody can steal money through this page.**
+The payer is thanked and told their payment is confirmed the moment they upload their screenshot.
+That is deliberate: someone who has just sent money should never be left wondering whether it
+arrived, and a slow or failed automatic check is our problem, not theirs.
 
-The screenshot check reads the image and confirms it shows *your exact amount* and *today's date*.
-That reliably catches honest mistakes — wrong amount, an old screenshot reused, the wrong order —
-and it deters casual chancers.
+Confirming the money is a back-office job:
 
-What it can't do is prove money actually arrived, because an image can be edited. So treat a green
-"auto-verified" as *very probably fine*, not as a bank statement. This is why **every screenshot is
-still emailed to a human**, with the amount and date verdict written at the top so a glance is
-usually enough. Your other backstop is physical: these are studio classes, and the door is the
-final check.
+1. Every payment emails all three of you with the screenshot attached, plus name, contact, email,
+   amount and a one-tap WhatsApp button to message the payer.
+2. Check the screenshot against the UPI account.
+3. Set the row's **Status** to `VERIFIED` (or `REJECTED`). That is bookkeeping only — nothing
+   further is sent to the payer.
+
+Your real backstop is physical: these are studio classes, and the door is the final check.
 
 Also built in:
 
-- **Prices are re-checked on the server.** Edit the page to pay ₹1 for a ₹4500 pass and the Sheet
+- **Prices are re-checked on the server.** Edit the page to pay ₹1 for a ₹4500 pass and the sheet
   still records ₹4500, flags the row, and the email is marked ⚠️.
-- **Every field is validated and escaped** before it reaches a Sheet or an email.
+- **Every field is validated and escaped** before it reaches a sheet or an email.
 - **A hidden honeypot field** silently drops basic bots.
-- The endpoint is public by necessity — treat it as a form anyone can post to.
-
-If you ever want certainty at the moment of payment, that needs a payment gateway with a webhook.
-Cashfree and PhonePe onboard sole proprietors more leniently than Razorpay did, and a very common
-reason for rejection is simply missing Terms / Privacy / Refund pages on the website — cheap to
-add, and worth doing before reapplying.
 
 ---
 
@@ -58,9 +52,6 @@ add, and worth doing before reapplying.
    a blank spreadsheet. Name it something like `iMAP Payments`.
 2. In that sheet: **Extensions → Apps Script**.
 3. Delete the placeholder code, paste in all of [`Code.gs`](Code.gs), and save.
-3b. **Turn on Drive for OCR** — in the left sidebar next to **Services**, press **+**, pick
-   **Drive API**, and click Add. Without this the screenshot still reaches Ruchika, but nothing is
-   read automatically and every order waits for a human.
 4. **Save** (⌘S / Ctrl+S). Do this before anything else — the toolbar's function list only
    refreshes once you've saved.
 5. In the toolbar next to **▷ Run**, open the **function dropdown** and change it from

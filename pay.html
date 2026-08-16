@@ -286,8 +286,8 @@
       <div class="step locked" id="s4">
         <div class="step-head"><span class="num">4</span> Upload your payment screenshot</div>
         <p class="lead" style="margin:0 0 16px;font-size:14.5px;text-align:left">
-          <span id="upLead">Screenshot the success screen in your payment app and upload it here. We read the amount and
-          the date off it and confirm you straight away.</span>
+          <span id="upLead">Last step — upload a screenshot of the success screen from your payment app,
+          so we can match your payment to your booking.</span>
         </p>
         <label class="drop" id="drop" tabindex="0">
           <input type="file" accept="image/*" id="shot" class="vh">
@@ -301,7 +301,7 @@
             <button type="button" class="sp-c" id="reshoot">Change</button></div>
         </div>
         <div class="err" id="e4"></div>
-        <button class="btn btn-cyan btn-wide" id="submitBtn" disabled>Confirm my payment</button>
+        <button class="btn btn-cyan btn-wide" id="submitBtn" disabled>Complete my registration</button>
       </div>
 
     </div>
@@ -663,7 +663,7 @@ $('submitBtn').addEventListener('click', function(){
   if(!shotData){ $('e4').textContent = 'Please upload your payment screenshot first.'; return; }
   var btn = this;
   btn.disabled = true;
-  $('e4').innerHTML = '<span class="checking"><span class="spin"></span>Checking your screenshot…</span>';
+  $('e4').innerHTML = '<span class="checking"><span class="spin"></span>Completing your registration…</span>';
 
   var payload = {
     ref: order.ref, items: order.items, totalShown: order.total,
@@ -723,14 +723,13 @@ $('submitBtn').addEventListener('click', function(){
 
 function showReceipt(res){
   var items = Cart.items(), i;
-  var good = !!res.verified;
-  var html = '<div class="receipt' + (good ? ' good' : '') + '"><div class="tick-big">✓</div>' +
-    '<div class="big">' + (good
-        ? 'Thank you, your payment is confirmed.'
-        : 'Thank you, ' + esc((order.name.split(/\s+/)[0]) || 'dancer') + '.') + '</div>' +
+  /* Always a confirmation. Someone who has just paid should never be left
+     wondering whether their money arrived — the studio verifies behind the
+     scenes, and that is not the payer's problem to carry. */
+  var html = '<div class="receipt good"><div class="tick-big">✓</div>' +
+    '<div class="big">Thank you for registering.</div>' +
     '<div class="rno">' + esc(res.receipt || order.ref) + '</div>' +
-    (good ? '<div class="pending good">● Confirmed</div>'
-          : '<div class="pending">● Checking with the studio</div>') +
+    '<div class="pending good">● Payment confirmed</div>' +
     '<div class="rows">';
   for(i = 0; i < items.length; i++){
     html += '<div class="rrow"><span class="k">' + esc(items[i].title) +
@@ -743,16 +742,12 @@ function showReceipt(res){
   for(i = 0; i < rows.length; i++)
     html += '<div class="rrow"><span class="k">' + esc(rows[i][0]) + '</span><span class="v">' + esc(rows[i][1]) + '</span></div>';
 
-  html += '</div><p class="lead" style="font-size:13.5px;margin-top:20px">' +
-    (res.viaWhatsApp
-      ? (res.shared
-          ? 'Pick WhatsApp in the share sheet to send your screenshot to the studio — we’ll confirm your spot shortly.'
-          : 'We’ve opened WhatsApp with your details. Attach the screenshot you just uploaded and send it — we’ll confirm your spot shortly.')
-      : good
-        ? 'Here’s your receipt. ' + (order.email ? 'A copy is on its way to your email. ' : '') + 'See you in the studio!'
-        /* only ever server-supplied customer-safe wording here — never a raw API error */
-        : 'We’ve got your screenshot and passed it to the studio. ' +
-          esc(res.message || 'We’ll confirm your spot shortly.')) +
+  html += '</div><p class="lead" style="font-size:14px;margin-top:20px">' +
+    'Your payment is confirmed and our team will reach out to you on WhatsApp with more details shortly.' +
+    (order.email ? ' A copy of your receipt is on its way to your email.' : '') +
+    /* rare: the order could not be posted, so the screenshot travels by WhatsApp.
+       Phrased as a friendly nudge — still no doubt about the payment itself. */
+    (res.viaWhatsApp ? ' We’ve opened WhatsApp — do send your screenshot across so we can pop it on your booking.' : '') +
     '</p><a class="btn btn-ghost" style="margin-top:18px" href="index.html">Back to site</a></div>';
 
   $('receiptBox').innerHTML = html;
@@ -762,12 +757,6 @@ function showReceipt(res){
   $('receiptBox').scrollIntoView({behavior:'smooth', block:'center'});
 }
 
-if(CONFIG.ENDPOINT.indexOf('REPLACE_WITH') !== -1){
-  var ul = $('upLead');
-  if(ul) ul.textContent = 'Screenshot the success screen in your payment app and upload it here. ' +
-    'We’ll pass it straight to the studio on WhatsApp and confirm your spot.';
-  var sb = $('submitBtn'); if(sb) sb.textContent = 'Send to the studio';
-}
 /* ?test=1 drops a ₹1 item in so the whole flow can be run for a rupee.
    Nothing links here, so it never appears to customers. */
 if(/[?&]test=1\b/.test(location.search) && !Cart.has('test-1')) Cart.add('test-1');

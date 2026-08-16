@@ -106,35 +106,19 @@ function doPost(e) {
     if (!v.ok) return json({ ok: false, error: v.error });
     var d = v.data;
 
-    /* Read the screenshot before taking the lock — OCR is the slow part. */
+    /* File the screenshot, but never let a Drive hiccup fail an order that has
+       already been paid — the record and the emails matter more than the filing. */
     var shot = null;
-    try { shot = readScreenshot(body.screenshot, d); } catch (err) { shot = null; }
+    try { shot = storeScreenshot(body.screenshot, d); } catch (err) { shot = null; }
 
     var lock = LockService.getScriptLock();
     lock.waitLock(25000);
     try {
-      /* One transaction can only pay for one booking. */
-      if (shot && shot.utr && utrAlreadyUsed(shot.utr)) {
-        shot.verified = false;
-        shot.summary = (shot.summary || '') + ' · DUPLICATE TXN';
-        shot.reason = 'This transaction has already been used for another booking.';
-        d.flags = (d.flags ? d.flags + ' | ' : '') + 'DUPLICATE TRANSACTION ID ' + shot.utr;
-      }
       var receipt = nextReceipt();
       appendRow(receipt, d, shot);
-      try { mailAdmin(receipt, d, shot); } catch (err) {}
-      if (shot && shot.verified) { try { sendConfirmation(receipt, d); } catch (err) {} }
-      return json({
-        ok: true,
-        receipt: receipt,
-        verified: !!(shot && shot.verified),
-        /* customer-safe wording only — never a raw API error */
-        message: (shot && shot.verified)
-          ? 'Amount and date check out.'
-          : (shot && shot.deferred)
-            ? 'We’re still checking your screenshot and will confirm very shortly.'
-            : 'The studio is checking your screenshot.'
-      });
+      try { mailTeam(receipt, d, shot); } catch (err) {}
+      try { mailPayer(receipt, d); } catch (err) {}
+      return json({ ok: true, receipt: receipt });
     } finally {
       lock.releaseLock();
     }
@@ -202,156 +186,21 @@ function validate(b) {
   }};
 }
 
-/* ---------------- screenshot: store, read, judge ---------------- */
+/* ---------------- screenshot ---------------- */
 
-function readScreenshot(dataUrl, d) {
+/** Save the screenshot to Drive and hand back the blob for the email. */
+function storeScreenshot(dataUrl, d) {
   var m = /^data:(image\/[a-z.+-]+);base64,([\s\S]+)$/i.exec(String(dataUrl || ''));
   if (!m) return null;
   var blob = Utilities.newBlob(Utilities.base64Decode(m[2]), m[1],
     'imap-' + d.ref + '-' + d.name.replace(/[^A-Za-z0-9]/g, '') + '.jpg');
-
   var url = '';
   try {
     var folders = DriveApp.getFoldersByName(CONFIG.DRIVE_FOLDER);
     var folder = folders.hasNext() ? folders.next() : DriveApp.createFolder(CONFIG.DRIVE_FOLDER);
     url = folder.createFile(blob).getUrl();
   } catch (err) {}
-
-  /* Drive throttles OCR. A short limit clears in seconds, so try again before
-     giving up — the payer is waiting, so keep the total under a few seconds. */
-  var text = '', ocrError = '', attempt;
-  for (attempt = 0; attempt < 3; attempt++) {
-    try { text = ocrImage(blob); ocrError = ''; break; }
-    catch (err) {
-      ocrError = String((err && err.message) || err).slice(0, 160);
-      if (!/rate limit|quota|timed out|try again/i.test(ocrError)) break;   /* not transient */
-      if (attempt < 2) Utilities.sleep(attempt === 0 ? 1200 : 2500);
-    }
-  }
-
-  var verdict = judge(text, d.expected, d.ref);
-  verdict.deferred = false;
-  if (!text && ocrError) {
-    verdict.summary = 'not readable — ' + ocrError;          /* technical, for the sheet + team */
-    verdict.reason  = ocrError;
-    /* A throttle is our problem, not theirs: queue it for a retry in the background. */
-    verdict.deferred = /rate limit|quota|timed out|try again/i.test(ocrError);
-  }
-  verdict.blob = blob;
-  verdict.url = url;
-  verdict.text = text;
-  return verdict;
-}
-
-/**
- * Google Drive will OCR an image if you ask it to convert to a Doc.
- * v2 and v3 of the advanced service take different arguments — v3 has no `ocr`
- * flag and rejects it, so passing one there quietly produced no text at all.
- * Throws with a readable reason rather than returning '' so the cause reaches
- * the sheet instead of a bare "not readable".
- */
-function ocrImage(blob) {
-  if (typeof Drive === 'undefined' || !Drive.Files) {
-    throw new Error('Drive advanced service is not switched on');
-  }
-  var file;
-  if (Drive.Files.insert) {
-    /* Drive v2: `ocr: true` already implies conversion to a Doc. Naming the Doc
-       mimeType here makes Drive read it as the SOURCE type and refuse with
-       "OCR is not supported for files of type application/vnd.google-apps.document". */
-    file = Drive.Files.insert(
-      { title: 'imap-ocr-tmp' },
-      blob, { ocr: true, ocrLanguage: 'en' });
-  } else if (Drive.Files.create) {                /* Drive v3 — conversion comes from the mimeType */
-    file = Drive.Files.create(
-      { name: 'imap-ocr-tmp', mimeType: 'application/vnd.google-apps.document' },
-      blob, { ocrLanguage: 'en' });
-  } else {
-    throw new Error('Drive service present but Files.insert/create missing');
-  }
-  var id = file.id || (file.getId && file.getId());
-  if (!id) throw new Error('Drive returned no file id');
-  var text = '';
-  try { text = DocumentApp.openById(id).getBody().getText(); }
-  finally { try { DriveApp.getFileById(id).setTrashed(true); } catch (err) {} }
-  return text;
-}
-
-/** Does this screenshot show the right amount, paid today? */
-function judge(text, expected, ref) {
-  if (!text) {
-    return { verified: false, amountOK: false, dateOK: false, statusOK: false, utr: '', refState: 'absent',
-             reason: 'The screenshot could not be read automatically.', summary: 'not readable' };
-  }
-  var t = String(text).toLowerCase().replace(/\s+/g, ' ');
-
-  /* amount — prefer a currency-marked number, fall back to any number */
-  var amountOK = hasAmount(t, expected, true) || hasAmount(t, expected, false);
-
-  /* date — today, in any of the shapes UPI apps use */
-  var dateOK = false, i;
-  var todays = dateStrings(new Date());
-  for (i = 0; i < todays.length; i++) { if (t.indexOf(todays[i]) !== -1) { dateOK = true; break; } }
-
-  var statusOK = /success|completed|complete|paid|payment done|sent|transferred/.test(t);
-
-  var utr = '';
-  var r = t.match(/(?:upi|utr|txn|transaction)[^0-9]{0,20}(\d{9,14})/) || t.match(/\b(\d{12})\b/);
-  if (r) utr = r[1];
-
-  /* Payment apps copy our reference into the note, so when it's legible it ties
-     the screenshot to THIS order. A different iMAP reference means a recycled
-     image from another booking, which must never auto-confirm. */
-  var refState = 'absent', seen = t.match(/imap-[a-z0-9]{6}/gi);
-  if (seen && ref) {
-    var want = String(ref).toLowerCase(), hit = false, other = false;
-    for (i = 0; i < seen.length; i++) {
-      if (seen[i].toLowerCase() === want) hit = true; else other = true;
-    }
-    refState = hit ? 'match' : (other ? 'mismatch' : 'absent');
-  }
-
-  var verified = amountOK && dateOK && refState !== 'mismatch';
-  var why = [];
-  if (!amountOK) why.push('the amount on the screenshot doesn\'t match the order total');
-  if (!dateOK) why.push('we couldn\'t see today\'s date on it');
-  if (refState === 'mismatch') why.push('it carries a different payment reference');
-
-  return {
-    verified: verified, amountOK: amountOK, dateOK: dateOK, statusOK: statusOK,
-    utr: utr, refState: refState,
-    reason: verified ? 'Amount and date check out.' : ('We couldn\'t auto-confirm: ' + why.join(', ') + '.'),
-    summary: (amountOK ? 'amount ✓' : 'amount ✗') + ' · ' + (dateOK ? 'date ✓' : 'date ✗') +
-             ' · ' + (statusOK ? 'success ✓' : 'success ?') +
-             (refState === 'match' ? ' · ref ✓' : refState === 'mismatch' ? ' · REF MISMATCH' : '')
-  };
-}
-
-function hasAmount(t, expected, currencyOnly) {
-  /* OCR routinely reads ₹ as € or R, so treat those as rupee marks too */
-  var re = currencyOnly ? /(?:₹|€|rs\.?|inr|r)\s*([0-9][0-9,]*(?:\.[0-9]{1,2})?)/gi
-                        : /([0-9][0-9,]*(?:\.[0-9]{1,2})?)/g;
-  var m;
-  while ((m = re.exec(t)) !== null) {
-    var v = Number(String(m[1]).replace(/,/g, ''));
-    if (isFinite(v) && Math.abs(v - expected) < 0.01) return true;
-  }
-  return false;
-}
-
-/** Every way a UPI app might print today's date. */
-function dateStrings(now) {
-  var tz = CONFIG.TZ, f = function (p) { return Utilities.formatDate(now, tz, p).toLowerCase(); };
-  var d = f('d'), dd = f('dd'), mon = f('MMM'), month = f('MMMM'), mm = f('MM'), m1 = f('M'), yyyy = f('yyyy'), yy = f('yy');
-  return ['today',
-    d + ' ' + mon, dd + ' ' + mon, d + ' ' + month, dd + ' ' + month,
-    mon + ' ' + d, mon + ' ' + dd, month + ' ' + d, month + ' ' + dd,
-    d + ' ' + mon + ' ' + yyyy, dd + ' ' + mon + ' ' + yyyy,
-    dd + '/' + mm + '/' + yyyy, d + '/' + m1 + '/' + yyyy,
-    dd + '-' + mm + '-' + yyyy, d + '-' + m1 + '-' + yyyy,
-    dd + '.' + mm + '.' + yyyy,
-    dd + '/' + mm + '/' + yy, dd + '-' + mm + '-' + yy,
-    yyyy + '-' + mm + '-' + dd];
+  return { blob: blob, url: url };
 }
 
 /* ---------------- sheet ---------------- */
@@ -378,18 +227,6 @@ function sheet() {
   return sh;
 }
 
-/** Has this UPI transaction already paid for something? */
-function utrAlreadyUsed(utr) {
-  var sh = sheet(), last = sh.getLastRow();
-  if (last < 2) return false;
-  var seen = sh.getRange(2, 13, last - 1, 1).getValues();   /* column M — UPI ref */
-  var want = String(utr).replace(/^'/, '').trim();
-  for (var i = 0; i < seen.length; i++) {
-    if (String(seen[i][0]).replace(/^'/, '').trim() === want) return true;
-  }
-  return false;
-}
-
 function nextReceipt() {
   var props = PropertiesService.getScriptProperties();
   var n = Number(props.getProperty('receiptSeq') || '0') + 1;
@@ -400,16 +237,14 @@ function nextReceipt() {
 function appendRow(receipt, d, shot) {
   sheet().appendRow([
     Utilities.formatDate(new Date(), CONFIG.TZ, 'yyyy-MM-dd HH:mm:ss'),
-    receipt, shot && shot.verified ? 'VERIFIED' : 'PENDING',
+    receipt, 'PENDING',                    /* internal only — never shown to the payer */
     d.lines, d.ids, d.qty,
     d.expected, d.claimed, d.flags,
     d.name, "'" + d.phone, d.email,
-    shot && shot.utr ? "'" + shot.utr : '', d.ref,
+    '', d.ref,
     shot && shot.url ? shot.url : '',
-    shot ? shot.summary : 'no screenshot',
-    shot && shot.verified ? 'auto · screenshot' : '',
-    shot && shot.verified ? Utilities.formatDate(new Date(), CONFIG.TZ, 'yyyy-MM-dd HH:mm:ss') : '',
-    ''
+    shot ? 'screenshot on file' : 'no screenshot',
+    '', '', ''
   ]);
 }
 
@@ -446,45 +281,36 @@ function shell(title, badge, badgeColor, inner) {
     '</div></div>';
 }
 
-/** Goes to whoever is on the iMAP WhatsApp, with the screenshot attached. */
-function mailAdmin(receipt, d, shot) {
-  var passed = shot && shot.verified;
+/** To the team: everything needed to confirm the payment and reach the payer. */
+function mailTeam(receipt, d, shot) {
   var body =
-    (passed
-      ? '<div style="margin:0 0 16px;padding:12px 14px;border-radius:10px;background:#e8f7ee;border:1px solid #9ad9b4;' +
-        'color:#186c40;font:13px/1.6 -apple-system,Segoe UI,sans-serif"><b>Auto-checked and confirmed.</b> ' +
-        esc(shot.summary) + ' — the customer has already been told they\'re confirmed.</div>'
-      : '<div style="margin:0 0 16px;padding:12px 14px;border-radius:10px;background:#fff4e5;border:1px solid #f0c188;' +
-        'color:#8a5510;font:13px/1.6 -apple-system,Segoe UI,sans-serif"><b>Needs your eyes.</b> ' +
-        esc(shot ? shot.reason : 'No screenshot was attached.') + '</div>') +
+    '<div style="margin:0 0 16px;padding:12px 14px;border-radius:10px;background:#eef6f7;border:1px solid #bcd9dc;' +
+      'color:#134e52;font:13px/1.6 -apple-system,Segoe UI,sans-serif">' +
+      'Check the attached screenshot against the UPI account, then set this row to <b>VERIFIED</b> in the sheet.' +
+    '</div>' +
     (d.flags ? '<div style="margin:0 0 16px;padding:12px 14px;border-radius:10px;background:#fdecea;border:1px solid #f0a9a1;' +
         'color:#8a2018;font:13px/1.6 -apple-system,Segoe UI,sans-serif"><b>Check this:</b> ' + esc(d.flags) + '</div>' : '') +
     '<table style="width:100%;border-collapse:collapse">' +
       row('Name', d.name) + row('Contact', '+91 ' + d.phone) +
       row('Email', d.email || '— not given —') +
       row('Paid', '₹' + d.expected) + row('For', d.lines) +
-      row('Receipt', receipt) +
-      (shot && shot.utr ? row('UPI ref (read off image)', shot.utr) : '') +
-      row('Reference', d.ref) +
+      row('Receipt', receipt) + row('Reference', d.ref) +
     '</table>' +
     '<p style="font:12px/1.6 -apple-system,Segoe UI,sans-serif;color:#8a9a9c;margin:14px 0 0">' +
       (shot && shot.blob ? 'Their payment screenshot is attached.' : 'No screenshot came through.') + '</p>' +
     '<p style="margin:20px 0 0"><a href="https://wa.me/91' + esc(d.phone) + '?text=' +
-      encodeURIComponent('Hi ' + d.name.split(/\s+/)[0] + '! Thanks for your payment of ₹' + d.expected +
-        ' for ' + d.lines + '. Your booking is confirmed — receipt ' + receipt + '. See you in the studio!') + '" ' +
+      encodeURIComponent('Hi ' + d.name.split(/\s+/)[0] + '! Thanks for registering with iMAP — ₹' + d.expected +
+        ' received for ' + d.lines + ' (receipt ' + receipt + '). Here are the details:') + '" ' +
       'style="display:inline-block;background:#25D366;color:#fff;text-decoration:none;padding:12px 20px;' +
-      'border-radius:10px;font:14px -apple-system,Segoe UI,sans-serif">WhatsApp ' + esc(d.name.split(/\s+/)[0]) +
-      ' — message ready</a></p>' +
+      'border-radius:10px;font:14px -apple-system,Segoe UI,sans-serif">WhatsApp ' + esc(d.name.split(/\s+/)[0]) + '</a></p>' +
     (shot && shot.url ? '<p style="font:12px -apple-system,Segoe UI,sans-serif;margin:14px 0 0">' +
       '<a href="' + esc(shot.url) + '" style="color:' + CONFIG.CYAN + '">Open the screenshot in Drive</a></p>' : '');
 
   var to = CONFIG.NOTIFY.slice(0);
   var opts = {
     to: to.shift(),
-    subject: (passed ? '✅ ' : '⚠️ ') + 'Payment · ₹' + d.expected + ' · ' + d.name + ' · ' + receipt,
-    htmlBody: shell(passed ? 'Payment confirmed' : 'Payment needs checking',
-                    passed ? 'Auto-verified' : 'Needs a look',
-                    passed ? '#1c8f5a' : '#c07a20', body),
+    subject: (d.flags ? '⚠️ ' : '') + 'Payment · ₹' + d.expected + ' · ' + d.name + ' · ' + receipt,
+    htmlBody: shell('New payment', '', '', body),
     name: 'iMAP Payments',
     replyTo: d.email || CONFIG.ADMIN_EMAIL
   };
@@ -493,24 +319,31 @@ function mailAdmin(receipt, d, shot) {
   MailApp.sendEmail(opts);
 }
 
-/** The customer's "you're confirmed" email. Only possible if they gave one. */
-function sendConfirmation(receipt, d) {
+/** To the payer: a warm, unambiguous receipt. */
+function mailPayer(receipt, d) {
   if (!d.email) return;
   var body = '<p style="font:15px/1.65 -apple-system,Segoe UI,sans-serif;color:#12211f;margin:0 0 18px">' +
-      'Hi ' + esc(String(d.name).split(/\s+/)[0]) + ', your payment is confirmed and your spot is booked. See you in the studio!</p>' +
+      'Hi ' + esc(String(d.name).split(/\s+/)[0]) + ', thank you for registering. Your payment is confirmed, ' +
+      'and our team will reach out to you on WhatsApp with more details shortly.</p>' +
     '<table style="width:100%;border-collapse:collapse">' +
-      row('Receipt', receipt) + row('For', d.lines) + row('Total', '₹' + d.expected) + row('Reference', d.ref) +
-    '</table>';
+      row('Receipt', receipt) + row('For', d.lines) +
+      row('Amount paid', '₹' + d.expected) + row('Reference', d.ref) +
+    '</table>' +
+    '<p style="font:13px/1.6 -apple-system,Segoe UI,sans-serif;color:#8a9a9c;margin:18px 0 0">' +
+      'Keep this for your records. See you in the studio!</p>';
   MailApp.sendEmail({
     to: d.email,
-    subject: 'Confirmed! Your iMAP booking · ' + receipt,
+    subject: 'Payment confirmed · ' + receipt + ' · iMAP',
     htmlBody: shell('Payment confirmed', 'Confirmed', '#1c8f5a', body),
     name: CONFIG.BRAND,
     replyTo: CONFIG.ADMIN_EMAIL
   });
 }
 
-/** Marking a row VERIFIED by hand emails the customer, same as the auto path. */
+/**
+ * Marking a row VERIFIED stamps who did it and when. Nothing is sent to the
+ * payer — they were thanked and given their receipt at checkout.
+ */
 function onStatusEdit(e) {
   try {
     if (!e || !e.range) return;
@@ -518,77 +351,13 @@ function onStatusEdit(e) {
     if (sh.getName() !== CONFIG.SHEET_NAME) return;
     if (e.range.getColumn() !== COL.STATUS || e.range.getRow() < 2) return;
     if (String(e.value).toUpperCase() !== 'VERIFIED') return;
-
     var r = e.range.getRow();
-    if (String(sh.getRange(r, COL.VBY).getValue()).indexOf('auto') === 0) return;   /* already done */
     sh.getRange(r, COL.VBY).setValue(Session.getActiveUser().getEmail() || 'admin');
     sh.getRange(r, COL.VAT).setValue(Utilities.formatDate(new Date(), CONFIG.TZ, 'yyyy-MM-dd HH:mm:ss'));
-
-    var v = sh.getRange(r, 1, 1, HEADERS.length).getValues()[0];
-    sendConfirmation(v[1], { lines: v[3], expected: v[6], name: v[9], email: v[11], ref: v[13] });
   } catch (err) {}
 }
 
-/* ------------------------------------------------------------------ */
-/**
- * Anything the OCR could not read at the time of payment gets picked up here
- * a few minutes later, when Drive's throttle has cleared. If it passes, the
- * row becomes VERIFIED and the customer is emailed their confirmation — so a
- * Google rate limit delays a confirmation instead of losing it.
- *
- * Install once with installRecheckTrigger().
- */
-function recheckPending() {
-  var sh = sheet(), last = sh.getLastRow();
-  if (last < 2) return;
-  var rows = sh.getRange(2, 1, last - 1, HEADERS.length).getValues();
-  var done = 0;
-
-  for (var i = 0; i < rows.length && done < 5; i++) {      /* a few per run, to stay inside quota */
-    var r = i + 2;
-    if (String(rows[i][COL.STATUS - 1]).toUpperCase() !== 'PENDING') continue;
-    if (String(rows[i][COL.CHECK - 1]).indexOf('not readable') !== 0) continue;
-
-    var link = String(rows[i][COL.SHOT - 1]);
-    var m = /[-\w]{25,}/.exec(link);
-    if (!m) continue;
-
-    var expected = Number(rows[i][6]), ref = String(rows[i][13]);
-    try {
-      var text = ocrImage(DriveApp.getFileById(m[0]).getBlob());
-      done++;
-      if (!text) continue;
-      var v = judge(text, expected, ref);
-      sh.getRange(r, COL.CHECK).setValue(v.summary + ' (rechecked)');
-      if (v.utr) sh.getRange(r, 13).setValue("'" + v.utr);
-      if (v.verified) {
-        sh.getRange(r, COL.STATUS).setValue('VERIFIED');
-        sh.getRange(r, COL.VBY).setValue('auto · screenshot (recheck)');
-        sh.getRange(r, COL.VAT).setValue(Utilities.formatDate(new Date(), CONFIG.TZ, 'yyyy-MM-dd HH:mm:ss'));
-        try {
-          sendConfirmation(String(rows[i][1]), {
-            lines: String(rows[i][3]), expected: expected,
-            name: String(rows[i][9]), email: String(rows[i][11]), ref: ref
-          });
-        } catch (err) {}
-      }
-    } catch (err) {
-      done++;                                  /* still throttled — leave it for the next run */
-    }
-  }
-}
-
-/** Run once: retries unreadable screenshots every 10 minutes. */
-function installRecheckTrigger() {
-  var all = ScriptApp.getProjectTriggers();
-  for (var i = 0; i < all.length; i++) {
-    if (all[i].getHandlerFunction() === 'recheckPending') ScriptApp.deleteTrigger(all[i]);
-  }
-  ScriptApp.newTrigger('recheckPending').timeBased().everyMinutes(10).create();
-  Logger.log('Recheck trigger installed — unreadable screenshots retry every 10 minutes.');
-}
-
-/* ---------------- setup + self-test ---------------- */
+/* ---------------- setup ---------------- */
 
 /** Run once from the editor to create the sheet and grant permissions. */
 function setup() {
@@ -610,64 +379,4 @@ function installEditTrigger() {
   }
   ScriptApp.newTrigger('onStatusEdit').forSpreadsheet(id).onEdit().create();
   Logger.log('Edit trigger installed on ' + id);
-}
-
-/**
- * Run this from the editor if Auto-check says "not readable".
- * It takes the most recent screenshot a customer actually uploaded, pushes it
- * through the real OCR path, and prints what Drive could read plus the verdict.
- * Read the output under Execution log.
- */
-function testOcr() {
-  Logger.log('build ' + BUILD);
-
-  if (typeof Drive === 'undefined' || !Drive.Files) {
-    Logger.log('FAIL — the Drive advanced service is not switched on.');
-    Logger.log('Fix: editor sidebar > Services > + > Drive API > Add, then re-deploy.');
-    return;
-  }
-  Logger.log('Drive service: ' + (Drive.Files.insert ? 'v2 (Files.insert)' : 'v3 (Files.create)'));
-
-  var folders = DriveApp.getFoldersByName(CONFIG.DRIVE_FOLDER);
-  if (!folders.hasNext()) {
-    Logger.log('No "' + CONFIG.DRIVE_FOLDER + '" folder yet — take a payment first, then run this.');
-    return;
-  }
-  var files = folders.next().getFiles(), newest = null;
-  while (files.hasNext()) {
-    var f = files.next();
-    if (!newest || f.getDateCreated() > newest.getDateCreated()) newest = f;
-  }
-  if (!newest) { Logger.log('The folder is empty — no screenshot has arrived yet.'); return; }
-  Logger.log('Testing on: ' + newest.getName() + ' (' + Math.round(newest.getSize() / 1024) + ' KB)');
-
-  try {
-    var text = ocrImage(newest.getBlob());
-    if (!text || !text.replace(/\s/g, '')) {
-      Logger.log('FAIL — Drive accepted the image but read no text from it.');
-      Logger.log('Try a full, uncropped screenshot rather than a photo of a screen.');
-      return;
-    }
-    Logger.log('Drive read this:');
-    Logger.log(text.slice(0, 500));
-    Logger.log('---');
-    Logger.log('Verdict against ₹500: ' + JSON.stringify(judge(text, 500, '')));
-    Logger.log('If amount/date show ✗ above, the wording just needs matching — send me this log.');
-  } catch (err) {
-    Logger.log('FAIL — ' + ((err && err.message) || err));
-  }
-}
-
-/** Check the screenshot reader without spending a real payment. */
-function testJudge() {
-  var today = Utilities.formatDate(new Date(), CONFIG.TZ, 'd MMM yyyy');
-  var samples = [
-    ['good GPay',   '₹500 Paid to Rohit Choudhary Completed ' + today + ' 7:42 pm UPI transaction ID 419988776655', 500],
-    ['wrong amount','₹200 Paid Completed ' + today + ' 7:42 pm', 500],
-    ['old date',    '₹500 Paid Completed 2 Jan 2020 7:42 pm', 500],
-    ['no text',     '', 500]
-  ];
-  for (var i = 0; i < samples.length; i++) {
-    Logger.log(samples[i][0] + ' -> ' + JSON.stringify(judge(samples[i][1], samples[i][2])));
-  }
 }
