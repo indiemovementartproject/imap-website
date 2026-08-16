@@ -17,7 +17,7 @@
 
 /* Bump this whenever you paste a new copy in. Visiting the /exec URL in a browser
    prints it, so you can always tell which version the web app is actually serving. */
-var BUILD = '2026-08-15-e';
+var BUILD = '2026-08-16-a';
 
 var CONFIG = {
   ADMIN_EMAIL:   'indiemovementartproject@gmail.com',
@@ -128,7 +128,12 @@ function doPost(e) {
         ok: true,
         receipt: receipt,
         verified: !!(shot && shot.verified),
-        reason: shot ? shot.reason : 'We could not read the screenshot automatically.'
+        /* customer-safe wording only — never a raw API error */
+        message: (shot && shot.verified)
+          ? 'Amount and date check out.'
+          : (shot && shot.deferred)
+            ? 'We’re still checking your screenshot and will confirm very shortly.'
+            : 'The studio is checking your screenshot.'
       });
     } finally {
       lock.releaseLock();
@@ -212,14 +217,25 @@ function readScreenshot(dataUrl, d) {
     url = folder.createFile(blob).getUrl();
   } catch (err) {}
 
-  var text = '', ocrError = '';
-  try { text = ocrImage(blob); }
-  catch (err) { text = ''; ocrError = String((err && err.message) || err).slice(0, 120); }
+  /* Drive throttles OCR. A short limit clears in seconds, so try again before
+     giving up — the payer is waiting, so keep the total under a few seconds. */
+  var text = '', ocrError = '', attempt;
+  for (attempt = 0; attempt < 3; attempt++) {
+    try { text = ocrImage(blob); ocrError = ''; break; }
+    catch (err) {
+      ocrError = String((err && err.message) || err).slice(0, 160);
+      if (!/rate limit|quota|timed out|try again/i.test(ocrError)) break;   /* not transient */
+      if (attempt < 2) Utilities.sleep(attempt === 0 ? 1200 : 2500);
+    }
+  }
 
   var verdict = judge(text, d.expected, d.ref);
+  verdict.deferred = false;
   if (!text && ocrError) {
-    verdict.summary = 'not readable — ' + ocrError;
-    verdict.reason  = 'We couldn\'t read the screenshot automatically (' + ocrError + ').';
+    verdict.summary = 'not readable — ' + ocrError;          /* technical, for the sheet + team */
+    verdict.reason  = ocrError;
+    /* A throttle is our problem, not theirs: queue it for a retry in the background. */
+    verdict.deferred = /rate limit|quota|timed out|try again/i.test(ocrError);
   }
   verdict.blob = blob;
   verdict.url = url;
@@ -511,6 +527,65 @@ function onStatusEdit(e) {
     var v = sh.getRange(r, 1, 1, HEADERS.length).getValues()[0];
     sendConfirmation(v[1], { lines: v[3], expected: v[6], name: v[9], email: v[11], ref: v[13] });
   } catch (err) {}
+}
+
+/* ------------------------------------------------------------------ */
+/**
+ * Anything the OCR could not read at the time of payment gets picked up here
+ * a few minutes later, when Drive's throttle has cleared. If it passes, the
+ * row becomes VERIFIED and the customer is emailed their confirmation — so a
+ * Google rate limit delays a confirmation instead of losing it.
+ *
+ * Install once with installRecheckTrigger().
+ */
+function recheckPending() {
+  var sh = sheet(), last = sh.getLastRow();
+  if (last < 2) return;
+  var rows = sh.getRange(2, 1, last - 1, HEADERS.length).getValues();
+  var done = 0;
+
+  for (var i = 0; i < rows.length && done < 5; i++) {      /* a few per run, to stay inside quota */
+    var r = i + 2;
+    if (String(rows[i][COL.STATUS - 1]).toUpperCase() !== 'PENDING') continue;
+    if (String(rows[i][COL.CHECK - 1]).indexOf('not readable') !== 0) continue;
+
+    var link = String(rows[i][COL.SHOT - 1]);
+    var m = /[-\w]{25,}/.exec(link);
+    if (!m) continue;
+
+    var expected = Number(rows[i][6]), ref = String(rows[i][13]);
+    try {
+      var text = ocrImage(DriveApp.getFileById(m[0]).getBlob());
+      done++;
+      if (!text) continue;
+      var v = judge(text, expected, ref);
+      sh.getRange(r, COL.CHECK).setValue(v.summary + ' (rechecked)');
+      if (v.utr) sh.getRange(r, 13).setValue("'" + v.utr);
+      if (v.verified) {
+        sh.getRange(r, COL.STATUS).setValue('VERIFIED');
+        sh.getRange(r, COL.VBY).setValue('auto · screenshot (recheck)');
+        sh.getRange(r, COL.VAT).setValue(Utilities.formatDate(new Date(), CONFIG.TZ, 'yyyy-MM-dd HH:mm:ss'));
+        try {
+          sendConfirmation(String(rows[i][1]), {
+            lines: String(rows[i][3]), expected: expected,
+            name: String(rows[i][9]), email: String(rows[i][11]), ref: ref
+          });
+        } catch (err) {}
+      }
+    } catch (err) {
+      done++;                                  /* still throttled — leave it for the next run */
+    }
+  }
+}
+
+/** Run once: retries unreadable screenshots every 10 minutes. */
+function installRecheckTrigger() {
+  var all = ScriptApp.getProjectTriggers();
+  for (var i = 0; i < all.length; i++) {
+    if (all[i].getHandlerFunction() === 'recheckPending') ScriptApp.deleteTrigger(all[i]);
+  }
+  ScriptApp.newTrigger('recheckPending').timeBased().everyMinutes(10).create();
+  Logger.log('Recheck trigger installed — unreadable screenshots retry every 10 minutes.');
 }
 
 /* ---------------- setup + self-test ---------------- */

@@ -750,8 +750,9 @@ function showReceipt(res){
           : 'We’ve opened WhatsApp with your details. Attach the screenshot you just uploaded and send it — we’ll confirm your spot shortly.')
       : good
         ? 'Here’s your receipt. ' + (order.email ? 'A copy is on its way to your email. ' : '') + 'See you in the studio!'
+        /* only ever server-supplied customer-safe wording here — never a raw API error */
         : 'We’ve got your screenshot and passed it to the studio. ' +
-          esc(res.reason || '') + ' We’ll confirm on WhatsApp shortly.') +
+          esc(res.message || 'We’ll confirm your spot shortly.')) +
     '</p><a class="btn btn-ghost" style="margin-top:18px" href="index.html">Back to site</a></div>';
 
   $('receiptBox').innerHTML = html;
