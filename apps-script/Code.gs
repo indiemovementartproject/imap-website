@@ -145,6 +145,9 @@ function doGet() {
 }
 
 function json(obj) {
+  /* Every reply carries the build, so which version handled an order is never
+     a guess — a stale deployment shows up in the very first response. */
+  obj.build = BUILD;
   return ContentService.createTextOutput(JSON.stringify(obj))
     .setMimeType(ContentService.MimeType.JSON);
 }
