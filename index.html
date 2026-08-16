@@ -72,6 +72,9 @@
   h2{font-family:"Instrument Serif",serif;font-weight:400;font-size:clamp(32px,5.5vw,50px);line-height:1.04;letter-spacing:.01em;margin-bottom:8px}
   h2 .i{font-style:italic;color:var(--cyan)}
   .lead{color:var(--muted);font-size:17px;max-width:60ch;line-height:1.7;margin:16px auto 0}
+  .tagline{font-family:"Instrument Serif",serif;font-style:italic;font-size:clamp(19px,2.6vw,25px);
+    line-height:1.25;color:var(--cyan);opacity:.92;margin-top:10px}
+  .tagline + .lead{margin-top:14px}
 
   .about-grid{display:grid;grid-template-columns:1.5fr 1fr;gap:28px;align-items:center;margin-top:32px}
   .ph-photo{border:1px solid var(--border);border-radius:18px;background:var(--glass);min-height:240px;display:flex;align-items:center;justify-content:center;color:var(--muted-2);font-family:"Space Mono",monospace;font-size:13px}
@@ -310,9 +313,9 @@
   <!-- WHAT'S NEW: ORIENTATION SERIES -->
   <span id="tickets" aria-hidden="true"></span>
   <section class="section" id="events" style="padding-bottom:44px">
-    <div class="eyebrow">Events &amp; workshops</div>
-    <h2>What's <span class="i">new</span>.</h2>
-    <p class="lead">The <span class="i">Orientation Series</span> — back to dancing with iMAP. Drop into any workshop, or grab an all-workshops pass. Add what you like to your cart and pay in one go.</p>
+    <h2>Orientation <span class="i">Series</span>.</h2>
+    <p class="tagline">A series of workshops to get you back in motion.</p>
+    <p class="lead">Back to dancing with iMAP, ahead of regular classes starting in September. Drop into any workshop, or take an all-workshops pass — add what you like to your cart and pay in one go.</p>
 
     <div class="ws-passes">
       <button type="button" class="ws-pass" id="pickWorkshop"><span class="k">Try any workshop</span><span class="v">₹500</span><span class="s">pick one below ↓</span></button>
@@ -546,8 +549,8 @@
 
   <!-- REGULAR CLASSES -->
   <section class="section" id="classes" style="padding-bottom:40px">
-    <div class="eyebrow">Regular Classes</div>
-    <h2>Find your <span class="i">groove</span>.</h2>
+    <h2>Regular <span class="i">Classes</span>.</h2>
+    <p class="tagline">Find your groove.</p>
     <p class="lead">Group classes across styles and levels at our Seawoods &amp; Vashi studios — Contemporary, Bollywood, Jazz Funk, Jazz Training, Open Style, Afro &amp; Dancehall, plus dedicated Juniors &amp; Kids batches.</p>
     <p class="cf-hint"><span>Tap a card</span> to see the batch &amp; join · drag to browse</p>
     <div class="carousel is-carousel" id="cCar" tabindex="0" aria-roledescription="carousel" aria-label="Regular classes">
