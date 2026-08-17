@@ -151,8 +151,8 @@ Current pricing:
 | Regular class — 1 month | ₹2800 |
 | Regular class — 3 months | ₹7500 |
 
-The workshop passes are Orientation Series only and stop being relevant after August;
-regular classes start in September. To retire the passes, delete them from `PASSES` in
+The workshop passes are Orientation Series only and stop being relevant after August.
+To retire them, delete them from `PASSES` in
 `cart.js` — anything already sitting in someone's cart is dropped automatically on their
 next visit, because the cart re-reads the catalogue on every load.
 

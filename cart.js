@@ -43,7 +43,7 @@
     { id: 'ws-pass-both',     title: 'All workshops — both studios', detail: 'Orientation Series · Vashi + Seawoods',        amount: 4500 }
   ];
 
-  /* Regular classes, starting September. */
+  /* Regular classes. */
   var BATCHES = {
     'contemporary-seawoods':  { name: 'Contemporary',     region: 'Seawoods', who: 'Akash Jathar' },
     'contemporary-vashi':     { name: 'Contemporary',     region: 'Vashi',    who: 'Shreya Rastogi' },
@@ -89,7 +89,7 @@
       if (p) {
         return { id: id, type: 'class',
                  title: b.name + ' (' + b.region + ') — ' + p.label,
-                 detail: 'Regular class · ' + b.who + ' · from September',
+                 detail: 'Regular class · ' + b.who,
                  amount: p.amount };
       }
     }
