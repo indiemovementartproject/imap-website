@@ -321,8 +321,8 @@ function mailTeam(receipt, d, shot) {
     '<p style="font:12px/1.6 -apple-system,Segoe UI,sans-serif;color:#8a9a9c;margin:14px 0 0">' +
       (shot && shot.blob ? 'Their payment screenshot is attached.' : 'No screenshot came through.') + '</p>' +
     '<p style="margin:20px 0 0"><a href="https://wa.me/91' + esc(d.phone) + '?text=' +
-      encodeURIComponent('Hi ' + d.name.split(/\s+/)[0] + '! Thanks for registering with iMAP — ₹' + d.expected +
-        ' received for ' + d.lines + ' (receipt ' + receipt + '). Here are the details:') + '" ' +
+      encodeURIComponent('Hi ' + d.name.split(/\s+/)[0] + '! Thanks for registering with iMAP — ' +
+        'we have your payment of ₹' + d.expected + ' for ' + d.lines + ' (reference ' + receipt + '). ') + '" ' +
       'style="display:inline-block;background:#25D366;color:#fff;text-decoration:none;padding:12px 20px;' +
       'border-radius:10px;font:14px -apple-system,Segoe UI,sans-serif;word-break:break-word">WhatsApp ' + esc(d.name.split(/\s+/)[0]) + '</a></p>' +
     (shot && shot.url ? '<p style="font:12px -apple-system,Segoe UI,sans-serif;margin:14px 0 0">' +
@@ -341,22 +341,29 @@ function mailTeam(receipt, d, shot) {
   MailApp.sendEmail(opts);
 }
 
-/** To the payer: a warm, unambiguous receipt. */
+/**
+ * To the payer: warm, but truthful. A screenshot is not proof of payment, so
+ * this says the studio is checking rather than claiming the money has landed.
+ */
 function mailPayer(receipt, d) {
   if (!d.email) return;
+  var query = 'Hi, I have a query about the payment ' + receipt + ' for ' + d.lines + '.';
+  var wa = 'https://wa.me/' + CONFIG.ENQUIRY_WHATSAPP + '?text=' + encodeURIComponent(query);
   var body = '<p style="font:15px/1.65 -apple-system,Segoe UI,sans-serif;color:#12211f;margin:0 0 18px">' +
-      'Hi ' + esc(String(d.name).split(/\s+/)[0]) + ', thank you for registering. Your payment is confirmed, ' +
-      'and our team will reach out to you on WhatsApp with more details shortly.</p>' +
+      'Hi ' + esc(String(d.name).split(/\s+/)[0]) + ', thank you! Your screenshot has been sent to the ' +
+      'studio for verification, and our team will reach out to you on WhatsApp shortly.</p>' +
     '<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="width:100%;border-collapse:collapse;table-layout:fixed">' +
-      row('Receipt', receipt) + row('For', d.lines) +
-      row('Amount paid', '₹' + d.expected) + row('Reference', d.ref) +
+      row('Reference', receipt) + row('For', d.lines) + row('Amount', '₹' + d.expected) +
     '</table>' +
+    '<p style="margin:20px 0 0"><a href="' + esc(wa) + '" ' +
+      'style="display:inline-block;background:#25D366;color:#fff;text-decoration:none;padding:12px 20px;' +
+      'border-radius:10px;font:14px -apple-system,Segoe UI,sans-serif">Question about this payment?</a></p>' +
     '<p style="font:13px/1.6 -apple-system,Segoe UI,sans-serif;color:#8a9a9c;margin:18px 0 0">' +
       'Keep this for your records. See you in the studio!</p>';
   MailApp.sendEmail({
     to: d.email,
-    subject: 'Payment confirmed · ' + receipt + ' · iMAP',
-    htmlBody: shell('Payment confirmed', 'Confirmed', '#1c8f5a', body),
+    subject: 'We’ve got your payment · ' + receipt + ' · iMAP',
+    htmlBody: shell('Screenshot received', 'Being verified', '#0f9aa0', body),
     name: CONFIG.BRAND,
     replyTo: CONFIG.ADMIN_EMAIL
   });

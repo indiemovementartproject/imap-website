@@ -115,6 +115,10 @@
   .total-row b{font-family:"Instrument Serif",serif;font-size:33px;color:var(--cyan);font-weight:400}
   .addmore{display:inline-block;margin-top:14px;font-family:"Space Mono",monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);text-decoration:none;transition:.16s}
   .addmore:hover{color:var(--cyan)}
+  .wa-link{display:inline-flex;align-items:center;gap:6px;color:#25D366;text-decoration:none;
+    font-weight:500;border-bottom:1px solid rgba(37,211,102,.45);padding-bottom:1px;transition:.16s}
+  .wa-link:hover{color:#4ae585;border-bottom-color:#4ae585}
+  .wa-glyph{width:17px;height:17px;fill:currentColor;flex:0 0 auto;vertical-align:-3px}
   .empty-cart{text-align:center;border:1px dashed var(--border);border-radius:20px;padding:52px 26px}
   .empty-cart .ec-i{font-size:34px;color:var(--muted-2);margin-bottom:14px}
   .empty-cart .ec-t{font-family:"Instrument Serif",serif;font-size:28px;margin-bottom:8px}
@@ -320,8 +324,8 @@
   <div class="foot-bottom">© <span id="yr"></span> Indie Movement Art Project · Questions? <a href="https://wa.me/918454880061" target="_blank" rel="noopener">WhatsApp us</a></div>
 </footer>
 
-<script src="cart.js?v=2026-08-16b"></script>
-<script src="analytics.js?v=2026-08-16c"></script>
+<script src="cart.js?v=2026-08-16d"></script>
+<script src="analytics.js?v=2026-08-16d"></script>
 <script>
 /* ==========================================================================
    CONFIG. Prices live in cart.js; the Apps Script keeps its own copy and
@@ -741,38 +745,42 @@ $('submitBtn').addEventListener('click', function(){
 
 function showReceipt(res){
   var items = Cart.items(), i;
-  /* Always a confirmation. Someone who has just paid should never be left
-     wondering whether their money arrived — the studio verifies behind the
-     scenes, and that is not the payer's problem to carry. */
-  var html = '<div class="receipt good"><div class="tick-big">✓</div>' +
-    '<div class="big">Thank you for registering.</div>' +
-    '<div class="rno">' + esc(res.receipt || order.ref) + '</div>' +
-    '<div class="pending good">● Payment confirmed</div>' +
+  var now = new Date();
+  var when = now.toLocaleDateString('en-IN', { day:'numeric', month:'short', year:'numeric' });
+  var at   = now.toLocaleTimeString('en-IN', { hour:'numeric', minute:'2-digit', hour12:true });
+  var ref  = res.receipt || order.ref;
+
+  /* A query link, not a confirmation: the studio has the screenshot, a human checks it. */
+  var query = 'Hi, I have a query about the payment ' + ref + ' for ' + order.lines +
+              ' on ' + when + ' at ' + at + '.';
+  var waHref = 'https://wa.me/' + CONFIG.ENQUIRY_WHATSAPP + '?text=' + encodeURIComponent(query);
+
+  var waMark = '<svg class="wa-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false">' +
+    '<path d="M12.04 2c-5.46 0-9.91 4.45-9.91 9.91 0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38a9.87 9.87 0 0 0 4.74 1.21h.01c5.46 0 9.9-4.45 9.9-9.91 0-2.65-1.03-5.14-2.9-7.01A9.82 9.82 0 0 0 12.04 2Zm0 18.15h-.01a8.2 8.2 0 0 1-4.19-1.15l-.3-.18-3.12.82.83-3.04-.2-.31a8.22 8.22 0 0 1-1.26-4.38c0-4.54 3.7-8.23 8.25-8.23 2.2 0 4.27.86 5.83 2.41a8.18 8.18 0 0 1 2.41 5.83c0 4.54-3.7 8.23-8.24 8.23Zm4.52-6.16c-.25-.12-1.47-.72-1.69-.81-.23-.08-.39-.12-.56.13-.16.24-.64.8-.79.97-.14.16-.29.18-.54.06-.25-.13-1.05-.39-1.99-1.23-.74-.66-1.24-1.47-1.38-1.72-.15-.25-.02-.38.11-.5.11-.11.25-.29.37-.44.13-.15.17-.25.25-.41.08-.17.04-.31-.02-.44-.06-.12-.56-1.35-.77-1.85-.2-.48-.4-.42-.56-.43h-.47c-.17 0-.43.06-.66.31-.22.25-.86.85-.86 2.07 0 1.22.89 2.4 1.01 2.56.12.17 1.75 2.67 4.23 3.74.59.26 1.05.41 1.41.52.59.19 1.13.16 1.56.1.47-.07 1.47-.6 1.68-1.18.21-.58.21-1.07.14-1.18-.06-.1-.22-.17-.47-.29Z"/></svg>';
+
+  var html = '<div class="receipt"><div class="tick-big">✓</div>' +
+    '<div class="big">Thank you!</div>' +
+    '<div class="rno">' + esc(ref) + '</div>' +
+    '<div class="pending">● Sent for verification</div>' +
     '<div class="rows">';
   for(i = 0; i < items.length; i++){
     html += '<div class="rrow"><span class="k">' + esc(items[i].title) +
             (items[i].qty > 1 ? ' ×' + items[i].qty : '') + '</span>' +
             '<span class="v">' + money(items[i].amount * items[i].qty) + '</span></div>';
   }
-  var rows = [['Total paid', money(order.total)], ['Name', order.name], ['Contact', order.phone]];
+  var rows = [['Total', money(order.total)], ['Name', order.name], ['Contact', order.phone]];
   if(order.email) rows.push(['Email', order.email]);
-  rows.push(['Reference', order.ref]);
+  rows.push(['Reference', ref]);
+  rows.push(['Submitted', when + ' at ' + at]);
   for(i = 0; i < rows.length; i++)
     html += '<div class="rrow"><span class="k">' + esc(rows[i][0]) + '</span><span class="v">' + esc(rows[i][1]) + '</span></div>';
 
   html += '</div><p class="lead" style="font-size:14px;margin-top:20px">' +
-    'Your payment is confirmed and our team will reach out to you on WhatsApp with more details shortly.' +
-    (order.email ? ' A copy of your receipt is on its way to your email.' : '') +
-    /* rare: the order could not be posted, so the screenshot travels by WhatsApp.
-       Phrased as a friendly nudge — still no doubt about the payment itself. */
-    (res.viaWhatsApp ? ' We’ve opened WhatsApp — do send your screenshot across so we can pop it on your booking.' : '') +
+    'Your screenshot has been sent to the studio for verification. Our team will soon reach out to you via ' +
+    '<a class="wa-link" href="' + esc(waHref) + '" target="_blank" rel="noopener">' +
+      waMark + 'WhatsApp</a>.' +
+    (res.viaWhatsApp ? ' We’ve opened WhatsApp — do send your screenshot across so we can attach it to your booking.' : '') +
     '</p><a class="btn btn-ghost" style="margin-top:18px" href="index.html">Back to site</a></div>';
-
-  if(window.track) track('purchase', {
-    transaction_id: res.receipt || order.ref, currency:'INR', value: order.total,
-    items: items.map(function(i){ return { item_id:i.id, item_name:i.title, price:i.amount, quantity:i.qty }; }),
-    delivered_via: res.viaWhatsApp ? 'whatsapp_fallback' : 'backend'
-  });
 
   $('receiptBox').innerHTML = html;
   $('receiptBox').hidden = false;

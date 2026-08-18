@@ -72,8 +72,9 @@ Editing `Code.gs` in the Apps Script editor changes nothing on the live site unt
 ## How a payment actually works
 
 1. Customer adds items, enters name + contact (email optional), pays by UPI, uploads a screenshot.
-2. They are told, unambiguously, that their payment is confirmed. No hedging — someone who has
-   just sent money is never left wondering.
+2. They are told their screenshot has been sent for verification, with a WhatsApp link that opens
+   a query pre-filled with their reference, items, date and time. It does **not** claim the money
+   has arrived — a screenshot is not proof, and an old one for the wrong amount will sail through.
 3. The order lands in the payments sheet as `PENDING`, the screenshot is filed in Drive, and all
    three of you get an email with the image attached and a one-tap WhatsApp button.
 4. **Someone checks the screenshot against the UPI account and sets Status to `VERIFIED`.**
