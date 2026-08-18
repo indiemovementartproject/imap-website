@@ -150,6 +150,12 @@ Current pricing:
 | All workshops — both studios | ₹4500 |
 | Regular class — 1 month | ₹2800 |
 | Regular class — 3 months | ₹7500 |
+| Kids (Vashi) — 1 month / 3 months | ₹2000 / ₹5000 |
+| Juniors (Seawoods) — 1 month / 3 months | ₹2500 / ₹6500 |
+
+Kids and Juniors charge their own rates. Those live in `fees` on the batch in `cart.js` and in
+`FEES` in `Code.gs` — both must agree. Every other batch uses the default plan price, and the
+batch page prices its buttons from the catalogue, so it can never disagree with the cart.
 
 The workshop passes are Orientation Series only and stop being relevant after August.
 To retire them, delete them from `PASSES` in

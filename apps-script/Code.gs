@@ -79,9 +79,17 @@ var PRICES = (function () {
     'afro-dancehall': 'Afro & Dancehall (Seawoods)'
   };
   var PLANS = { '1m': { label: '1 month', amount: 2800 }, '3m': { label: '3 months', amount: 7500 } };
+  /* Batches that charge their own rates. Must match `fees` in cart.js. */
+  var FEES = {
+    'juniors-seawoods': { '1m': 2500, '3m': 6500 },
+    'kids-vashi':       { '1m': 2000, '3m': 5000 }
+  };
   for (var slug in BATCHES) {
     for (var k in PLANS) {
-      p['rc-' + slug + '-' + k] = { label: BATCHES[slug] + ' — ' + PLANS[k].label, amount: PLANS[k].amount };
+      p['rc-' + slug + '-' + k] = {
+        label: BATCHES[slug] + ' — ' + PLANS[k].label,
+        amount: (FEES[slug] && FEES[slug][k]) || PLANS[k].amount
+      };
     }
   }
   return p;

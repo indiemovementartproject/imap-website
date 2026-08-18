@@ -49,17 +49,28 @@
     'contemporary-vashi':     { name: 'Contemporary',     region: 'Vashi',    who: 'Shreya Rastogi' },
     'bollywood-seawoods':     { name: 'Bollywood',        region: 'Seawoods', who: 'Ruchika Jain' },
     'bollywood-advance-vashi':{ name: 'Bollywood Advance',region: 'Vashi',    who: 'Rohit Choudhary' },
-    'juniors-seawoods':       { name: 'Juniors',          region: 'Seawoods', who: 'Jeevak Gaikwad' },
-    'kids-vashi':             { name: 'Kids',             region: 'Vashi',    who: 'Jeevak Gaikwad' },
+    'juniors-seawoods':       { name: 'Juniors',          region: 'Seawoods', who: 'Jeevak Gaikwad',
+                                fees: { '1m': 2500, '3m': 6500 } },
+    'kids-vashi':             { name: 'Kids',             region: 'Vashi',    who: 'Jeevak Gaikwad',
+                                fees: { '1m': 2000, '3m': 5000 } },
     'jazz-funk':              { name: 'Jazz Funk',        region: 'Seawoods', who: 'Ruchika Jain' },
     'jazz-training':          { name: 'Jazz Training',    region: 'Seawoods', who: 'Rohit Choudhary' },
     'open-style':             { name: 'Open Style',       region: 'Seawoods', who: 'Tej' },
     'afro-dancehall':         { name: 'Afro & Dancehall', region: 'Seawoods', who: 'Tanvi Palande' }
   };
+  /* Default plan prices. A batch may override them with its own `fees`. */
   var PLANS = [
     { id: '1m', label: '1 month',  amount: 2800 },
-    { id: '3m', label: '3 months', amount: 7500, note: 'save ₹900' }
+    { id: '3m', label: '3 months', amount: 7500 }
   ];
+
+  /** What this batch charges for this plan. */
+  function planPrice(slug, planId) {
+    var b = BATCHES[slug];
+    if (b && b.fees && b.fees[planId]) return b.fees[planId];
+    for (var i = 0; i < PLANS.length; i++) if (PLANS[i].id === planId) return PLANS[i].amount;
+    return 0;
+  }
 
   /** Resolve any purchasable id to {id, title, detail, amount, type}. */
   function lookup(id) {
@@ -90,7 +101,7 @@
         return { id: id, type: 'class',
                  title: b.name + ' (' + b.region + ') — ' + p.label,
                  detail: 'Regular class · ' + b.who,
-                 amount: p.amount };
+                 amount: planPrice(m[1], p.id) };
       }
     }
     return null;
@@ -148,6 +159,7 @@
     clear: function () { write([]); },
     lookup: lookup,
     catalogue: { workshops: WORKSHOPS, passes: PASSES, batches: BATCHES, plans: PLANS, workshopPrice: WORKSHOP_PRICE },
+    planPrice: planPrice,
     payWhatsApp: PAY_WHATSAPP,
     enquiryWhatsApp: ENQ_WHATSAPP
   };

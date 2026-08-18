@@ -226,10 +226,7 @@
     <p class="lead" id="bDesc">Full details for this batch — level, what to expect, fees and what to bring — will be added here soon. For now, reach out on WhatsApp and we’ll help you join.</p>
     <div class="plans" id="bPlans">
       <div class="plans-k">Choose your plan</div>
-      <div class="plan-row">
-        <button type="button" class="plan on" data-plan="1m"><span class="p-l">1 month</span><span class="p-a">₹2800</span></button>
-        <button type="button" class="plan" data-plan="3m"><span class="p-l">3 months</span><span class="p-a">₹7500</span><span class="p-s">save ₹900</span></button>
-      </div>
+      <div class="plan-row" id="planRow"></div>
     </div>
     <div class="hero-actions" style="margin-top:24px">
       <button class="btn btn-cyan" id="bJoin">Join Now</button>
@@ -255,7 +252,7 @@
   </div>
   <div class="foot-bottom">© <span id="yr"></span> Indie Movement Art Project · Movement. Method. Mindset</div>
 </footer>
-<script src="cart.js"></script>
+<script src="cart.js?v=2026-08-16b"></script>
 <script>
   
   (function(){
@@ -361,8 +358,19 @@
     var msg="Hey! I would like to enquire about "+b.name+" at iMAP, "+b.region;
     var e=document.getElementById('bEnq'); e.setAttribute('data-wa',msg);
 
-    /* plan picker + Join Now -> cart */
+    /* plan picker, priced from the catalogue so per-batch fees always show */
     var plan='1m';
+    (function(){
+      var m1=Cart.lookup('rc-'+slug+'-1m'), m3=Cart.lookup('rc-'+slug+'-3m');
+      if(!m1||!m3){ document.getElementById('bPlans').hidden=true; return; }
+      var save=(m1.amount*3)-m3.amount;
+      document.getElementById('planRow').innerHTML =
+        '<button type="button" class="plan on" data-plan="1m">'+
+          '<span class="p-l">1 month</span><span class="p-a">₹'+m1.amount.toLocaleString('en-IN')+'</span></button>'+
+        '<button type="button" class="plan" data-plan="3m">'+
+          '<span class="p-l">3 months</span><span class="p-a">₹'+m3.amount.toLocaleString('en-IN')+'</span>'+
+          (save>0?'<span class="p-s">save ₹'+save.toLocaleString('en-IN')+'</span>':'')+'</button>';
+    })();
     [].forEach.call(document.querySelectorAll('.plan'),function(p){
       p.addEventListener('click',function(){
         [].forEach.call(document.querySelectorAll('.plan'),function(x){x.classList.remove('on');});
