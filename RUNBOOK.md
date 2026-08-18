@@ -84,14 +84,12 @@ that ran out, and its failures reached the customer as alarming technical errors
 
 ## Analytics
 
-`analytics.js` reports every meaningful interaction. It is **off until you set
-`MEASUREMENT_ID`** at the top of that file to a GA4 id (`G-XXXXXXXXXX`) — until then it loads no
-scripts, sets no cookies and fires nothing.
+`analytics.js` reports every meaningful interaction. **Live** on GA4 property
+`G-RS3GH4FCRS` (set in `MEASUREMENT_ID` at the top of that file; blanking it turns everything off
+cleanly). Ad personalisation and Google Signals are deliberately disabled, so hits carry `npa=1`.
 
-To switch it on: <https://analytics.google.com> → Admin → Create property → platform **Web** →
-enter `indiemovementartproject.com` → copy the Measurement ID into `analytics.js`. Keep enhanced
-measurement on; that is what gives you page views, scroll depth and engagement time for free.
-Ad profiling is deliberately disabled in the config.
+Keep GA4's enhanced measurement switched on — that is what gives page views, scroll depth and
+engagement time for free.
 
 Append `?analytics=debug` to any page to watch events in the browser console without a GA account.
 

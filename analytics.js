@@ -11,7 +11,7 @@
 (function (global) {
   'use strict';
 
-  var MEASUREMENT_ID = '';        /* e.g. 'G-XXXXXXXXXX' — see RUNBOOK.md */
+  var MEASUREMENT_ID = 'G-RS3GH4FCRS';   /* GA4 property for indiemovementartproject.com */
   var DEBUG = /[?&]analytics=debug\b/.test(location.search);
 
   var live = /^G-[A-Z0-9]+$/i.test(MEASUREMENT_ID);
