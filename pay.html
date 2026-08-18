@@ -321,6 +321,7 @@
 </footer>
 
 <script src="cart.js?v=2026-08-16b"></script>
+<script src="analytics.js?v=2026-08-16b"></script>
 <script>
 /* ==========================================================================
    CONFIG. Prices live in cart.js; the Apps Script keeps its own copy and
@@ -508,6 +509,11 @@ function renderLines(){
   }
   $('lines').innerHTML = html;
   $('grandTotal').textContent = money(Cart.total());
+  if(!renderLines.reported){                       /* once per visit, not per redraw */
+    renderLines.reported = true;
+    if(window.track) track('view_cart', { currency:'INR', value: Cart.total(),
+      items: items.map(function(i){ return { item_id:i.id, item_name:i.title, price:i.amount, quantity:i.qty }; }) });
+  }
   return true;
 }
 
@@ -576,6 +582,9 @@ $('toPay').addEventListener('click', function(){
 
   $('s3').classList.remove('locked'); $('s3').classList.add('active');
   $('s3').scrollIntoView({behavior:'smooth', block:'start'});
+  if(window.track) track('begin_checkout', { currency:'INR', value: total,
+    items: items.map(function(i){ return { item_id:i.id, item_name:i.title, price:i.amount, quantity:i.qty }; }),
+    gave_email: order.email ? 'yes' : 'no' });
 });
 
 $('copyVpa').addEventListener('click', function(){
@@ -585,9 +594,17 @@ $('copyVpa').addEventListener('click', function(){
   }).catch(function(){});
 });
 
+$('apps').addEventListener('click', function(e){
+  var a = e.target.closest('.app');
+  if(a && window.track) track('add_payment_info', { payment_type: a.textContent.trim(),
+    currency:'INR', value: order ? order.total : 0 });
+});
+$('copyVpa').addEventListener('click', function(){ if(window.track) track('copy_upi_id'); });
+
 $('paidBtn').addEventListener('click', function(){
   $('s3').classList.add('done');
   $('s4').classList.remove('locked'); $('s4').classList.add('active');
+  if(window.track) track('reach_upload_step');
   $('s4').scrollIntoView({behavior:'smooth', block:'center'});
   $('drop').focus();
 });
@@ -632,6 +649,7 @@ function takeFile(file){
     $('drop').style.display = 'none';
     $('submitBtn').disabled = false;
     $('e4').textContent = '';
+    if(window.track) track('screenshot_attached');
   }).catch(function(){
     $('e4').textContent = 'We couldn’t read that image. Try a different screenshot.';
   });
@@ -749,6 +767,12 @@ function showReceipt(res){
        Phrased as a friendly nudge — still no doubt about the payment itself. */
     (res.viaWhatsApp ? ' We’ve opened WhatsApp — do send your screenshot across so we can pop it on your booking.' : '') +
     '</p><a class="btn btn-ghost" style="margin-top:18px" href="index.html">Back to site</a></div>';
+
+  if(window.track) track('purchase', {
+    transaction_id: res.receipt || order.ref, currency:'INR', value: order.total,
+    items: items.map(function(i){ return { item_id:i.id, item_name:i.title, price:i.amount, quantity:i.qty }; }),
+    delivered_via: res.viaWhatsApp ? 'whatsapp_fallback' : 'backend'
+  });
 
   $('receiptBox').innerHTML = html;
   $('receiptBox').hidden = false;

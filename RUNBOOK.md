@@ -82,6 +82,39 @@ Editing `Code.gs` in the Apps Script editor changes nothing on the live site unt
 There is no automatic verification. It was tried and removed: it depended on a Drive OCR quota
 that ran out, and its failures reached the customer as alarming technical errors.
 
+## Analytics
+
+`analytics.js` reports every meaningful interaction. It is **off until you set
+`MEASUREMENT_ID`** at the top of that file to a GA4 id (`G-XXXXXXXXXX`) — until then it loads no
+scripts, sets no cookies and fires nothing.
+
+To switch it on: <https://analytics.google.com> → Admin → Create property → platform **Web** →
+enter `indiemovementartproject.com` → copy the Measurement ID into `analytics.js`. Keep enhanced
+measurement on; that is what gives you page views, scroll depth and engagement time for free.
+Ad profiling is deliberately disabled in the config.
+
+Append `?analytics=debug` to any page to watch events in the browser console without a GA account.
+
+**Events, and the question each answers**
+
+| Event | Answers |
+|---|---|
+| `page_view`, engagement time | How many visitors, how long they stay (GA4 automatic) |
+| `view_workshop` | Which workshops people actually scroll to |
+| `add_to_cart` | Which workshops and classes get chosen, with price |
+| `select_item` | Which class cards get clicked in the carousel |
+| `view_item` | Which batch pages get opened |
+| `tool_click` | Count Me In vs Sync Studio interest |
+| `whatsapp_click` | Enquiry vs payment taps, counted separately |
+| `view_cart` → `begin_checkout` → `add_payment_info` → `reach_upload_step` → `screenshot_attached` → `purchase` | **Exactly where people drop off** |
+| `purchase` | Revenue per item, per batch, per workshop |
+
+Build the drop-off report in GA4 under **Explore → Funnel exploration**, using those event names
+as steps in that order.
+
+The file speaks GA4's vocabulary but only `send()` is coupled to it — swapping in Plausible or
+Umami later means changing that one function, not the instrumentation.
+
 ## Known constraints
 
 - **No WhatsApp automation.** Sending WhatsApp messages programmatically needs Meta's Cloud API,
