@@ -82,7 +82,7 @@ var PRICES = (function () {
   /* Batches that charge their own rates. Must match `fees` in cart.js. */
   var FEES = {
     'juniors-seawoods': { '1m': 2500, '3m': 6500 },
-    'kids-vashi':       { '1m': 2000, '3m': 5000 }
+    'kids-vashi':       { '1m': 2000, '3m': 5400 }
   };
   for (var slug in BATCHES) {
     for (var k in PLANS) {

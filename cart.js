@@ -52,7 +52,7 @@
     'juniors-seawoods':       { name: 'Juniors',          region: 'Seawoods', who: 'Jeevak Gaikwad',
                                 fees: { '1m': 2500, '3m': 6500 } },
     'kids-vashi':             { name: 'Kids',             region: 'Vashi',    who: 'Jeevak Gaikwad',
-                                fees: { '1m': 2000, '3m': 5000 } },
+                                fees: { '1m': 2000, '3m': 5400 } },
     'jazz-funk':              { name: 'Jazz Funk',        region: 'Seawoods', who: 'Ruchika Jain' },
     'jazz-training':          { name: 'Jazz Training',    region: 'Seawoods', who: 'Rohit Choudhary' },
     'open-style':             { name: 'Open Style',       region: 'Seawoods', who: 'Tej' },

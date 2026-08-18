@@ -46,7 +46,7 @@ so a mismatch is a visible warning, never a wrong charge.
 | Any single workshop | ₹500 |
 | All workshops — Vashi / Seawoods / both | ₹2000 / ₹3000 / ₹4500 |
 | Regular class — 1 month / 3 months | ₹2800 / ₹7500 |
-| Kids (Vashi) | ₹2000 / ₹5000 |
+| Kids (Vashi) | ₹2000 / ₹5400 |
 | Juniors (Seawoods) | ₹2500 / ₹6500 |
 
 Per-batch exceptions are `fees` on the batch in `cart.js` and `FEES` in `Code.gs`.
