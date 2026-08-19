@@ -177,6 +177,13 @@
   .sw-song .tag{font-family:"Space Mono",monospace;font-size:9px;letter-spacing:.16em;text-transform:uppercase;
     color:var(--cyan);border:1px solid var(--border-cyan);border-radius:99px;padding:4px 9px;opacity:0;transition:.18s}
   .sw-song.on .tag{opacity:1}
+  .sw-song.pending{opacity:.75;border-style:dashed}
+  .sw-song .bp small{font-family:"Space Mono",monospace;font-size:10px;letter-spacing:.1em;opacity:.6}
+  .sw-song .bp em{font-family:"Space Mono",monospace;font-size:11px;font-style:normal;letter-spacing:.12em;
+    text-transform:uppercase;color:var(--muted-2)}
+  .sw-x{flex:0 0 auto;border:0;background:none;color:var(--muted-2);font-size:19px;line-height:1;cursor:pointer;
+    padding:2px 4px;border-radius:7px;transition:.15s}
+  .sw-x:hover{color:#ff8f6b;background:rgba(255,143,107,.1)}
   .sw-chips{display:flex;gap:9px;justify-content:center;margin-bottom:22px}
   .sw-chip{border:1px solid var(--border);background:rgba(255,255,255,.03);color:var(--muted);border-radius:99px;
     padding:10px 18px;font-family:inherit;font-size:13.5px;cursor:pointer;transition:.16s}
@@ -216,6 +223,8 @@
     <div class="sw-q">Add your songs</div>
     <div class="sw-sub">Two or more. We'll work out how fast each one is.</div>
     <div id="swDropSlot"></div>
+    <div class="sw-list" id="swAdded" style="margin-top:18px"></div>
+    <div class="sw-sub" id="swWait" style="display:none;margin:16px 0 0">Add one more to match them up.</div>
     <div class="sw-nav" style="display:none" id="swGo1">
       <button class="sw-go" data-sgo="2">Next</button>
     </div>
@@ -1157,13 +1166,41 @@ $('dlAll').addEventListener('click',function(){
   });
   $('swAgain').addEventListener('click',function(){ location.reload(); });
 
-  /* watch for decoded files, then open the gate to step 2 */
+  /* Show every file the moment it is added, decoded or not. Without this the
+     page looked inert after an upload and people added the same song again. */
+  var lastSig='';
+  function paintAdded(){
+    var all=tracks(), h='';
+    all.forEach(function(x){
+      var done=!!x.buf;
+      h+='<div class="sw-song'+(done?'':' pending')+'">'+
+           '<span class="nm">'+String(x.name).replace(/[<>&]/g,'')+'</span>'+
+           '<span class="bp">'+(done?Math.round(x.bpm)+'<small> bpm</small>':'<em>reading…</em>')+'</span>'+
+           '<button class="sw-x" data-rm="'+x.id+'" aria-label="Remove">×</button>'+
+         '</div>';
+    });
+    $('swAdded').innerHTML=h;
+    var n=ready().length;
+    $('swWait').style.display = (all.length===1 && n===1) ? 'block' : 'none';
+    $('swGo1').style.display  = n>=2 ? 'flex' : 'none';
+  }
+  $('swAdded').addEventListener('click',function(e){
+    var b=e.target.closest('[data-rm]'); if(!b) return;
+    var card=document.querySelector('.track[data-id="'+b.getAttribute('data-rm')+'"]');
+    var x=card&&card.querySelector('.x'); if(x) x.click();
+    setTimeout(paintAdded,60);
+  });
+
+  var advanced=false;
   setInterval(function(){
     if(!W.on) return;
-    var n=ready().length;
-    $('swGo1').style.display = n>=2 ? 'flex':'none';
-    if(W.step===2) listSongs();
-  },600);
+    var all=tracks(), n=ready().length;
+    var sig=all.map(function(x){return x.id+':'+(x.buf?1:0);}).join(',');
+    if(sig!==lastSig){ lastSig=sig; paintAdded(); if(W.step===2) listSongs(); }
+    /* once two are ready, take them forward rather than waiting to be told */
+    if(W.step===1 && n>=2 && !advanced){ advanced=true; setTimeout(function(){ if(W.step===1) go(2); },700); }
+    if(n<2) advanced=false;
+  },500);
 
   $('swPro').addEventListener('click',function(){
     W.on=!W.on;

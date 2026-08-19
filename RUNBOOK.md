@@ -119,10 +119,14 @@ Umami later means changing that one function, not the instrumentation.
 
 Both open in a guided, step-by-step mode aimed at people who don't edit audio:
 
-- **Count Me In** — drop a song → pick the count and sound → listen → download. The engine already
-  detects tempo, first beat and ending on load, so the wizard just presents that rather than asking.
-  The only correction most people need is "too fast / too slow", which halves or doubles the tempo.
-- **Sync Studio** — add songs → tap the one whose speed the others should match → download.
+- **Count Me In** — drop a song → set the first beat → pick the count and sound → listen → download.
+  Auto-detected tempo is often wrong, so setting the first beat is an explicit step rather than an
+  assumption. The waveform there shows only the **first 15 seconds** (`WINDOW_SECS`), which is where
+  the first beat almost always is; it stays scrollable and zoomable for the rest of the track.
+  The other common correction, "too fast / too slow", halves or doubles the tempo.
+- **Sync Studio** — add songs → tap the one whose speed the others should match → download. Files
+  appear in the list the moment they are added, decoded or not, and the flow advances by itself once
+  two are ready.
 
 The guided layer **drives the original controls** rather than reimplementing anything: it clicks the
 same buttons and sets the same inputs a person would. One source of truth for the audio, and

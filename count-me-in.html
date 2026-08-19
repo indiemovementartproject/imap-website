@@ -229,6 +229,10 @@
     display:flex;align-items:center;justify-content:center;font-size:32px;color:var(--cyan);
     background:rgba(92,225,230,.1);animation:wizPop .45s cubic-bezier(.34,1.56,.64,1)}
   @keyframes wizPop{from{transform:scale(.4);opacity:0}to{transform:scale(1);opacity:1}}
+  .wiz-beatbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:center;margin:16px 0 4px}
+  .wiz-at{font-family:"Space Mono",monospace;font-size:11.5px;color:var(--muted-2)}
+  .wiz-at b{color:var(--cyan)}
+  #wizWaveSlot .wave-wrap{margin:0}
   @media (max-width:560px){.wiz-pick.two{grid-template-columns:1fr}}
   @media (prefers-reduced-motion:reduce){.wiz-step,.wiz-done .ring{animation:none}}
 </style>
@@ -255,15 +259,32 @@
 
   <!-- 1 · the song -->
   <div class="wiz-step on" data-w="1">
-    <div class="wiz-n">Step 1 of 4</div>
+    <div class="wiz-n">Step 1 of 5</div>
     <div class="wiz-q">Drop your song</div>
     <div class="wiz-sub">Any audio file. We'll find the beat and the first count for you.</div>
     <div id="wizDropSlot"></div>
   </div>
 
-  <!-- 2 · the count -->
+  <!-- 2 · the first beat -->
   <div class="wiz-step" data-w="2">
-    <div class="wiz-n">Step 2 of 4</div>
+    <div class="wiz-n">Step 2 of 5</div>
+    <div class="wiz-q">Where does the beat start?</div>
+    <div class="wiz-sub">Drag the <b style="color:var(--cyan)">cyan</b> line to the first beat of the song. Tap the wave to hear from there.</div>
+    <div id="wizWaveSlot"></div>
+    <div class="wiz-beatbar">
+      <button class="wiz-chip" id="wizFindBeat">Find it for me</button>
+      <button class="wiz-chip" id="wizWavePlay">▶ Play from here</button>
+      <span class="wiz-at">starts at <b id="wizStartAt">0:00.000</b></span>
+    </div>
+    <div class="wiz-nav">
+      <button class="wiz-back" data-go="1">Back</button>
+      <button class="wiz-next" data-go="3">That's the one</button>
+    </div>
+  </div>
+
+  <!-- 3 · the count -->
+  <div class="wiz-step" data-w="3">
+    <div class="wiz-n">Step 3 of 5</div>
     <div class="wiz-q">How should it count you in?</div>
     <div class="wiz-sub">Tap one to hear it.</div>
     <div class="wiz-found" id="wizFound">
@@ -282,14 +303,14 @@
       <button class="wiz-chip" data-snd="metro">Metronome</button>
     </div>
     <div class="wiz-nav">
-      <button class="wiz-back" data-go="1">Back</button>
-      <button class="wiz-next" data-go="3">Next</button>
+      <button class="wiz-back" data-go="2">Back</button>
+      <button class="wiz-next" data-go="4">Next</button>
     </div>
   </div>
 
-  <!-- 3 · listen -->
-  <div class="wiz-step" data-w="3">
-    <div class="wiz-n">Step 3 of 4</div>
+  <!-- 4 · listen -->
+  <div class="wiz-step" data-w="4">
+    <div class="wiz-n">Step 4 of 5</div>
     <div class="wiz-q">Have a listen</div>
     <div class="wiz-sub">The count, then your song coming in.</div>
     <button class="wiz-play" id="wizPlay"><span>▶</span> Play it</button>
@@ -305,12 +326,12 @@
         <button class="wiz-card" id="wizDbl"><div class="big">Too slow</div><div class="sm">double it</div></button>
       </div>
     </div>
-    <div class="wiz-nav"><button class="wiz-back" data-go="2">Back</button></div>
+    <div class="wiz-nav"><button class="wiz-back" data-go="3">Back</button></div>
   </div>
 
-  <!-- 4 · finish -->
-  <div class="wiz-step" data-w="4">
-    <div class="wiz-n">Step 4 of 4</div>
+  <!-- 5 · finish -->
+  <div class="wiz-step" data-w="5">
+    <div class="wiz-n">Step 5 of 5</div>
     <div class="wiz-q">One last thing</div>
     <div class="wiz-sub">Want a hit at the very end of the song?</div>
     <div class="wiz-pick two">
@@ -325,12 +346,12 @@
     <div class="wiz-done" style="padding-top:4px">
       <button class="wiz-next" id="wizDl" style="width:100%">Download my track</button>
     </div>
-    <div class="wiz-nav"><button class="wiz-back" data-go="3">Back</button></div>
+    <div class="wiz-nav"><button class="wiz-back" data-go="4">Back</button></div>
     <div id="wizStatusSlot"></div>
   </div>
 
   <!-- done -->
-  <div class="wiz-step" data-w="5">
+  <div class="wiz-step" data-w="6">
     <div class="wiz-done">
       <div class="ring">✓</div>
       <div class="wiz-q" style="margin-top:0">Saved to your downloads</div>
@@ -897,7 +918,7 @@ fbIframe.addEventListener('load',()=>{if(!fbSent)return;fbSent=false;document.ge
    logic. "Show all the controls" hands back the full editor.
    ============================================================ */
 (function(){
-  var W = { step:1, max:4, on:true };
+  var W = { step:1, max:5, on:true };
   var $ = function(id){ return document.getElementById(id); };
   var wiz = $('wiz'); if(!wiz) return;
 
@@ -908,6 +929,25 @@ fbIframe.addEventListener('load',()=>{if(!fbSent)return;fbSent=false;document.ge
   $('wizDropSlot').appendChild($('drop'));
   $('wizDropSlot').appendChild($('filename'));
   $('wizStatusSlot').appendChild($('status'));
+  $('wizWaveSlot').appendChild($('waveWrap'));
+
+  /* A whole three-minute track squeezed into one box is unreadable. Show the
+     first 15 seconds — where the first beat almost always is — and leave it
+     scrollable and zoomable so the rest is still reachable. */
+  var WINDOW_SECS = 15;
+  function windowStart(){
+    var st = state(); if(!st || !st.audioBuffer) return;
+    var total = st.audioBuffer.duration;
+    st.zoom = total > WINDOW_SECS ? total / WINDOW_SECS : 1;
+    st.viewStart = 0;
+    try { refreshWave(); } catch(e){}
+  }
+  function showStart(){
+    var st = state(); if(!st) return;
+    var t = st.startSec || 0, m = Math.floor(t/60), sec = (t%60).toFixed(3).padStart(6,'0');
+    $('wizStartAt').textContent = m + ':' + sec;
+  }
+  setInterval(showStart, 300);
 
   /* progress dots */
   (function(){
@@ -927,6 +967,7 @@ fbIframe.addEventListener('load',()=>{if(!fbSent)return;fbSent=false;document.ge
       d.classList.toggle('done', i + 1 < n);
     });
     $('wizDots').style.visibility = n > W.max ? 'hidden' : 'visible';
+    if(n === 2){ windowStart(); showStart(); }
     stopAll();
     wiz.scrollIntoView({ behavior:'smooth', block:'start' });
   }
@@ -952,6 +993,12 @@ fbIframe.addEventListener('load',()=>{if(!fbSent)return;fbSent=false;document.ge
   setInterval(function(){
     if(!W.on) return;
     var st = state();
+    /* the loader resets zoom when it finishes, which can land after we set the
+       window — so keep asserting it while the beat step is open */
+    if(st && st.audioBuffer && W.step === 2){
+      var vis = st.audioBuffer.duration / st.zoom;
+      if(st.audioBuffer.duration > WINDOW_SECS && vis > WINDOW_SECS * 1.2) windowStart();
+    }
     if(st && st.audioBuffer && st.fileName !== seen){
       seen = st.fileName;
       $('wizFile').textContent = st.fileName;
@@ -960,7 +1007,16 @@ fbIframe.addEventListener('load',()=>{if(!fbSent)return;fbSent=false;document.ge
     }
   }, 400);
 
-  /* --- step 2 : pattern + sound, previewed on tap --- */
+  /* --- step 2 : the first beat --- */
+  $('wizFindBeat').addEventListener('click', function(){
+    var b = $('autoTrimBtn'); if(b) b.click();
+    windowStart(); showStart();
+  });
+  $('wizWavePlay').addEventListener('click', function(){
+    var b = $('wavePlayBtn'); if(b) b.click();
+  });
+
+  /* --- step 3 : pattern + sound, previewed on tap --- */
   wiz.addEventListener('click', function(e){
     var p = e.target.closest('[data-pat]');
     if(p){
