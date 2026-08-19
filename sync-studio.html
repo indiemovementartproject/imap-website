@@ -152,7 +152,7 @@
   @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
 <style>
-  body.guided .master,body.guided .tracks,body.guided .note,body.guided .dock,
+  body.guided .master,body.guided .wrap > .tracks,body.guided .note,body.guided .dock,
   body.guided .hero .lead,body.guided #hint{display:none!important}
   body.guided .wrap > .drop{display:none}
   .swz{max-width:640px;margin:0 auto;padding:0 20px 70px}
@@ -177,6 +177,16 @@
   .sw-song .tag{font-family:"Space Mono",monospace;font-size:9px;letter-spacing:.16em;text-transform:uppercase;
     color:var(--cyan);border:1px solid var(--border-cyan);border-radius:99px;padding:4px 9px;opacity:0;transition:.18s}
   .sw-song.on .tag{opacity:1}
+  /* preview step: the real cards, minus the editing surface */
+  body.guided #swPreview .track .zrow,
+  body.guided #swPreview .track .trow:not(.arow),
+  body.guided #swPreview .track .dl,
+  body.guided #swPreview .track .x{display:none!important}
+  body.guided #swPreview .track{padding-bottom:14px}
+  body.guided #swPreview .track .wave{height:60px}
+  #swPreview{margin:6px 0 20px}
+  .sw-transport{display:flex;gap:10px;margin-bottom:16px}
+  .sw-transport .btn{flex:1;justify-content:center}
   .sw-song.pending{opacity:.75;border-style:dashed}
   .sw-song .bp small{font-family:"Space Mono",monospace;font-size:10px;letter-spacing:.1em;opacity:.6}
   .sw-song .bp em{font-family:"Space Mono",monospace;font-size:11px;font-style:normal;letter-spacing:.12em;
@@ -245,6 +255,9 @@
     <div class="sw-n">Step 3 of 3</div>
     <div class="sw-q">All matched</div>
     <div class="sw-sub" id="swSummary">—</div>
+    <div class="sw-transport" id="swTransport"></div>
+    <div id="swPreview"></div>
+    <div class="sw-sub" style="margin-bottom:12px">Happy with it? Pick a format and take them away.</div>
     <div class="sw-chips" id="swFmt">
       <button class="sw-chip on" data-f="mp3">MP3 · smaller</button>
       <button class="sw-chip" data-f="wav">WAV · best quality</button>
@@ -1114,6 +1127,7 @@ $('dlAll').addEventListener('click',function(){
     try{ stopAll(); }catch(e){}
     if(n===2) listSongs();
     if(n===3) summarise();
+    if(n!==3) clearInterval(summarise._t);
     sw.scrollIntoView({behavior:'smooth',block:'start'});
   }
   sw.addEventListener('click',function(e){
@@ -1145,9 +1159,37 @@ $('dlAll').addEventListener('click',function(){
     listSongs();
   });
 
+  var moved=false;
   function summarise(){
     var t=ready(), inp=$('target');
-    $('swSummary').textContent = t.length+' songs, all now at '+Math.round(parseFloat(inp.value))+' beats per minute. Same pitch, same quality.';
+    $('swSummary').textContent = t.length+' songs, all now at '+Math.round(parseFloat(inp.value))+
+      ' beats per minute. Same pitch, same quality — have a listen.';
+    if(!moved){
+      /* the genuine track cards, so play buttons and playheads are the real ones */
+      $('swPreview').appendChild(document.getElementById('tracks'));
+      var play=document.createElement('button');
+      play.className='btn btn-cyan'; play.id='swPlayAll'; play.textContent='▶ Play all together';
+      play.addEventListener('click', function(){
+        var on = ready().filter(function(x){ return x.playing; }).length;
+        if(on){ try{ stopAll(); }catch(e){} return; }
+        ready().forEach(function(x){
+          var b = x.el && x.el.querySelector('.pl');
+          if(b && !x.playing) b.click();
+        });
+      });
+      $('swTransport').appendChild(play);
+      $('swTransport').appendChild($('stopAll'));
+      $('stopAll').style.display='';
+      $('stopAll').className='btn';
+      moved=true;
+    }
+    /* keep the button honest about what is happening */
+    clearInterval(summarise._t);
+    summarise._t = setInterval(function(){
+      var b=$('swPlayAll'); if(!b) return;
+      var on = ready().filter(function(x){ return x.playing; }).length;
+      b.textContent = on ? '■ Stop ('+on+' playing)' : '▶ Play all together';
+    }, 400);
   }
 
   $('swFmt').addEventListener('click',function(e){

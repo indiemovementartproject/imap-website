@@ -229,6 +229,11 @@
     display:flex;align-items:center;justify-content:center;font-size:32px;color:var(--cyan);
     background:rgba(92,225,230,.1);animation:wizPop .45s cubic-bezier(.34,1.56,.64,1)}
   @keyframes wizPop{from{transform:scale(.4);opacity:0}to{transform:scale(1);opacity:1}}
+  .wiz-chip.wiz-live.playing{border-color:var(--cyan);background:rgba(92,225,230,.16);color:var(--cyan)}
+  #wizPlaySlot{display:flex;flex-direction:column;gap:10px}
+  #wizPlaySlot .wiz-play{width:100%}
+  .wiz-play.wiz-stop{background:rgba(92,225,230,.12);color:var(--cyan);box-shadow:none}
+  .wiz-play.wiz-stop:disabled{opacity:.3;cursor:not-allowed;transform:none}
   .wiz-beatbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:center;margin:16px 0 4px}
   .wiz-at{font-family:"Space Mono",monospace;font-size:11.5px;color:var(--muted-2)}
   .wiz-at b{color:var(--cyan)}
@@ -273,7 +278,7 @@
     <div id="wizWaveSlot"></div>
     <div class="wiz-beatbar">
       <button class="wiz-chip" id="wizFindBeat">Find it for me</button>
-      <button class="wiz-chip" id="wizWavePlay">▶ Play from here</button>
+      <span id="wizPlaySlot2"></span>
       <span class="wiz-at">starts at <b id="wizStartAt">0:00.000</b></span>
     </div>
     <div class="wiz-nav">
@@ -313,7 +318,7 @@
     <div class="wiz-n">Step 4 of 5</div>
     <div class="wiz-q">Have a listen</div>
     <div class="wiz-sub">The count, then your song coming in.</div>
-    <button class="wiz-play" id="wizPlay"><span>▶</span> Play it</button>
+    <div id="wizPlaySlot"></div>
     <div class="wiz-sub" style="margin:22px 0 10px">Does the count match the music?</div>
     <div class="wiz-pick two">
       <button class="wiz-card" id="wizGood"><div class="big">Yes</div><div class="sm">sounds right</div></button>
@@ -930,6 +935,16 @@ fbIframe.addEventListener('load',()=>{if(!fbSent)return;fbSent=false;document.ge
   $('wizDropSlot').appendChild($('filename'));
   $('wizStatusSlot').appendChild($('status'));
   $('wizWaveSlot').appendChild($('waveWrap'));
+  /* Proxying clicks to hidden buttons loses the user gesture iOS requires
+     before it will play audio, and leaves the visible button's label stale.
+     Move the engine's own buttons in and restyle them instead. */
+  $('wizPlaySlot2').appendChild($('wavePlayBtn'));
+  $('wavePlayBtn').className = 'wiz-chip wiz-live';
+  $('wizPlaySlot').appendChild($('previewBtn'));
+  $('wizPlaySlot').appendChild($('stopBtn'));
+  $('previewBtn').className = 'wiz-play';
+  $('previewBtn').textContent = '▶  Play the count';
+  $('stopBtn').className = 'wiz-play wiz-stop';
 
   /* A whole three-minute track squeezed into one box is unreadable. Show the
      first 15 seconds — where the first beat almost always is — and leave it
@@ -980,8 +995,6 @@ fbIframe.addEventListener('load',()=>{if(!fbSent)return;fbSent=false;document.ge
     ['stopBtn','endStopBtn'].forEach(function(id){
       var b = $(id); if(b && !b.disabled) b.click();
     });
-    var p = $('wizPlay');
-    if(p){ p.classList.remove('playing'); p.innerHTML = '<span>▶</span> Play it'; }
   }
 
   /* The engine declares its state with `const S`, which is a lexical global and
@@ -1012,10 +1025,6 @@ fbIframe.addEventListener('load',()=>{if(!fbSent)return;fbSent=false;document.ge
     var b = $('autoTrimBtn'); if(b) b.click();
     windowStart(); showStart();
   });
-  $('wizWavePlay').addEventListener('click', function(){
-    var b = $('wavePlayBtn'); if(b) b.click();
-  });
-
   /* --- step 3 : pattern + sound, previewed on tap --- */
   wiz.addEventListener('click', function(e){
     var p = e.target.closest('[data-pat]');
@@ -1062,13 +1071,6 @@ fbIframe.addEventListener('load',()=>{if(!fbSent)return;fbSent=false;document.ge
   }
 
   /* --- step 3 : listen, and the one fix people actually need --- */
-  $('wizPlay').addEventListener('click', function(){
-    var playing = this.classList.contains('playing');
-    if(playing){ stopAll(); return; }
-    preview();
-    this.classList.add('playing');
-    this.innerHTML = '<span>■</span> Stop';
-  });
   $('wizGood').addEventListener('click', function(){ go(4); });
   $('wizOff').addEventListener('click', function(){ $('wizFix').style.display = 'block'; });
   $('wizHalf').addEventListener('click', function(){

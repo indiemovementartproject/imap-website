@@ -124,12 +124,15 @@ Both open in a guided, step-by-step mode aimed at people who don't edit audio:
   assumption. The waveform there shows only the **first 15 seconds** (`WINDOW_SECS`), which is where
   the first beat almost always is; it stays scrollable and zoomable for the rest of the track.
   The other common correction, "too fast / too slow", halves or doubles the tempo.
-- **Sync Studio** — add songs → tap the one whose speed the others should match → download. Files
-  appear in the list the moment they are added, decoded or not, and the flow advances by itself once
-  two are ready.
+- **Sync Studio** — add songs → tap the one whose speed the others should match → hear them all at
+  the new tempo → download. Files appear in the list the moment they are added, decoded or not, and
+  the flow advances by itself once two are ready. The preview step moves the **real track cards** in
+  and hides their editing rows, so the play buttons and playheads are the genuine ones.
 
 The guided layer **drives the original controls** rather than reimplementing anything: it clicks the
-same buttons and sets the same inputs a person would. One source of truth for the audio, and
+same buttons and sets the same inputs a person would. Anything that starts audio uses the engine's
+**actual button, relocated** into the wizard rather than a proxy — a synthetic click can lose the
+user gesture iOS requires before it will play, and a proxy leaves the visible label stale. One source of truth for the audio, and
 "Show all the controls" hands back the full editor untouched. If you change the classic UI, keep the
 element ids — that is the whole contract between the two layers.
 
