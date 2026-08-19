@@ -151,6 +151,52 @@
   }
   @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
+<style>
+  body.guided .master,body.guided .tracks,body.guided .note,body.guided .dock,
+  body.guided .hero .lead,body.guided #hint{display:none!important}
+  body.guided .wrap > .drop{display:none}
+  .swz{max-width:640px;margin:0 auto;padding:0 20px 70px}
+  .sw-dots{display:flex;gap:7px;justify-content:center;margin-bottom:26px}
+  .sw-dot{width:34px;height:4px;border-radius:99px;background:rgba(255,255,255,.12);transition:.35s}
+  .sw-dot.on{background:var(--cyan);box-shadow:0 0 12px rgba(92,225,230,.6)}
+  .sw-dot.done{background:rgba(92,225,230,.45)}
+  .sw-step{display:none;animation:swIn .35s ease}
+  .sw-step.on{display:block}
+  @keyframes swIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+  .sw-n{font-family:"Space Mono",monospace;font-size:10.5px;letter-spacing:.22em;text-transform:uppercase;color:var(--muted-2);text-align:center}
+  .sw-q{font-family:"Instrument Serif",serif;font-size:clamp(28px,6vw,40px);line-height:1.1;text-align:center;margin:10px 0 6px}
+  .sw-sub{text-align:center;color:var(--muted);font-size:15px;line-height:1.6;margin-bottom:26px}
+  .sw-list{display:flex;flex-direction:column;gap:10px;margin-bottom:22px}
+  .sw-song{display:flex;align-items:center;gap:14px;border:1.5px solid var(--border);background:rgba(255,255,255,.03);
+    border-radius:15px;padding:15px 17px;cursor:pointer;font-family:inherit;color:var(--text);text-align:left;transition:.18s}
+  .sw-song:hover{border-color:var(--border-cyan);background:rgba(92,225,230,.06)}
+  .sw-song.on{border-color:var(--cyan);background:rgba(92,225,230,.1);box-shadow:0 0 24px rgba(92,225,230,.16)}
+  .sw-song .nm{flex:1;min-width:0;font-size:15px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .sw-song .bp{font-family:"Instrument Serif",serif;font-size:23px;color:var(--muted);white-space:nowrap}
+  .sw-song.on .bp{color:var(--cyan)}
+  .sw-song .tag{font-family:"Space Mono",monospace;font-size:9px;letter-spacing:.16em;text-transform:uppercase;
+    color:var(--cyan);border:1px solid var(--border-cyan);border-radius:99px;padding:4px 9px;opacity:0;transition:.18s}
+  .sw-song.on .tag{opacity:1}
+  .sw-chips{display:flex;gap:9px;justify-content:center;margin-bottom:22px}
+  .sw-chip{border:1px solid var(--border);background:rgba(255,255,255,.03);color:var(--muted);border-radius:99px;
+    padding:10px 18px;font-family:inherit;font-size:13.5px;cursor:pointer;transition:.16s}
+  .sw-chip.on{border-color:var(--cyan);background:rgba(92,225,230,.12);color:var(--cyan)}
+  .sw-go{width:100%;background:var(--cyan);color:#04181a;border:0;border-radius:14px;padding:17px;
+    font-family:inherit;font-size:16px;font-weight:600;cursor:pointer;transition:.16s}
+  .sw-go:hover{box-shadow:0 0 28px rgba(92,225,230,.45)}
+  .sw-go:disabled{opacity:.35;cursor:not-allowed;box-shadow:none}
+  .sw-nav{display:flex;gap:11px;margin-top:20px}
+  .sw-back{background:none;border:1px solid var(--border);color:var(--muted);border-radius:14px;padding:16px 20px;
+    font-family:inherit;font-size:14px;cursor:pointer}
+  .sw-back:hover{border-color:var(--cyan);color:var(--cyan)}
+  .sw-tiny{display:block;margin:18px auto 0;background:none;border:0;color:var(--muted-2);
+    font-family:"Space Mono",monospace;font-size:11px;letter-spacing:.13em;text-transform:uppercase;
+    cursor:pointer;text-decoration:underline;text-underline-offset:4px}
+  .sw-tiny:hover{color:var(--cyan)}
+  .sw-ring{width:74px;height:74px;margin:0 auto 18px;border-radius:50%;border:2px solid var(--cyan);
+    display:flex;align-items:center;justify-content:center;font-size:32px;color:var(--cyan);background:rgba(92,225,230,.1)}
+  @media (prefers-reduced-motion:reduce){.sw-step{animation:none}}
+</style>
 </head>
 <body>
 <div class="orbs"><canvas id="orbCanvas"></canvas></div>
@@ -161,6 +207,54 @@
     <h1>Sync <span class="i">Studio</span>.</h1>
     <p class="lead">Drop in your tracks, trim each one, and lock them all to a single tempo. Pitch and quality stay exactly as they were — only the timing moves. Everything runs in your browser; nothing is uploaded.</p>
   </section>
+
+<div class="swz" id="sw">
+  <div class="sw-dots" id="swDots"></div>
+
+  <div class="sw-step on" data-s="1">
+    <div class="sw-n">Step 1 of 3</div>
+    <div class="sw-q">Add your songs</div>
+    <div class="sw-sub">Two or more. We'll work out how fast each one is.</div>
+    <div id="swDropSlot"></div>
+    <div class="sw-nav" style="display:none" id="swGo1">
+      <button class="sw-go" data-sgo="2">Next</button>
+    </div>
+  </div>
+
+  <div class="sw-step" data-s="2">
+    <div class="sw-n">Step 2 of 3</div>
+    <div class="sw-q">Which one sets the speed?</div>
+    <div class="sw-sub">Tap the song you want the others to match.</div>
+    <div class="sw-list" id="swSongs"></div>
+    <div class="sw-nav">
+      <button class="sw-back" data-sgo="1">Back</button>
+      <button class="sw-go" data-sgo="3" id="swNext2" disabled>Next</button>
+    </div>
+  </div>
+
+  <div class="sw-step" data-s="3">
+    <div class="sw-n">Step 3 of 3</div>
+    <div class="sw-q">All matched</div>
+    <div class="sw-sub" id="swSummary">—</div>
+    <div class="sw-chips" id="swFmt">
+      <button class="sw-chip on" data-f="mp3">MP3 · smaller</button>
+      <button class="sw-chip" data-f="wav">WAV · best quality</button>
+    </div>
+    <button class="sw-go" id="swDl">Download all my songs</button>
+    <div class="sw-nav"><button class="sw-back" data-sgo="2">Back</button></div>
+  </div>
+
+  <div class="sw-step" data-s="4">
+    <div style="text-align:center;padding:14px 0">
+      <div class="sw-ring">✓</div>
+      <div class="sw-q" style="margin-top:0">Saved to your downloads</div>
+      <div class="sw-sub">Every song now runs at the same speed.</div>
+      <button class="sw-go" id="swAgain">Start again</button>
+    </div>
+  </div>
+
+  <button class="sw-tiny" id="swPro">Show all the controls</button>
+</div>
 
   <div class="drop" id="drop">
     <span class="plus">+</span>
@@ -989,5 +1083,99 @@ $('dlAll').addEventListener('click',function(){
 
 </script>
 <script src="analytics.js?v=2026-08-16e"></script>
+<script>
+/* Guided mode — drives the existing engine, never duplicates it. */
+(function(){
+  var W={step:1,max:3,on:true};
+  var $=function(id){return document.getElementById(id);};
+  var sw=$('sw'); if(!sw) return;
+  document.body.classList.add('guided');
+  $('swDropSlot').appendChild($('drop'));
+
+  (function(){var h='';for(var i=1;i<=W.max;i++)h+='<span class="sw-dot'+(i===1?' on':'')+'"></span>';$('swDots').innerHTML=h;})();
+
+  function tracks(){ try{ return TR||[]; }catch(e){ return []; } }
+  function ready(){ return tracks().filter(function(t){return t.buf;}); }
+
+  function go(n){
+    W.step=n;
+    [].forEach.call(sw.querySelectorAll('.sw-step'),function(s){s.classList.toggle('on',+s.getAttribute('data-s')===n);});
+    [].forEach.call($('swDots').children,function(d,i){d.classList.toggle('on',i+1===n);d.classList.toggle('done',i+1<n);});
+    $('swDots').style.visibility = n>W.max ? 'hidden':'visible';
+    try{ stopAll(); }catch(e){}
+    if(n===2) listSongs();
+    if(n===3) summarise();
+    sw.scrollIntoView({behavior:'smooth',block:'start'});
+  }
+  sw.addEventListener('click',function(e){
+    var b=e.target.closest('[data-sgo]'); if(b) go(+b.getAttribute('data-sgo'));
+  });
+
+  var chosen=null;
+  function listSongs(){
+    var t=ready(), h='';
+    t.forEach(function(x){
+      h+='<button class="sw-song'+(chosen===x.id?' on':'')+'" data-tid="'+x.id+'">'+
+           '<span class="nm">'+String(x.name).replace(/[<>&]/g,'')+'</span>'+
+           '<span class="bp">'+Math.round(x.bpm)+'</span>'+
+           '<span class="tag">everyone matches this</span></button>';
+    });
+    $('swSongs').innerHTML = h || '<div class="sw-sub">Still reading your files…</div>';
+    $('swNext2').disabled = chosen===null;
+  }
+  $('swSongs').addEventListener('click',function(e){
+    var b=e.target.closest('[data-tid]'); if(!b) return;
+    chosen=+b.getAttribute('data-tid');
+    var t=ready().filter(function(x){return x.id===chosen;})[0];
+    if(t){
+      var inp=$('target');
+      inp.value=Math.round(t.bpm*100)/100;
+      inp.dispatchEvent(new Event('input',{bubbles:true}));
+      inp.dispatchEvent(new Event('change',{bubbles:true}));
+    }
+    listSongs();
+  });
+
+  function summarise(){
+    var t=ready(), inp=$('target');
+    $('swSummary').textContent = t.length+' songs, all now at '+Math.round(parseFloat(inp.value))+' beats per minute. Same pitch, same quality.';
+  }
+
+  $('swFmt').addEventListener('click',function(e){
+    var b=e.target.closest('[data-f]'); if(!b) return;
+    [].forEach.call(this.querySelectorAll('.sw-chip'),function(x){x.classList.remove('on');});
+    b.classList.add('on');
+    var f=$('fmt'); if(f){ f.value=b.getAttribute('data-f'); f.dispatchEvent(new Event('change',{bubbles:true})); }
+  });
+
+  $('swDl').addEventListener('click',function(){
+    var b=$('dlAll'); if(!b) return;
+    this.textContent='Packing them up…';
+    b.click();
+    var self=this;
+    setTimeout(function(){ self.textContent='Download all my songs'; go(4); },1400);
+  });
+  $('swAgain').addEventListener('click',function(){ location.reload(); });
+
+  /* watch for decoded files, then open the gate to step 2 */
+  setInterval(function(){
+    if(!W.on) return;
+    var n=ready().length;
+    $('swGo1').style.display = n>=2 ? 'flex':'none';
+    if(W.step===2) listSongs();
+  },600);
+
+  $('swPro').addEventListener('click',function(){
+    W.on=!W.on;
+    document.body.classList.toggle('guided',W.on);
+    $('swDots').style.display=W.on?'flex':'none';
+    [].forEach.call(sw.querySelectorAll('.sw-step'),function(s){s.style.display=W.on?'':'none';});
+    this.textContent=W.on?'Show all the controls':'Back to the simple version';
+    if(W.on) $('swDropSlot').appendChild($('drop'));
+    else document.querySelector('.wrap').insertBefore($('drop'), document.getElementById('master'));
+  });
+})();
+</script>
+
 </body>
 </html>

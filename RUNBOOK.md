@@ -20,6 +20,7 @@ Live at <https://indiemovementartproject.com> · GitHub Pages from `main` in
 | `pay.html` | Checkout: order → details → pay by UPI → upload screenshot |
 | `apps-script/Code.gs` | Backend: records orders, files screenshots, emails the team + payer |
 | `attendance.html`, `checkin.html` | Team tools, behind Firebase Auth |
+| `count-me-in.html`, `sync-studio.html` | Free tools for dancers. Both open in **guided mode** — one decision per screen — with the full editor one tap away behind "Show all the controls" |
 
 ## Money
 
@@ -113,6 +114,20 @@ as steps in that order.
 
 The file speaks GA4's vocabulary but only `send()` is coupled to it — swapping in Plausible or
 Umami later means changing that one function, not the instrumentation.
+
+## The two dancer tools
+
+Both open in a guided, step-by-step mode aimed at people who don't edit audio:
+
+- **Count Me In** — drop a song → pick the count and sound → listen → download. The engine already
+  detects tempo, first beat and ending on load, so the wizard just presents that rather than asking.
+  The only correction most people need is "too fast / too slow", which halves or doubles the tempo.
+- **Sync Studio** — add songs → tap the one whose speed the others should match → download.
+
+The guided layer **drives the original controls** rather than reimplementing anything: it clicks the
+same buttons and sets the same inputs a person would. One source of truth for the audio, and
+"Show all the controls" hands back the full editor untouched. If you change the classic UI, keep the
+element ids — that is the whole contract between the two layers.
 
 ## Known constraints
 
