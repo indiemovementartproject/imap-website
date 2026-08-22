@@ -32,6 +32,19 @@ Live at <https://indiemovementartproject.com> · GitHub Pages from `main` in
   `918454880061` (Ruchika).
 - **Notified on every payment:** `CONFIG.NOTIFY` in `Code.gs` — Ruchika, Rohit, studio address.
 
+## One-off partner workshops
+
+`SPECIALS` in `cart.js` holds workshops that are not part of a series — currently the Retro-Jazz
+workshop at CrossBox Fitness, Vashi (27 Aug). They are sold **without the cart**: the Register Now
+buttons link to `pay.html?buy=<id>`, which clears the cart, puts that single item in it, and drops
+the person straight into checkout. A registration link means that item and nothing else.
+
+`?buy=xb-retro-member` also shows an amber warning at checkout, because a non-member who pays the
+₹199 member rate owes the ₹400 difference at the door.
+
+To retire it: delete the two entries from `SPECIALS` in `cart.js` and from `PRICES` in `Code.gs`,
+and remove the `#retro-jazz` section from `index.html`.
+
 ## Changing prices
 
 Prices live in **two** places and must agree:
@@ -48,6 +61,7 @@ so a mismatch is a visible warning, never a wrong charge.
 | All workshops — Vashi / Seawoods / both | ₹2000 / ₹3000 / ₹4500 |
 | Regular class — 1 month / 3 months | ₹2800 / ₹7500 |
 | Kids (Vashi) | ₹2000 / ₹5400 |
+| Retro-Jazz @ CrossBox — member / non-member | ₹199 / ₹599 |
 | Juniors (Seawoods) | ₹2500 / ₹6500 |
 
 Per-batch exceptions are `fees` on the batch in `cart.js` and `FEES` in `Code.gs`.

@@ -43,6 +43,15 @@
     { id: 'ws-pass-both',     title: 'All workshops — both studios', detail: 'Orientation Series · Vashi + Seawoods',        amount: 4500 }
   ];
 
+  /* One-off partner workshop at CrossBox Fitness, Vashi. Two rates, and a
+     non-member who pays the member rate owes the difference at the door. */
+  var SPECIALS = [
+    { id: 'xb-retro-member', title: 'Retro-Jazz Workshop — CrossBox member',
+      detail: '27 Aug · CrossBox Fitness, Vashi · Rohit Choudhary', amount: 199 },
+    { id: 'xb-retro-guest',  title: 'Retro-Jazz Workshop — non-member',
+      detail: '27 Aug · CrossBox Fitness, Vashi · Rohit Choudhary', amount: 599 }
+  ];
+
   /* Regular classes. */
   var BATCHES = {
     'contemporary-seawoods':  { name: 'Contemporary',     region: 'Seawoods', who: 'Akash Jathar' },
@@ -75,6 +84,12 @@
   /** Resolve any purchasable id to {id, title, detail, amount, type}. */
   function lookup(id) {
     var i;
+    for (i = 0; i < SPECIALS.length; i++) {
+      if (SPECIALS[i].id === id) {
+        return { id: id, type: 'workshop', title: SPECIALS[i].title,
+                 detail: SPECIALS[i].detail, amount: SPECIALS[i].amount };
+      }
+    }
     for (i = 0; i < PASSES.length; i++) {
       if (PASSES[i].id === id) {
         return { id: id, type: 'workshop', title: PASSES[i].title, detail: PASSES[i].detail, amount: PASSES[i].amount };
@@ -158,7 +173,7 @@
     },
     clear: function () { write([]); },
     lookup: lookup,
-    catalogue: { workshops: WORKSHOPS, passes: PASSES, batches: BATCHES, plans: PLANS, workshopPrice: WORKSHOP_PRICE },
+    catalogue: { workshops: WORKSHOPS, passes: PASSES, specials: SPECIALS, batches: BATCHES, plans: PLANS, workshopPrice: WORKSHOP_PRICE },
     planPrice: planPrice,
     payWhatsApp: PAY_WHATSAPP,
     enquiryWhatsApp: ENQ_WHATSAPP

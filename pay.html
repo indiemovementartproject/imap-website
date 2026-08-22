@@ -97,6 +97,11 @@
   @keyframes sp{to{transform:rotate(360deg)}}
   @media (prefers-reduced-motion:reduce){.spin{animation-duration:2s}}
 
+  .buy-note{border:1px solid var(--border-cyan);background:rgba(92,225,230,.07);border-radius:14px;
+    padding:14px 16px;margin-bottom:16px;font-size:14px;line-height:1.6;color:var(--muted)}
+  .buy-note b{color:var(--text);font-weight:500}
+  .buy-note.warn{border-color:rgba(255,176,96,.4);background:rgba(255,176,96,.08);color:#e8c9a0}
+  .buy-note.warn b{color:var(--warn)}
   /* order lines */
   .lines{display:flex;flex-direction:column;gap:10px}
   .line{display:flex;align-items:center;gap:14px;border:1px solid var(--border);border-radius:14px;padding:13px 15px;background:rgba(255,255,255,.02)}
@@ -250,6 +255,8 @@
 
     <div id="flow">
 
+      <p class="buy-note" id="buyNote" hidden></p>
+
       <!-- 1 · order -->
       <div class="step active" id="s1">
         <div class="step-head"><span class="num">1</span> Your order</div>
@@ -324,8 +331,8 @@
   <div class="foot-bottom">© <span id="yr"></span> Indie Movement Art Project · Questions? <a href="https://wa.me/918454880061" target="_blank" rel="noopener">WhatsApp us</a></div>
 </footer>
 
-<script src="cart.js?v=2026-08-16e"></script>
-<script src="analytics.js?v=2026-08-16e"></script>
+<script src="cart.js?v=2026-08-22a"></script>
+<script src="analytics.js?v=2026-08-22a"></script>
 <script>
 /* ==========================================================================
    CONFIG. Prices live in cart.js; the Apps Script keeps its own copy and
@@ -792,6 +799,28 @@ function showReceipt(res){
 /* ?test=1 drops a ₹1 item in so the whole flow can be run for a rupee.
    Nothing links here, so it never appears to customers. */
 if(/[?&]test=1\b/.test(location.search) && !Cart.has('test-1')) Cart.add('test-1');
+
+/* ?buy=<id> is a direct registration link — one item, straight to checkout,
+   bypassing the cart. Used by the Retro-Jazz Register Now buttons. */
+(function(){
+  var m = /[?&]buy=([a-z0-9\-]+)/i.exec(location.search);
+  if(!m) return;
+  var it = Cart.lookup(m[1]);
+  if(!it) return;
+  Cart.clear();                     /* a registration link means this and only this */
+  Cart.add(it.id);
+  var note = document.getElementById('buyNote');
+  if(note && /^xb-retro/.test(it.id)){
+    note.hidden = false;
+    if(it.id === 'xb-retro-member'){
+      note.className = 'buy-note warn';
+      note.innerHTML = '<b>CrossBox members only.</b> If you\'re not a member, the door will ask for the ₹400 difference on the night — pick the non-member rate instead.';
+    } else {
+      note.className = 'buy-note';
+      note.innerHTML = 'Registering for the <b>Retro-Jazz Workshop</b> at CrossBox Fitness, Vashi — 27 Aug, 8:00–9:30 PM.';
+    }
+  }
+})();
 
 renderLines();
 $('yr').textContent=new Date().getFullYear();

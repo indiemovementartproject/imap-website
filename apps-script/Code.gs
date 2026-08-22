@@ -17,7 +17,7 @@
 
 /* Bump this whenever you paste a new copy in. Visiting the /exec URL in a browser
    prints it, so you can always tell which version the web app is actually serving. */
-var BUILD = '2026-08-16-final';
+var BUILD = '2026-08-22-a';
 
 var CONFIG = {
   ADMIN_EMAIL:   'indiemovementartproject@gmail.com',
@@ -47,6 +47,8 @@ var CONFIG = {
 var PRICES = (function () {
   var p = {
     'test-1':           { label: 'Test payment',                 amount: 1 },
+    'xb-retro-member':  { label: 'Retro-Jazz Workshop · 27 Aug · CrossBox member',     amount: 199 },
+    'xb-retro-guest':   { label: 'Retro-Jazz Workshop · 27 Aug · non-member',          amount: 599 },
     'ws-pass-vashi':    { label: 'All workshops — Vashi',        amount: 2000 },
     'ws-pass-seawoods': { label: 'All workshops — Seawoods',     amount: 3000 },
     'ws-pass-both':     { label: 'All workshops — both studios', amount: 4500 },
