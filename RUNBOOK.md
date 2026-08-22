@@ -39,8 +39,16 @@ workshop at CrossBox Fitness, Vashi (27 Aug). They are sold **without the cart**
 buttons link to `pay.html?buy=<id>`, which clears the cart, puts that single item in it, and drops
 the person straight into checkout. A registration link means that item and nothing else.
 
-`?buy=xb-retro-member` also shows an amber warning at checkout, because a non-member who pays the
-₹199 member rate owes the ₹400 difference at the door.
+`?buy=xb-retro-member` shows an amber notice **at checkout** explaining that a non-member paying the
+member rate owes the ₹400 difference at the door. That warning is deliberately kept off the
+homepage, where it reads as a threat rather than a condition — the rate there is simply labelled
+"members only".
+
+**Shareable link:** `indiemovementartproject.com/retro-jazz` → `retro-jazz.html`, which carries the
+Open Graph tags (so WhatsApp and Instagram preview the poster) and forwards to
+`index.html?go=retro-jazz`. The landing uses a **query param, not a `#hash`** on purpose: the
+browser re-applies its own fragment scroll after the page settles, which was overshooting the
+section by ~390px. `?go=<id>` scrolls to any section id and stays put.
 
 To retire it: delete the two entries from `SPECIALS` in `cart.js` and from `PRICES` in `Code.gs`,
 and remove the `#retro-jazz` section from `index.html`.
