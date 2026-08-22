@@ -314,6 +314,40 @@
     .ws-time{margin-left:72px}
     .ws-go{margin-left:auto}
   }
+
+  /* ---------- Annual Jam photo strip ---------- */
+  .jam-stage{position:relative;margin-top:26px;overflow:hidden;
+             width:100vw;margin-left:calc(50% - 50vw);
+
+             -webkit-mask-image:linear-gradient(90deg,transparent 0,#000 8%,#000 92%,transparent 100%);
+             mask-image:linear-gradient(90deg,transparent 0,#000 8%,#000 92%,transparent 100%)}
+  .jam-track{display:flex;align-items:center;gap:18px;will-change:transform;
+             transition:transform .72s cubic-bezier(.22,.68,.24,1);touch-action:pan-y}
+  .jam-stage.is-dragging .jam-track{transition:none}
+  .jam-slide{flex:0 0 auto;position:relative;height:clamp(200px,33vw,380px);border-radius:16px;overflow:hidden;
+             border:1px solid var(--border);background:#0d1114;cursor:grab;
+             opacity:.42;transform:scale(.9);filter:saturate(.7);
+             transition:opacity .6s ease,transform .6s cubic-bezier(.22,.68,.24,1),filter .6s ease,border-color .6s}
+  .jam-stage.is-dragging .jam-slide{cursor:grabbing}
+  .jam-slide img{height:100%;width:auto;display:block;object-fit:cover;pointer-events:none;-webkit-user-drag:none}
+  .jam-slide.on{opacity:1;transform:scale(1);filter:none;border-color:var(--border-cyan);
+                box-shadow:0 26px 70px rgba(0,0,0,.55),0 0 0 1px rgba(92,225,230,.1)}
+  .jam-bar{width:min(320px,60vw);height:2px;margin:22px auto 0;border-radius:2px;
+           background:rgba(255,255,255,.09);overflow:hidden}
+  .jam-bar i{display:block;height:100%;width:100%;transform-origin:left center;transform:scaleX(0);
+             background:linear-gradient(90deg,rgba(92,225,230,.35),var(--cyan))}
+  .jam-bar i.run{animation:jamfill 2s linear forwards}
+  @keyframes jamfill{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+  .jam-all{display:inline-flex;align-items:center;gap:9px;margin-top:26px;padding:11px 22px;border-radius:12px;
+           border:1px solid var(--border-cyan);color:var(--cyan);text-decoration:none;font-size:14px;
+           background:rgba(92,225,230,.05);transition:.18s}
+  .jam-all span{transition:transform .22s}
+  .jam-all:hover{background:var(--cyan);color:#04181a;border-color:var(--cyan)}
+  .jam-all:hover span{transform:translateX(4px)}
+  @media(prefers-reduced-motion:reduce){
+    .jam-track{transition:none}
+    .jam-bar i.run{animation:none;transform:scaleX(1)}
+  }
 </style>
 </head>
 <body class="home">
@@ -720,6 +754,119 @@
   }
   var cCar=Coverflow({root:document.getElementById('cCar'),stage:document.getElementById('cStage'),dots:document.getElementById('cDots'),prevBtn:document.getElementById('cPrev'),nextBtn:document.getElementById('cNext'),span:2,start:0,autoplay:true,interval:2000});
   cCar.enable();
+  </script>
+
+
+  <!-- ANNUAL JAM PHOTOS -->
+  <section class="section" id="jam" style="padding-bottom:44px">
+    <h2>Annual <span class="i">Jam</span>.</h2>
+    <p class="tagline">The night the studio took the stage.</p>
+    <p class="cf-hint"><span>Plays on its own</span> &middot; drag to browse</p>
+    <div class="jam-stage" id="jamStage" aria-roledescription="carousel" aria-label="Annual Jam photographs">
+      <div class="jam-track" id="jamTrack">
+        <figure class="jam-slide"><img src="media/jam/0679_Semi-Classical.jpg" alt="iMAP Annual Jam — Semi-Classical" width="1200" height="800" decoding="async"></figure>
+        <figure class="jam-slide"><img src="media/jam/0383_Jazz-Training.jpg" alt="iMAP Annual Jam — Jazz Training" width="1200" height="800" decoding="async"></figure>
+        <figure class="jam-slide"><img src="media/jam/0338_Jazz-Funk.jpg" alt="iMAP Annual Jam — Jazz Funk" width="1200" height="800" decoding="async"></figure>
+        <figure class="jam-slide"><img src="media/jam/0129_Bollywood-Batch.jpg" alt="iMAP Annual Jam — Bollywood" width="1200" height="800" decoding="async"></figure>
+        <figure class="jam-slide"><img src="media/jam/0461_One-Way-Crew.jpg" alt="iMAP Annual Jam — One Way Crew" width="1200" height="800" decoding="async" loading="lazy"></figure>
+        <figure class="jam-slide"><img src="media/jam/0693_Semi-Classical.jpg" alt="iMAP Annual Jam — Semi-Classical" width="1200" height="800" decoding="async" loading="lazy"></figure>
+        <figure class="jam-slide"><img src="media/jam/0409_Juniors.jpg" alt="iMAP Annual Jam — Juniors" width="1200" height="800" decoding="async" loading="lazy"></figure>
+        <figure class="jam-slide"><img src="media/jam/0616_Retro-Pyaar.jpg" alt="iMAP Annual Jam — Retro Pyaar" width="1200" height="800" decoding="async" loading="lazy"></figure>
+        <figure class="jam-slide"><img src="media/jam/0745_Team-Fraction.jpg" alt="iMAP Annual Jam — Team Fraction" width="1200" height="800" decoding="async" loading="lazy"></figure>
+        <figure class="jam-slide"><img src="media/jam/0163_Contemporary.jpg" alt="iMAP Annual Jam — Contemporary" width="1200" height="800" decoding="async" loading="lazy"></figure>
+        <figure class="jam-slide"><img src="media/jam/0104_Bollywood-Batch.jpg" alt="iMAP Annual Jam — Bollywood" width="1200" height="1800" decoding="async" loading="lazy"></figure>
+        <figure class="jam-slide"><img src="media/jam/0341_Jazz-Funk.jpg" alt="iMAP Annual Jam — Jazz Funk" width="1200" height="800" decoding="async" loading="lazy"></figure>
+        <figure class="jam-slide"><img src="media/jam/0689_Semi-Classical.jpg" alt="iMAP Annual Jam — Semi-Classical" width="1200" height="800" decoding="async" loading="lazy"></figure>
+        <figure class="jam-slide"><img src="media/jam/0530_Open-Style.jpg" alt="iMAP Annual Jam — Open Style" width="1200" height="800" decoding="async" loading="lazy"></figure>
+        <figure class="jam-slide"><img src="media/jam/0553_Naad-Tarang.jpg" alt="iMAP Annual Jam — Naad Tarang" width="1200" height="800" decoding="async" loading="lazy"></figure>
+        <figure class="jam-slide"><img src="media/jam/0629_Retro-Pyaar.jpg" alt="iMAP Annual Jam — Retro Pyaar" width="1200" height="800" decoding="async" loading="lazy"></figure>
+      </div>
+    </div>
+    <div class="jam-bar" aria-hidden="true"><i id="jamBar"></i></div>
+    <div><a class="jam-all" href="gallery.html">View All Photos <span>&rarr;</span></a></div>
+  </section>
+
+  <script>
+  /* Annual Jam strip: advances every 2s, drag/swipe to browse, seamless loop */
+  (function(){
+    var stage=document.getElementById('jamStage'), track=document.getElementById('jamTrack'),
+        bar=document.getElementById('jamBar');
+    if(!stage||!track) return;
+    var real=[].slice.call(track.children), N=real.length;
+    if(!N) return;
+    real.forEach(function(el){ var c=el.cloneNode(true); c.setAttribute('aria-hidden','true'); track.appendChild(c); });
+    var slides=[].slice.call(track.children), i=0, dragging=false, sx=0, sy=0, lock=null,
+        dx=0, raf=0, timer=0, resume=0,
+        reduce=matchMedia('(prefers-reduced-motion:reduce)').matches;
+
+    function centreOf(k){ var el=slides[k]; return stage.clientWidth/2 - (el.offsetLeft + el.offsetWidth/2); }
+    function paint(anim){
+      track.style.transition = anim ? '' : 'none';
+      track.style.transform = 'translate3d(' + (centreOf(i) + dx) + 'px,0,0)';
+      if(!anim){ void track.offsetHeight; }
+      slides.forEach(function(el,k){ el.classList.toggle('on', (k - i) === 0); });
+    }
+    function tick(){
+      if(bar && !reduce){ bar.classList.remove('run'); void bar.offsetWidth; bar.classList.add('run'); }
+    }
+    function go(n){
+      i = n; paint(true); tick();
+      if(i >= N || i < 0){
+        setTimeout(function(){
+          if(i >= N) i -= N; else if(i < 0) i += N;
+          dx = 0; paint(false);
+        }, 760);
+      }
+    }
+    function play(){ if(timer) clearInterval(timer); timer=setInterval(function(){ if(!dragging) go(i+1); },2000); tick(); }
+    function pause(){ if(timer){ clearInterval(timer); timer=0; } if(bar) bar.classList.remove('run'); }
+    function poke(){ pause(); clearTimeout(resume); resume=setTimeout(play,4000); }
+
+    function nearest(){
+      var at = centreOf(i) + dx, best=i, bd=Infinity;
+      for(var k=0;k<slides.length;k++){
+        var d=Math.abs(centreOf(k) - at);
+        if(d<bd){ bd=d; best=k; }
+      }
+      return best;
+    }
+    var pid=null;
+    function endDrag(snap){
+      if(!dragging) return;
+      dragging=false; lock=null; stage.classList.remove('is-dragging');
+      if(raf){ cancelAnimationFrame(raf); raf=0; }
+      if(pid!==null && stage.hasPointerCapture && stage.hasPointerCapture(pid)){
+        try{ stage.releasePointerCapture(pid); }catch(err){}
+      }
+      pid=null;
+      var k = snap ? nearest() : i; dx=0; go(k);
+    }
+    stage.addEventListener('pointerdown',function(e){
+      dragging=true; lock=null; sx=e.clientX; sy=e.clientY; dx=0; pid=e.pointerId;
+      poke(); stage.classList.add('is-dragging');
+      try{ stage.setPointerCapture(e.pointerId); }catch(err){}
+    });
+    stage.addEventListener('pointermove',function(e){
+      if(!dragging) return;
+      var mx=e.clientX-sx, my=e.clientY-sy;
+      if(lock===null && (Math.abs(mx)>5||Math.abs(my)>5)) lock = Math.abs(mx)>Math.abs(my) ? 'x' : 'y';
+      if(lock==='y'){ endDrag(false); return; }
+      if(lock==='x'){ dx=mx; if(!raf) raf=requestAnimationFrame(function(){ raf=0; paint(false); }); }
+    });
+    stage.addEventListener('pointerup',function(){ endDrag(true); });
+    stage.addEventListener('pointercancel',function(){ endDrag(true); });
+    stage.addEventListener('lostpointercapture',function(){ endDrag(true); });
+    addEventListener('blur',function(){ endDrag(true); });
+    stage.addEventListener('mouseenter',pause);
+    stage.addEventListener('mouseleave',function(){ clearTimeout(resume); if(!reduce) play(); });
+
+    addEventListener('resize',function(){ dx=0; paint(false); });
+    document.addEventListener('visibilitychange',function(){ if(document.hidden) pause(); else if(!reduce) play(); });
+
+    function start(){ dx=0; paint(false); if(!reduce) play(); }
+    start();
+    addEventListener('load',function(){ dx=0; paint(false); });
+  })();
   </script>
 
 </main>

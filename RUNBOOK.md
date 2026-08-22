@@ -13,10 +13,11 @@ Live at <https://indiemovementartproject.com> · GitHub Pages from `main` in
 
 | File | What it is |
 |---|---|
-| `index.html` | Home: hero, About, Orientation Series (workshops), Regular Classes carousel |
+| `index.html` | Home: hero, About, Retro-Jazz, Orientation Series (workshops), Regular Classes carousel, Annual Jam photo strip |
 | `cart.js` | **The catalogue.** Every purchasable item and its price. Also the cart and nav badge. |
 | `batch.html` | One page for every batch, driven by `?batch=<slug>` |
 | `batches.html` | All batches in a carousel |
+| `gallery.html` | Annual Jam gallery — 165 photos in a Pinterest-style grid, with a lightbox |
 | `pay.html` | Checkout: order → details → pay by UPI → upload screenshot |
 | `apps-script/Code.gs` | Backend: records orders, files screenshots, emails the team + payer |
 | `attendance.html`, `checkin.html` | Team tools, behind Firebase Auth |
@@ -157,6 +158,25 @@ same buttons and sets the same inputs a person would. Anything that starts audio
 user gesture iOS requires before it will play, and a proxy leaves the visible label stale. One source of truth for the audio, and
 "Show all the controls" hands back the full editor untouched. If you change the classic UI, keep the
 element ids — that is the whole contract between the two layers.
+
+## Annual Jam photos
+
+The photographs live in `media/jam/` (~25 MB, 165 files) and are named `<index>_<Performance>.jpg`.
+Nothing reads the filename at runtime — the performance name is baked into each page's markup as
+alt text and the lightbox caption — so renaming a file means editing `index.html` and `gallery.html`.
+
+Two places show them:
+
+- **`index.html` → `#jam`** — 16 hand-picked frames on a strip that advances every 2 s and can be
+  dragged. The slides are cloned once so the loop is seamless; the script wraps the index back to
+  the start 760 ms after the transition (matching the CSS transition), so if you change
+  `transition:.72s` on `.jam-track`, change that timeout too.
+- **`gallery.html`** — all 165 in a CSS-grid masonry. Row spans are computed in JS from each tile's
+  rendered height (`grid-auto-rows:8px`), so tiles need their `--ar` custom property set or they
+  collapse. `.gt.wide` spans two columns; 13 of the strongest frames carry it.
+
+Adding or removing photos means editing the markup by hand in both files. The originals sit in the
+studio's Google Drive; these copies are downscaled (w1800 for the strip, w1100 for the grid).
 
 ## Known constraints
 
