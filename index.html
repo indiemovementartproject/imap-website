@@ -182,8 +182,8 @@
   #retro-jazz,#events,#classes,#about{scroll-margin-top:90px}
   .xb-badge{display:inline-flex;flex-direction:column;align-items:center;gap:12px;margin-bottom:26px}
   .xb-with{font-family:"Space Mono",monospace;font-size:10px;letter-spacing:.24em;text-transform:uppercase;color:var(--muted-2)}
-  .xb-logo{height:46px;width:auto;display:block;border-radius:9px}
-  @media (max-width:560px){.xb-logo{height:38px}}
+  .xb-logo{height:38px;width:auto;display:block}
+  @media (max-width:560px){.xb-logo{height:32px}}
   .xb-grid{display:grid;grid-template-columns:minmax(0,0.85fr) minmax(0,1fr);gap:30px;align-items:start;
     margin-top:32px;text-align:left}
   .xb-poster{border:1px solid var(--border);border-radius:20px;overflow:hidden;background:#0a0e10;
@@ -196,9 +196,6 @@
   .xb-fact .k{font-family:"Space Mono",monospace;font-size:9.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted-2)}
   .xb-fact .v{font-family:"Instrument Serif",serif;font-size:24px;line-height:1.1}
   .xb-fact .s{font-size:13px;color:var(--muted)}
-  .xb-venue{position:relative;overflow:hidden}
-  .xb-venue::after{content:"";position:absolute;right:-14px;bottom:-10px;width:96px;height:27px;opacity:.14;
-    background:url('media/crossbox-logo.png') no-repeat right bottom/contain;pointer-events:none}
   .xb-k{font-family:"Space Mono",monospace;font-size:10px;letter-spacing:.2em;text-transform:uppercase;
     color:var(--muted-2);margin-bottom:11px}
   .xb-rates{display:flex;flex-direction:column;gap:11px}
@@ -372,7 +369,7 @@
       <div class="xb-side">
         <div class="xb-facts">
           <div class="xb-fact"><span class="k">When</span><span class="v">Thu 27 Aug</span><span class="s">8:00 – 9:30 PM</span></div>
-          <div class="xb-fact xb-venue"><span class="k">Where</span><span class="v">CrossBox Fitness</span><span class="s">Vashi, Navi Mumbai</span></div>
+          <div class="xb-fact"><span class="k">Where</span><span class="v">CrossBox Fitness</span><span class="s">Vashi, Navi Mumbai</span></div>
         </div>
 
         <div class="xb-k">Register</div>
@@ -562,8 +559,8 @@
     <p class="ws-note"><span>Add what you want</span> to your cart · pay for everything together</p>
   </section>
 
-  <script src="cart.js?v=2026-08-22a"></script>
-<script src="analytics.js?v=2026-08-22a"></script>
+  <script src="cart.js?v=2026-08-22b"></script>
+<script src="analytics.js?v=2026-08-22b"></script>
   <script>
   /* Orientation Series: studio tabs, reveal animation, auto-hide past dates */
   (function(){
