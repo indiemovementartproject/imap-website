@@ -101,6 +101,7 @@
       var href = a.getAttribute('href') || '';
       if (/count-me-in\.html/i.test(href)) send('tool_click', { tool: 'Count Me In' });
       else if (/sync-studio\.html/i.test(href))  send('tool_click', { tool: 'Sync Studio' });
+      else if (/maps\.app\.goo\.gl|google\.[a-z.]+\/maps/.test(href)) send('venue_click', { venue: 'CrossBox Fitness' });
       else if (/wa\.me\/918454880061/.test(href)) send('whatsapp_click', { purpose: 'enquiry' });
       else if (/wa\.me\/919870538332/.test(href)) send('whatsapp_click', { purpose: 'payment' });
     }, true);
