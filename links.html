@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Batch links — iMAP team</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" href="favicon.ico" sizes="any">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Space+Grotesk:wght@300;400;500;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root{--cyan:#5ce1e6;--bg:#070a0c;--border:rgba(255,255,255,.09);--border-cyan:rgba(92,225,230,.28);
+        --text:#eef6f7;--muted:#8fa1a3;--muted-2:#5d6e70}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--text);font-family:"Space Grotesk",sans-serif;-webkit-font-smoothing:antialiased;
+       padding:34px 18px 70px}
+  .wrap{max-width:720px;margin:0 auto}
+  h1{font-family:"Instrument Serif",serif;font-weight:400;font-size:clamp(30px,7vw,42px);line-height:1.05}
+  h1 span{font-style:italic;color:var(--cyan)}
+  .sub{color:var(--muted);font-size:15px;line-height:1.6;margin-top:10px;max-width:52ch}
+  .k{font-family:"Space Mono",monospace;font-size:11px;letter-spacing:.18em;text-transform:uppercase;
+     color:var(--muted-2);margin:30px 0 12px}
+  .lk{display:grid;grid-template-columns:56px 1fr;gap:14px;align-items:center;
+      border:1px solid var(--border);border-radius:16px;padding:13px;margin-bottom:11px;background:rgba(255,255,255,.025)}
+  .lk img{width:56px;height:56px;border-radius:12px;object-fit:cover;background:#0d1114;grid-row:span 2}
+  .lk-x{min-width:0}
+  .lk h3{font-size:16px;font-weight:500}
+  .lk h3 span{font-size:12px;color:var(--muted-2);font-weight:400;margin-left:5px}
+  .lk-w{font-size:13px;color:var(--muted);margin-top:1px}
+  .lk code{display:block;font-family:"Space Mono",monospace;font-size:11.5px;color:var(--cyan);
+           margin-top:6px;word-break:break-all;opacity:.85}
+  .lk-b{grid-column:2;display:flex;gap:8px;flex-wrap:wrap}
+  .lk-b button{flex:1 1 auto;min-width:120px;border:1px solid var(--border-cyan);background:rgba(92,225,230,.06);
+               color:var(--cyan);font-family:inherit;font-size:13px;padding:9px 12px;border-radius:10px;cursor:pointer;
+               transition:.16s}
+  .lk-b button:hover{background:var(--cyan);color:#04181a}
+  .lk-b button.alt{border-color:var(--border);color:var(--muted)}
+  .lk-b button.alt:hover{border-color:var(--border-cyan);background:rgba(92,225,230,.06);color:var(--cyan)}
+  .lk-b button.done{background:var(--cyan);color:#04181a;border-color:var(--cyan)}
+  .note{color:var(--muted-2);font-size:13px;line-height:1.65;margin-top:26px;border-top:1px solid var(--border);padding-top:18px}
+  .note b{color:var(--muted);font-weight:400}
+  .note code{font-family:"Space Mono",monospace;font-size:12px;color:var(--muted)}
+  .toast{position:fixed;left:50%;bottom:24px;transform:translate(-50%,18px);opacity:0;pointer-events:none;
+         background:rgba(11,16,18,.96);border:1px solid var(--border-cyan);border-radius:13px;padding:11px 17px;
+         font-size:13.5px;transition:.26s;z-index:50}
+  .toast.on{opacity:1;transform:translate(-50%,0)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Batch <span>links</span>.</h1>
+  <p class="sub">Send these when someone asks about a class. Each one opens that batch page with fees and a Join button, and previews in WhatsApp with the instructor&rsquo;s photo.</p>
+
+  <div class="k">Regular batches</div>
+    <article class="lk">
+      <img src="media/contemporary-seawoods.jpg" alt="" loading="lazy" onerror="this.remove()">
+      <div class="lk-x">
+        <h3>Contemporary <span>Seawoods</span></h3>
+        <div class="lk-w">Akash Jathar</div>
+        <code>indiemovementartproject.com/contemporary-seawoods</code>
+      </div>
+      <div class="lk-b">
+        <button data-copy="link" data-i="0">Copy link</button>
+        <button data-copy="msg"  data-i="0" class="alt">Copy message</button>
+      </div>
+    </article>
+    <article class="lk">
+      <img src="media/contemporary-vashi.jpg" alt="" loading="lazy" onerror="this.remove()">
+      <div class="lk-x">
+        <h3>Contemporary <span>Vashi</span></h3>
+        <div class="lk-w">Shreya Rastogi</div>
+        <code>indiemovementartproject.com/contemporary-vashi</code>
+      </div>
+      <div class="lk-b">
+        <button data-copy="link" data-i="1">Copy link</button>
+        <button data-copy="msg"  data-i="1" class="alt">Copy message</button>
+      </div>
+    </article>
+    <article class="lk">
+      <img src="media/bollywood-seawoods.jpg" alt="" loading="lazy" onerror="this.remove()">
+      <div class="lk-x">
+        <h3>Bollywood <span>Seawoods</span></h3>
+        <div class="lk-w">Ruchika Jain</div>
+        <code>indiemovementartproject.com/bollywood-seawoods</code>
+      </div>
+      <div class="lk-b">
+        <button data-copy="link" data-i="2">Copy link</button>
+        <button data-copy="msg"  data-i="2" class="alt">Copy message</button>
+      </div>
+    </article>
+    <article class="lk">
+      <img src="media/bollywood-advance-vashi.jpg" alt="" loading="lazy" onerror="this.remove()">
+      <div class="lk-x">
+        <h3>Bollywood Advance <span>Vashi</span></h3>
+        <div class="lk-w">Rohit Choudhary</div>
+        <code>indiemovementartproject.com/bollywood-advance</code>
+      </div>
+      <div class="lk-b">
+        <button data-copy="link" data-i="3">Copy link</button>
+        <button data-copy="msg"  data-i="3" class="alt">Copy message</button>
+      </div>
+    </article>
+    <article class="lk">
+      <img src="media/jazz-funk.jpg" alt="" loading="lazy" onerror="this.remove()">
+      <div class="lk-x">
+        <h3>Jazz Funk <span>Seawoods</span></h3>
+        <div class="lk-w">Ruchika Jain</div>
+        <code>indiemovementartproject.com/jazz-funk</code>
+      </div>
+      <div class="lk-b">
+        <button data-copy="link" data-i="4">Copy link</button>
+        <button data-copy="msg"  data-i="4" class="alt">Copy message</button>
+      </div>
+    </article>
+    <article class="lk">
+      <img src="media/jazz-training.jpg" alt="" loading="lazy" onerror="this.remove()">
+      <div class="lk-x">
+        <h3>Jazz Training <span>Seawoods</span></h3>
+        <div class="lk-w">Rohit Choudhary</div>
+        <code>indiemovementartproject.com/jazz-training</code>
+      </div>
+      <div class="lk-b">
+        <button data-copy="link" data-i="5">Copy link</button>
+        <button data-copy="msg"  data-i="5" class="alt">Copy message</button>
+      </div>
+    </article>
+    <article class="lk">
+      <img src="media/open-style.jpg" alt="" loading="lazy" onerror="this.remove()">
+      <div class="lk-x">
+        <h3>Open Style <span>Seawoods</span></h3>
+        <div class="lk-w">Tej</div>
+        <code>indiemovementartproject.com/open-style</code>
+      </div>
+      <div class="lk-b">
+        <button data-copy="link" data-i="6">Copy link</button>
+        <button data-copy="msg"  data-i="6" class="alt">Copy message</button>
+      </div>
+    </article>
+    <article class="lk">
+      <img src="media/afro-dancehall.jpg" alt="" loading="lazy" onerror="this.remove()">
+      <div class="lk-x">
+        <h3>Afro &amp; Dancehall <span>Seawoods</span></h3>
+        <div class="lk-w">Tanvi Palande</div>
+        <code>indiemovementartproject.com/afro</code>
+      </div>
+      <div class="lk-b">
+        <button data-copy="link" data-i="7">Copy link</button>
+        <button data-copy="msg"  data-i="7" class="alt">Copy message</button>
+      </div>
+    </article>
+    <article class="lk">
+      <img src="media/juniors-seawoods.jpg" alt="" loading="lazy" onerror="this.remove()">
+      <div class="lk-x">
+        <h3>Juniors <span>Seawoods</span></h3>
+        <div class="lk-w">Jeevak Gaikwad</div>
+        <code>indiemovementartproject.com/juniors</code>
+      </div>
+      <div class="lk-b">
+        <button data-copy="link" data-i="8">Copy link</button>
+        <button data-copy="msg"  data-i="8" class="alt">Copy message</button>
+      </div>
+    </article>
+    <article class="lk">
+      <img src="media/kids-vashi.jpg" alt="" loading="lazy" onerror="this.remove()">
+      <div class="lk-x">
+        <h3>Kids <span>Vashi</span></h3>
+        <div class="lk-w">Jeevak Gaikwad</div>
+        <code>indiemovementartproject.com/kids</code>
+      </div>
+      <div class="lk-b">
+        <button data-copy="link" data-i="9">Copy link</button>
+        <button data-copy="msg"  data-i="9" class="alt">Copy message</button>
+      </div>
+    </article>
+
+  <div class="k">Everything else</div>
+  <article class="lk" style="grid-template-columns:1fr">
+    <div class="lk-x">
+      <h3>All batches <span>general enquiry</span></h3>
+      <code>indiemovementartproject.com/classes</code>
+    </div>
+    <div class="lk-b" style="grid-column:1">
+      <button data-copy="plain" data-url="indiemovementartproject.com/classes">Copy link</button>
+    </div>
+  </article>
+  <article class="lk" style="grid-template-columns:1fr">
+    <div class="lk-x">
+      <h3>Annual Jam photos <span>gallery</span></h3>
+      <code>indiemovementartproject.com/gallery</code>
+    </div>
+    <div class="lk-b" style="grid-column:1">
+      <button data-copy="plain" data-url="indiemovementartproject.com/gallery">Copy link</button>
+    </div>
+  </article>
+
+  <p class="note"><b>Good to know.</b> The full slug always works too, so
+  <code>indiemovementartproject.com/kids-vashi</code> and <code>indiemovementartproject.com/kids</code> both land in the same place.
+  These links are permanent &mdash; nothing expires and there is no third-party shortener in the way.</p>
+</div>
+
+<div class="toast" id="toast"></div>
+<script>
+(function(){
+  var SITE='indiemovementartproject.com', DATA=[{"n":"Contemporary","r":"Seawoods","w":"Akash Jathar","p":"contemporary-seawoods","img":"contemporary-seawoods"},{"n":"Contemporary","r":"Vashi","w":"Shreya Rastogi","p":"contemporary-vashi","img":"contemporary-vashi"},{"n":"Bollywood","r":"Seawoods","w":"Ruchika Jain","p":"bollywood-seawoods","img":"bollywood-seawoods"},{"n":"Bollywood Advance","r":"Vashi","w":"Rohit Choudhary","p":"bollywood-advance","img":"bollywood-advance-vashi"},{"n":"Jazz Funk","r":"Seawoods","w":"Ruchika Jain","p":"jazz-funk","img":"jazz-funk"},{"n":"Jazz Training","r":"Seawoods","w":"Rohit Choudhary","p":"jazz-training","img":"jazz-training"},{"n":"Open Style","r":"Seawoods","w":"Tej","p":"open-style","img":"open-style"},{"n":"Afro & Dancehall","r":"Seawoods","w":"Tanvi Palande","p":"afro","img":"afro-dancehall"},{"n":"Juniors","r":"Seawoods","w":"Jeevak Gaikwad","p":"juniors","img":"juniors-seawoods"},{"n":"Kids","r":"Vashi","w":"Jeevak Gaikwad","p":"kids","img":"kids-vashi"}];
+  var toast=document.getElementById('toast'), tt=0;
+  function say(m){ toast.textContent=m; toast.classList.add('on'); clearTimeout(tt);
+                   tt=setTimeout(function(){ toast.classList.remove('on'); },1800); }
+  function copy(text,btn,label){
+    function ok(){ say(label); if(btn){ btn.classList.add('done');
+      setTimeout(function(){ btn.classList.remove('done'); },1100); } }
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(text).then(ok,function(){ fallback(text,ok); });
+    } else fallback(text,ok);
+  }
+  function fallback(text,ok){
+    var t=document.createElement('textarea');
+    t.value=text; t.setAttribute('readonly',''); t.style.position='fixed'; t.style.top='-1000px';
+    document.body.appendChild(t); t.select();
+    try{ document.execCommand('copy'); ok(); }catch(e){ say('Could not copy \u2014 long-press the link instead'); }
+    document.body.removeChild(t);
+  }
+  document.addEventListener('click',function(e){
+    var b=e.target.closest('[data-copy]'); if(!b) return;
+    var kind=b.dataset.copy;
+    if(kind==='plain'){ copy('https://'+b.dataset.url.replace(/^https?:\/\//,''),b,'Link copied'); return; }
+    var d=DATA[+b.dataset.i], url='https://'+SITE+'/'+d.p;
+    if(kind==='link') copy(url,b,'Link copied');
+    else copy('Here\u2019s our '+d.n+' batch at '+d.r+', with '+d.w+' \u2014 fees and how to join:\n'+url,
+              b,'Message copied');
+  });
+})();
+</script>
+</body>
+</html>

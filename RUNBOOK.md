@@ -178,6 +178,37 @@ Two places show them:
 Adding or removing photos means editing the markup by hand in both files. The originals sit in the
 studio's Google Drive; these copies are downscaled (w1800 for the strip, w1100 for the grid).
 
+## Short links for enquiries
+
+Every batch has a short, permanent link at the root of the domain, for pasting into a WhatsApp
+reply. `indiemovementartproject.com/kids` rather than `/batch.html?batch=kids-vashi`.
+
+Each one is a small redirect page that carries its own Open Graph tags, so WhatsApp shows the
+instructor's photo, the batch name and the fees instead of a bare URL. **The fees are written into
+those meta tags**, so if a price changes in `cart.js`, the matching short link has to be edited too
+— they do not read from the catalogue. Grep for the old amount across the root `.html` files.
+
+| Link | Goes to |
+|---|---|
+| `/kids` · `/kids-vashi` | Kids, Vashi |
+| `/juniors` · `/juniors-seawoods` | Juniors, Seawoods |
+| `/afro` · `/afro-dancehall` | Afro & Dancehall |
+| `/bollywood-advance` · `/bollywood-advance-vashi` | Bollywood Advance, Vashi |
+| `/bollywood-seawoods` | Bollywood, Seawoods |
+| `/contemporary-seawoods` · `/contemporary-vashi` | Contemporary |
+| `/jazz-funk` · `/jazz-training` · `/open-style` | as named |
+| `/classes` | all batches |
+| `/gallery` | Annual Jam photos |
+| `/retro-jazz` | the CrossBox workshop |
+
+The rule: **the internal slug always works as a link**, and the four unwieldy ones have a shortcut.
+
+`links.html` is an unlisted page for the team — every link with a "Copy link" and "Copy message"
+button, built for a phone. It is `noindex` and deliberately not in any nav.
+
+Extensionless URLs work because GitHub Pages resolves `/kids` to `kids.html` on its own. They will
+404 on a plain local `python -m http.server`, which does not — test with `/kids.html` locally.
+
 ## Known constraints
 
 - **No WhatsApp automation.** Sending WhatsApp messages programmatically needs Meta's Cloud API,
