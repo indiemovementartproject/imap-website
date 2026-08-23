@@ -1625,7 +1625,7 @@ function renderModal(){
         <div class="field"><label>Plan</label><input id="m-student-plan" type="text" value="${escapeHtml(s.plan||'')}"/></div>
         <div class="field"><label>Comments</label><input id="m-student-notes" type="text" value="${escapeHtml(s.notes||'')}" placeholder="Pending fees, carry-forward…"/></div>
         <div class="modal-actions" style="justify-content:space-between;">
-          <button class="btn danger" onclick="openModal('confirmDeleteStudent', {id:'${s.id}'})">Remove student</button>
+          <button class="btn danger" onclick="openModal('confirmDeleteStudent', {id:'${s.id}'})">Delete student…</button>
           <div style="display:flex;gap:8px;">
             <button class="btn secondary" onclick="closeModal()">Cancel</button>
             <button class="btn" onclick="submitEditStudent('${s.id}')">Save</button>
@@ -1642,7 +1642,9 @@ function renderModal(){
         <h3>Delete "${escapeHtml(s.name)}" completely?</h3>
         <p style="font-size:13.5px;color:var(--ink-soft);margin:0 0 4px;">
           This permanently removes the student from <strong>every month</strong> and deletes all their attendance &amp; fee records in this batch. This can't be undone.
-          (If they've just stopped for this month but may return, use <strong>"Remove from month"</strong> instead — that keeps their history.)
+        </p>
+        <p style="font-size:13.5px;color:var(--ink-soft);margin:0 0 16px;">
+          Just stopped for ${monthLabel(UI.month)} but might come back? <a href="#" onclick="event.preventDefault();removeFromMonth('${s.id}','${s.batchId}','${UI.month}')" style="color:var(--brand);font-weight:600;">Remove from ${monthLabel(UI.month)} only</a> keeps their history instead.
         </p>
         <div class="modal-actions">
           <button class="btn secondary" onclick="closeModal()">Cancel</button>
