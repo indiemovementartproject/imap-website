@@ -69,7 +69,7 @@ var PRICES = (function () {
     'ws-s-06sep':   { label: 'Ballet Training Class · 6 Sept Seawoods',                   amount: 500 }
   };
   var BATCHES = {
-    'contemporary-seawoods': 'Contemporary (Seawoods)',
+    'contemporary-seawoods': 'Ballet Training (Seawoods)',
     'contemporary-vashi': 'Contemporary (Vashi)',
     'bollywood-seawoods': 'Bollywood (Seawoods)',
     'bollywood-advance-vashi': 'Bollywood Advance (Vashi)',

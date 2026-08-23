@@ -195,13 +195,21 @@ those meta tags**, so if a price changes in `cart.js`, the matching short link h
 | `/afro` · `/afro-dancehall` | Afro & Dancehall |
 | `/bollywood-advance` · `/bollywood-advance-vashi` | Bollywood Advance, Vashi |
 | `/bollywood-seawoods` | Bollywood, Seawoods |
-| `/contemporary-seawoods` · `/contemporary-vashi` | Contemporary |
+| `/ballet` · `/ballet-training` · `/contemporary-seawoods` | Ballet Training, Seawoods |
+| `/contemporary-vashi` | Contemporary, Vashi |
 | `/jazz-funk` · `/jazz-training` · `/open-style` | as named |
 | `/classes` | all batches |
 | `/gallery` | Annual Jam photos |
 | `/retro-jazz` | the CrossBox workshop |
 
 The rule: **the internal slug always works as a link**, and the four unwieldy ones have a shortcut.
+
+**One slug lies.** Akash Jathar's Seawoods batch is called **Ballet Training**, but its slug is still
+`contemporary-seawoods` — that slug is the checkout pricing key (`rc-contemporary-seawoods-1m`/`-3m`
+in `cart.js` *and* in `PRICES` in `Code.gs`), so renaming it would reject payments for that batch
+until the Apps Script is redeployed. `/ballet` is the link to hand out; the old one still works.
+Rename the slug only as a deliberate job: change it in both files, add the new price ids, redeploy,
+then keep a redirect from the old slug.
 
 `links.html` is an unlisted page for the team — every link with a "Copy link" and "Copy message"
 button, built for a phone. It is `noindex` and deliberately not in any nav.

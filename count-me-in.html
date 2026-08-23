@@ -914,7 +914,7 @@ fbIframe.addEventListener('load',()=>{if(!fbSent)return;fbSent=false;document.ge
 /* restore */
 (async function(){renderGrid();try{const sess=await idbGet('session');if(sess&&sess.blob){Object.assign(S,sess.settings);const f=new File([sess.blob],sess.fileName||'track',{type:sess.blob.type||'audio/wav'});await loadFile(f,true);document.getElementById('bpmVal').textContent=Math.round(S.bpm*10)/10;setStatus('Restored your last session','ok');setTimeout(()=>setStatus(''),2500);}}catch(e){}})();
 </script>
-<script src="analytics.js?v=2026-08-22c"></script>
+<script src="analytics.js?v=2026-08-23a"></script>
 <script>
 /* ============================================================
    Guided mode.

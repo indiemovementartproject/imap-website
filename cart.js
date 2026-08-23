@@ -54,7 +54,7 @@
 
   /* Regular classes. */
   var BATCHES = {
-    'contemporary-seawoods':  { name: 'Contemporary',     region: 'Seawoods', who: 'Akash Jathar' },
+    'contemporary-seawoods':  { name: 'Ballet Training',  region: 'Seawoods', who: 'Akash Jathar' },
     'contemporary-vashi':     { name: 'Contemporary',     region: 'Vashi',    who: 'Shreya Rastogi' },
     'bollywood-seawoods':     { name: 'Bollywood',        region: 'Seawoods', who: 'Ruchika Jain' },
     'bollywood-advance-vashi':{ name: 'Bollywood Advance',region: 'Vashi',    who: 'Rohit Choudhary' },
