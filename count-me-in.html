@@ -216,6 +216,16 @@
   body.touch .tip .upi-open{display:block}
   body.touch .tip .scan-note{font-size:12.5px;color:var(--muted-2);margin-top:14px}
   @media(prefers-reduced-motion:reduce){.tip.on{animation:none}}
+
+  /* finish step: working / done / failed */
+  .wiz-done.is-working .ring{border-color:var(--muted-2);background:rgba(255,255,255,.03);animation:none}
+  .wiz-done.is-bad .ring{border-color:#e8b06a;color:#e8b06a;background:rgba(232,176,106,.1)}
+  .wiz-done.is-bad .wiz-sub{color:#e8b06a}
+  .ring-spin{width:26px;height:26px;border-radius:50%;border:2px solid rgba(92,225,230,.25);
+             border-top-color:var(--cyan);animation:ringSpin .8s linear infinite;display:block}
+  @keyframes ringSpin{to{transform:rotate(360deg)}}
+  .wiz-next:disabled{opacity:.4;cursor:not-allowed;box-shadow:none}
+  @media (prefers-reduced-motion:reduce){.ring-spin{animation-duration:2.4s}}
 </style>
 <style>
   /* ===== guided mode ===== */
@@ -405,11 +415,11 @@
 
   <!-- done -->
   <div class="wiz-step" data-w="6">
-    <div class="wiz-done">
-      <div class="ring">✓</div>
-      <div class="wiz-q" style="margin-top:0">Saved to your downloads</div>
-      <div class="wiz-sub">Ready for the studio. Go dance.</div>
-      <button class="wiz-next" id="wizAgain" style="width:100%">Do another track</button>
+    <div class="wiz-done" id="wizDone">
+      <div class="ring" id="wizRing"><span class="ring-spin"></span></div>
+      <div class="wiz-q" id="wizDoneQ" style="margin-top:0">Starting download&hellip;</div>
+      <div class="wiz-sub" id="wizDoneSub">This usually takes a few seconds.</div>
+      <button class="wiz-next" id="wizAgain" style="width:100%" disabled>Do another track</button>
       <div class="outro">
         <div class="outro-card">
           <h4>Loved it? Let&rsquo;s catch up.</h4>
@@ -1157,13 +1167,47 @@ fbIframe.addEventListener('load',()=>{if(!fbSent)return;fbSent=false;document.ge
   });
 
   /* --- step 5 : download --- */
+  /* The export takes a few seconds and the browser's save dialog appears at the
+     end of it, so step 6 opens as "starting" and only claims success when the
+     encoder actually reports one. */
+  function doneWorking(){
+    $('wizDone').classList.remove('is-ok','is-bad');
+    $('wizDone').classList.add('is-working');
+    $('wizRing').innerHTML = '<span class="ring-spin"></span>';
+    $('wizDoneQ').innerHTML = 'Starting download&hellip;';
+    $('wizDoneSub').textContent = 'This usually takes a few seconds.';
+    $('wizAgain').disabled = true;
+    $('wizAgain').textContent = 'Do another track';
+  }
+  function doneOk(){
+    $('wizDone').classList.remove('is-working','is-bad');
+    $('wizDone').classList.add('is-ok');
+    $('wizRing').textContent = '\u2713';
+    $('wizDoneQ').textContent = 'Saved to your downloads';
+    $('wizDoneSub').textContent = 'Ready for the studio. Go dance.';
+    $('wizAgain').disabled = false;
+    $('wizAgain').textContent = 'Do another track';
+  }
+  function doneBad(msg){
+    $('wizDone').classList.remove('is-working','is-ok');
+    $('wizDone').classList.add('is-bad');
+    $('wizRing').textContent = '!';
+    $('wizDoneQ').textContent = 'That did not finish';
+    $('wizDoneSub').textContent = msg || 'Something went wrong making the file.';
+    $('wizAgain').disabled = false;
+    $('wizAgain').textContent = 'Try again';
+  }
+  window.__wizDone = { working: doneWorking, ok: doneOk, bad: doneBad };
+
   $('wizDl').addEventListener('click', function(){
     stopAll();
     var b = $('dlMain'); if(!b) return;
-    b.click();
+    doneWorking();
     go(6);
+    b.click();
   });
   $('wizAgain').addEventListener('click', function(){
+    if($('wizDone').classList.contains('is-bad')){ go(5); return; }
     var r = $('resetBtn'); if(r) r.click();
     seen = '';
     go(1);
@@ -1239,9 +1283,16 @@ fbIframe.addEventListener('load',()=>{if(!fbSent)return;fbSent=false;document.ge
   var realStatus = window.setStatus;
   if(typeof realStatus !== 'function') return;
   window.setStatus = function(m, k){
-    var r = realStatus.apply(this, arguments);
-    if(k === 'ok' && /Exported/i.test(String(m)) && !document.body.classList.contains('guided')){
-      setTimeout(function(){ if(window.__outroPro) window.__outroPro(); }, 300);
+    var r = realStatus.apply(this, arguments), msg = String(m || '');
+    var guided = document.body.classList.contains('guided');
+    var W = window.__wizDone;
+    if(k === 'ok' && /Exported/i.test(msg)){
+      if(guided && W) W.ok();
+      else setTimeout(function(){ if(window.__outroPro) window.__outroPro(); }, 300);
+    } else if(k === true && /Export failed|encoder unavailable/i.test(msg)){
+      /* only surface a real failure — MP3-unavailable falls back to WAV and
+         still succeeds, so it must not flip the screen to an error */
+      if(guided && W && /Export failed/i.test(msg)) W.bad(msg.replace(/^Export failed:\s*/i, ''));
     }
     return r;
   };
