@@ -1,0 +1,10 @@
+User-agent: *
+Allow: /
+
+# checkout, and the two team-only tools
+Disallow: /pay.html
+Disallow: /attendance.html
+Disallow: /checkin.html
+Disallow: /links.html
+
+Sitemap: https://indiemovementartproject.com/sitemap.xml

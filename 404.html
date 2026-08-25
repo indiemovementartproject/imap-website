@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Page not found — iMAP</title>
+<meta name="robots" content="noindex">
+<link rel="icon" href="favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-white.png" media="(prefers-color-scheme: dark)">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-black.png" media="(prefers-color-scheme: light)">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Space+Grotesk:wght@300;400;500&family=Space+Mono&display=swap" rel="stylesheet">
+<style>
+  :root{--cyan:#5ce1e6;--bg:#070a0c;--border:rgba(255,255,255,.09);
+        --border-cyan:rgba(92,225,230,.28);--text:#eef6f7;--muted:#8fa1a3;--muted-2:#5d6e70}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--text);font-family:"Space Grotesk",sans-serif;
+       -webkit-font-smoothing:antialiased;min-height:100svh;display:flex;align-items:center;
+       justify-content:center;padding:40px 22px;position:relative;overflow-x:hidden}
+  body::before{content:"";position:fixed;width:520px;height:520px;border-radius:50%;top:-160px;left:-120px;
+       filter:blur(90px);opacity:.35;pointer-events:none;
+       background:radial-gradient(circle,rgba(92,225,230,.85),rgba(92,225,230,0) 70%)}
+  .w{max-width:560px;width:100%;text-align:center;position:relative;z-index:1}
+  .code{font-family:"Space Mono",monospace;font-size:11.5px;letter-spacing:.22em;
+        text-transform:uppercase;color:var(--muted-2)}
+  h1{font-family:"Instrument Serif",serif;font-weight:400;font-size:clamp(38px,9vw,62px);
+     line-height:1.03;margin-top:14px}
+  h1 i{color:var(--cyan)}
+  .sub{color:var(--muted);font-size:16px;line-height:1.65;margin-top:14px}
+  .hint{margin-top:22px;padding:14px 16px;border:1px solid var(--border-cyan);border-radius:14px;
+        background:rgba(92,225,230,.05);font-size:15px;display:none}
+  .hint a{color:var(--cyan);text-decoration:none;font-weight:500}
+  .hint a:hover{text-decoration:underline}
+  .links{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:11px;margin-top:30px}
+  .links a{border:1px solid var(--border);border-radius:13px;padding:15px 14px;text-decoration:none;
+           color:var(--text);font-size:15px;transition:.16s;background:rgba(255,255,255,.02)}
+  .links a:hover{border-color:var(--border-cyan);color:var(--cyan);background:rgba(92,225,230,.06)}
+  .links a span{display:block;font-family:"Space Mono",monospace;font-size:10.5px;letter-spacing:.14em;
+                text-transform:uppercase;color:var(--muted-2);margin-top:5px}
+  .links a:hover span{color:var(--muted)}
+  .ask{margin-top:28px;font-size:14px;color:var(--muted-2)}
+  .ask a{color:var(--muted);text-decoration:none;border-bottom:1px solid var(--border)}
+  .ask a:hover{color:var(--cyan);border-color:var(--border-cyan)}
+</style>
+</head>
+<body>
+<div class="w">
+  <div class="code">Error 404</div>
+  <h1>Lost the <i>beat</i>.</h1>
+  <p class="sub">That page isn&rsquo;t here &mdash; but everything else still is.</p>
+
+  <div class="hint" id="hint"></div>
+
+  <div class="links">
+    <a href="index.html">Home<span>start here</span></a>
+    <a href="batches.html">Classes<span>all batches</span></a>
+    <a href="gallery.html">Annual Jam<span>photos</span></a>
+    <a href="count-me-in.html">Count Me In<span>free tool</span></a>
+  </div>
+
+  <p class="ask">Looking for something specific?
+    <a href="https://wa.me/918454880061" target="_blank" rel="noopener">Ask us on WhatsApp</a>
+  </p>
+</div>
+
+<script>
+/* People mistype the short batch links (/jazz for /jazz-funk). If the path is close
+   to a real one, offer it rather than making them go hunting. */
+(function(){
+  var LINKS = ['ballet','contemporary-vashi','bollywood-seawoods','bollywood-advance','jazz-funk',
+               'jazz-training','open-style','afro','juniors','kids','classes','gallery',
+               'count-me-in','sync-studio','retro-jazz'];
+  var path = location.pathname.replace(/^\/+|\/+$|\.html$/g, '').toLowerCase();
+  if(!path) return;
+
+  /* edit distance, so genuine typos ("gallary", "countmein") still resolve */
+  function dist(a, b){
+    var prev = [], cur = [], i, j;
+    for(j = 0; j <= b.length; j++) prev[j] = j;
+    for(i = 1; i <= a.length; i++){
+      cur[0] = i;
+      for(j = 1; j <= b.length; j++){
+        cur[j] = Math.min(prev[j] + 1, cur[j-1] + 1,
+                          prev[j-1] + (a.charAt(i-1) === b.charAt(j-1) ? 0 : 1));
+      }
+      prev = cur.slice();
+    }
+    return prev[b.length];
+  }
+  function score(a, b){
+    if(a === b) return 100;
+    if(b.indexOf(a) === 0 || a.indexOf(b) === 0) return 90;   /* one is a prefix of the other */
+    if(b.indexOf(a) > -1 || a.indexOf(b) > -1) return 70;     /* one contains the other */
+    var d = dist(a, b), longest = Math.max(a.length, b.length);
+    if(longest >= 5 && d <= 2) return 80 - d * 5;             /* a slip or two of the finger */
+    return Math.round(Math.max(0, 1 - d / longest) * 60);
+  }
+
+  var best = null, bestScore = 0;
+  for(var i = 0; i < LINKS.length; i++){
+    var s = score(path, LINKS[i]);
+    if(s > bestScore){ bestScore = s; best = LINKS[i]; }
+  }
+  if(best && bestScore >= 55){
+    var h = document.getElementById('hint');
+    h.innerHTML = 'Did you mean <a href="/' + best + '">indiemovementartproject.com/' + best + '</a>?';
+    h.style.display = 'block';
+  }
+})();
+</script>
+</body>
+</html>
