@@ -42,6 +42,8 @@ python3 scripts/stamp-copyright.py --check >/dev/null || {
 
 echo "manifest: $OUT  ($(grep -c '^[0-9a-f]\{64\}' "$OUT") files)"
 
+# a stale proof is worse than none: it will not verify against a changed manifest
+rm -f "${OUT}.ots"
 "$OTS" stamp "$OUT" && echo "timestamped: ${OUT}.ots"
 [ -f "${OUT}.ots" ] || { echo "  WARNING: no .ots proof was produced"; }
 echo "  (the proof completes in a few hours — run: $OTS upgrade ${OUT}.ots)"
