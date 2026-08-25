@@ -12,6 +12,13 @@ TAG="${1:-}"; NOTE="${2:-}"
 [ -z "$TAG" ] && { echo "usage: $0 <tag> [note]"; exit 1; }
 
 OTS="$(command -v ots || echo /Library/Frameworks/Python.framework/Versions/3.14/bin/ots)"
+# The macOS framework Python ships without CA certificates, so the timestamp
+# client cannot reach the calendars over HTTPS until we point it at a bundle.
+PY="$(dirname "$OTS")/python3"
+if [ -x "$PY" ]; then
+  CERT="$("$PY" -c 'import certifi;print(certifi.where())' 2>/dev/null || true)"
+  [ -n "${CERT:-}" ] && export SSL_CERT_FILE="$CERT"
+fi
 STAMP="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 OUT="provenance/${TAG}.manifest.txt"
 
@@ -36,6 +43,7 @@ python3 scripts/stamp-copyright.py --check >/dev/null || {
 echo "manifest: $OUT  ($(grep -c '^[0-9a-f]\{64\}' "$OUT") files)"
 
 "$OTS" stamp "$OUT" && echo "timestamped: ${OUT}.ots"
+[ -f "${OUT}.ots" ] || { echo "  WARNING: no .ots proof was produced"; }
 echo "  (the proof completes in a few hours — run: $OTS upgrade ${OUT}.ots)"
 
 git add provenance

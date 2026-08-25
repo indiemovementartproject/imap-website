@@ -217,6 +217,32 @@ button, built for a phone. It is `noindex` and deliberately not in any nav.
 Extensionless URLs work because GitHub Pages resolves `/kids` to `kids.html` on its own. They will
 404 on a plain local `python -m http.server`, which does not — test with `/kids.html` locally.
 
+## Ownership and provenance
+
+Copyright in this work belongs to **iMAP** (economic rights, s.17(c) Copyright
+Act 1957). **Prashant Nair** is the author and has asserted moral rights under
+s.57 — the right to be identified as author, which stays with him regardless of
+who owns the code. `LICENSE` is proprietary, not open source. `AUTHORS.md`
+records what was built and what is original rather than adapted.
+
+Three things keep this provable, and all three need to keep happening:
+
+- **Commits are signed.** Configured globally with an ed25519 key. If
+  `git log --format='%G?'` starts showing `N`, signing has been switched off.
+- **Every source file carries a copyright header.** `scripts/stamp-copyright.py`
+  adds them to new files; `--check` fails if any are missing.
+- **Releases are hashed and timestamped.** `./scripts/release.sh <tag> "note"`
+  writes `provenance/<tag>.manifest.txt`, timestamps it into Bitcoin via
+  OpenTimestamps, and cuts a signed tag. Run `ots upgrade` on the `.ots` a few
+  hours later and commit it.
+
+Full detail, and what to do if the work is copied, is in `PROVENANCE.md`.
+
+**The repository is public.** That is a deliberate trade-off: the site needs to
+be served, and view-source exposes the tools regardless. The licence makes
+copying actionable; it cannot make it impossible.
+
+
 ## Known constraints
 
 - **No WhatsApp automation.** Sending WhatsApp messages programmatically needs Meta's Cloud API,
