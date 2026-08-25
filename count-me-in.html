@@ -1070,8 +1070,8 @@ fbIframe.addEventListener('load',()=>{if(!fbSent)return;fbSent=false;document.ge
     b.click();
   }
 
-  /* --- step 3 : listen, and the one fix people actually need --- */
-  $('wizGood').addEventListener('click', function(){ go(4); });
+  /* --- step 4 : listen, and the one fix people actually need --- */
+  $('wizGood').addEventListener('click', function(){ go(5); });
   $('wizOff').addEventListener('click', function(){ $('wizFix').style.display = 'block'; });
   $('wizHalf').addEventListener('click', function(){
     if($('halfBtn')) $('halfBtn').click();
@@ -1084,12 +1084,12 @@ fbIframe.addEventListener('load',()=>{if(!fbSent)return;fbSent=false;document.ge
     preview();
   });
 
-  /* --- step 4 : download --- */
+  /* --- step 5 : download --- */
   $('wizDl').addEventListener('click', function(){
     stopAll();
     var b = $('dlMain'); if(!b) return;
     b.click();
-    go(5);
+    go(6);
   });
   $('wizAgain').addEventListener('click', function(){
     var r = $('resetBtn'); if(r) r.click();
