@@ -1,3 +1,7 @@
+/*!
+ * Copyright (c) 2026 Indie Movement Art Project. All rights reserved.
+ * Author: Prashant Nair. Proprietary - see LICENSE. Not open source.
+ */
 /**
  * iMAP cart — shared by index.html, batches.html, batch.html and pay.html.
  *
