@@ -1,7 +1,7 @@
 iMAP source manifest
 Release:   v1.0
-Recorded:  2026-08-25T07:26:23Z
-Commit:    ce0f0f97beb20396c00d57981858c1d71dd7bd59
+Recorded:  2026-08-25T07:30:52Z
+Commit:    856898e96f529544d8a37418c7a4bae1aa368c4c
 Owner:     Indie Movement Art Project (iMAP)
 Author:    Prashant Nair, Creative Technologist
 Note:      Site, Count Me In, Sync Studio, checkout, Annual Jam gallery
@@ -12,7 +12,8 @@ c4d7aa2bb77a27fb0290ad54c7518f64654b0206461f66e909881e56a0d8f8b1  404.html
 89656f264d8ec82e9285880963018ddc78829e00bbde5ce8d8c0da7a6dc8b48a  AUTHORS.md
 e9408ece5c8fbf0e950b3ea52cccb3d82f1a13b5f205cb6e1600cdf50219fbff  CNAME
 5c02f97e4de85ac6390b49018977a20f7b5aa1a3814a7b29e96b2d5507f84a16  LICENSE
-dd3cb17165629d33317714c81c11fdb4d55429eb9b01c3d329c3375626875945  RUNBOOK.md
+21515ff6fd44d6ebd803f942a65b70ff39567ca98eaf5ccde4523c5d480cabf8  PROVENANCE.md
+f6dd9b4750dccc680a61c88c74b62a425fc614bf541f06418f46ed7371199f80  RUNBOOK.md
 29c243d8b07bc80047c5746573a713ac4f56d4a08a632e00b973924705b438e5  about.jpg
 897e93c200b992b9619de9dad9e4453536cb3adea03036b65c0bbc4cf7950e78  afro-dancehall.html
 4cf542e9184c91c3da0b146abf50c48b91bd4cfcffa21cb4574e555ca404cdd3  afro-dancehall.jpg
@@ -247,9 +248,11 @@ ee669d5f71f538c4655d3fa925427d984875e3e2220623ea5b917bb3bfed4968  media/tip-upi.
 c8ef9670686f53cd958ac5465ed42d76667d29c61c5dae5ef199851f5205368d  open-style.html
 08b7ed8a58b13a0b27565bd14c9f7a81ff6dc0854ce46cb1a586e2a2e075e80d  pay.html
 485cfce5ea20a979cddda7067144cf97abdeb2404d1b2b65182d70af90e811fe  privacy.html
+3aa9b66cfec0a0243cec9c321f257cece1e6207c9f157306faa3add83707381c  provenance/v1.0.manifest.txt
+fb6c954293026d154f6ac3663a1e762da61bb16a81ebcbbd160fd5a74b7b1152  provenance/v1.0.manifest.txt.ots
 20dfaa75cf04dbbf23c6bbfec66fb051d603b2724bfefa8d6c3d05ca7e305a73  retro-jazz.html
 b958ff4fa450502e9aced7ab090f7e120fc6df118a9460263e35b609542caae4  robots.txt
-f5c971a349247c8e061fcb1e537ba74a30d95649d99a7697b463813b74cdea90  scripts/release.sh
+e8f9dd952d5c4901dc8e1fcf4564c66722f4d528b4a471ea614b63dc8bcfe05b  scripts/release.sh
 07311038c119d2cd293b900a565dd80e3c7d6ca5dec898b94daf400d6688cd28  scripts/stamp-copyright.py
 a3a46859596e35c054d35961f403a65182234a3473ca13d2f5de7a6280fe1ce2  sitemap.xml
 ad1b97560e8c7f03293bf4d97fb735156c02fc4501b9ba8d6de8168bfd4c9818  sync-studio.html
