@@ -599,6 +599,8 @@
     <div class="status" id="status"></div>
   </div>
 
+  <div id="proOutro" style="display:none;max-width:560px;margin:34px auto 0;padding:0 18px"></div>
+
   <!-- FEEDBACK -->
   <div class="card hide" id="fbCard">
     <div class="step">Feedback</div>
@@ -1047,6 +1049,7 @@ fbIframe.addEventListener('load',()=>{if(!fbSent)return;fbSent=false;document.ge
       d.classList.toggle('done', i + 1 < n);
     });
     $('wizDots').style.visibility = n > W.max ? 'hidden' : 'visible';
+    if(n === 6 && window.__outroGuided) window.__outroGuided();
     if(n === 2){ windowStart(); showStart(); }
     stopAll();
     wiz.scrollIntoView({ behavior:'smooth', block:'start' });
@@ -1200,6 +1203,44 @@ fbIframe.addEventListener('load',()=>{if(!fbSent)return;fbSent=false;document.ge
     if(e.target.closest('[data-tip="pay"]') && window.track) track('tip_upi_open', {tool: document.title});
     if(e.target.closest('[data-outro="classes"]') && window.track) track('outro_classes_click', {tool: document.title});
   });
+})();
+</script>
+
+<script>
+/* The outro lives in the guided done-step, but people who switch to "show all the
+   controls" finish somewhere else entirely and used to never see it. Move it to
+   whichever place the download actually happened in. */
+(function(){
+  var outro = document.querySelector('.outro');
+  if(!outro) return;
+  var guidedHome = outro.parentNode, proHost = document.getElementById('proOutro');
+
+  function place(host){
+    if(!host || outro.parentNode === host) return;
+    host.appendChild(outro);
+  }
+  window.__outroGuided = function(){ place(guidedHome); };
+  window.__outroPro = function(){
+    if(!proHost) return;
+    place(proHost);
+    proHost.style.display = 'block';
+    outro.scrollIntoView({behavior:'smooth', block:'center'});
+  };
+})();
+</script>
+
+<script>
+/* reveal the outro after an export made outside the guided flow */
+(function(){
+  var realStatus = window.setStatus;
+  if(typeof realStatus !== 'function') return;
+  window.setStatus = function(m, k){
+    var r = realStatus.apply(this, arguments);
+    if(k === 'ok' && /Exported/i.test(String(m)) && !document.body.classList.contains('guided')){
+      setTimeout(function(){ if(window.__outroPro) window.__outroPro(); }, 300);
+    }
+    return r;
+  };
 })();
 </script>
 </body>
