@@ -82,6 +82,26 @@ bump a returning visitor can see yesterday's prices.
 
 ## Redeploying the backend
 
+**Deploying is now a command, not a screen.**
+
+    ./scripts/deploy-backend.sh
+
+It creates a version, points the live deployment at it, and then checks the
+endpoint really serves the new build before saying done. It refuses to run if
+the deployment id it targets no longer matches the one in `pay.html`.
+
+Requires clasp (`npm i -g @google/clasp`), `clasp login`, and
+`apps-script/.clasp.json` — all already set up on Prashant's machine.
+
+**Why the manual route kept failing.** The project had accumulated **twelve**
+deployments. The site posts to exactly one of them; it sat pinned at version 15
+while three separate correct pastes were deployed to others. The console gives
+no indication which deployment a URL belongs to. On 26 Aug 2026 all stale
+deployments were deleted — **only two remain**: the live one, and the built-in
+`@HEAD` test deployment that Apps Script always keeps and only the owner can
+reach. Keep it that way. If you ever click "New deployment" again you will have
+two public URLs and no way to tell which one the site is using.
+
 > **The trap, hit twice now.** "New deployment" mints a **new /exec URL** and
 > leaves the old one serving the old code. The site keeps posting to the old URL
 > and nothing changes — that is how a Retro-Jazz customer paid with no record
