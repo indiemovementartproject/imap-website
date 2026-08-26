@@ -134,6 +134,18 @@ function doPost(e) {
     var shot = null;
     try { shot = storeScreenshot(body.screenshot, d); } catch (err) { shot = null; }
 
+    /* The screenshot check is advisory. A mismatch is the loud case — it is
+       exactly the "paid Rs 1 against a Rs 599 order" situation. A failure to
+       read is quiet, because that is our problem, not the payer's. */
+    if (shot && shot.check) {
+      if (shot.check.ran && shot.check.amountOK === false) {
+        d.flags = (d.flags ? d.flags + ' | ' : '') +
+          'AMOUNT MISMATCH: order is Rs ' + d.expected +
+          (shot.check.seen ? ', screenshot appears to show Rs ' + shot.check.seen : ', screenshot does not show that figure');
+      }
+      if (shot.check.utr) d.utr = shot.check.utr;
+    }
+
     var lock = LockService.getScriptLock();
     lock.waitLock(25000);
     try {
@@ -211,7 +223,15 @@ function validate(b) {
 
 /* ---------------- screenshot ---------------- */
 
-/** Save the screenshot to Drive and hand back the blob for the email. */
+/** Save the screenshot to Drive, and try to read the amount off it.
+ *
+ *  The reading is ADVISORY ONLY. It never confirms a booking and the payer is
+ *  never told what it found — that is what made the old version painful, when
+ *  a Drive throttle told a paying customer their screenshot was "not readable".
+ *  Every row still lands as PENDING for a human. All this does is put a loud
+ *  warning in the team email when the figure on the image is not the figure
+ *  that was ordered.
+ */
 function storeScreenshot(dataUrl, d) {
   var m = /^data:(image\/[a-z.+-]+);base64,([\s\S]+)$/i.exec(String(dataUrl || ''));
   if (!m) return null;
@@ -223,7 +243,93 @@ function storeScreenshot(dataUrl, d) {
     var folder = folders.hasNext() ? folders.next() : DriveApp.createFolder(CONFIG.DRIVE_FOLDER);
     url = folder.createFile(blob).getUrl();
   } catch (err) {}
-  return { blob: blob, url: url };
+
+  var check = { ran: false, amountOK: null, seen: '', utr: '', note: '' };
+  try { check = readAmount(blob, d.expected); }
+  catch (err) { check.note = String((err && err.message) || err).slice(0, 140); }
+
+  return { blob: blob, url: url, check: check };
+}
+
+/** Drive will OCR an image if asked to convert it to a Doc. Returns what it
+ *  made of the amount. Never throws — a failure just means "could not read". */
+function readAmount(blob, expected) {
+  var out = { ran: false, amountOK: null, seen: '', utr: '', note: '' };
+  var text = '', lastErr = '';
+
+  /* Drive throttles OCR and a short limit clears in seconds. The payer is
+     waiting, so try briefly and then give up quietly. */
+  for (var attempt = 0; attempt < 2; attempt++) {
+    try { text = ocrImage(blob); lastErr = ''; break; }
+    catch (err) {
+      lastErr = String((err && err.message) || err).slice(0, 140);
+      if (!/rate limit|quota|timed out|try again|internal/i.test(lastErr)) break;
+      if (attempt === 0) Utilities.sleep(1500);
+    }
+  }
+
+  if (!text) { out.note = lastErr || 'no text found in the image'; return out; }
+
+  out.ran = true;
+  var t = String(text).toLowerCase().replace(/\s+/g, ' ');
+
+  function nums(re) {
+    var found = [], mm;
+    while ((mm = re.exec(t)) !== null) {
+      var v = Number(String(mm[1]).replace(/,/g, ''));
+      /* anything this large is a transaction id or a phone number, not a fee */
+      if (isFinite(v) && v > 0 && v < 1000000) found.push(v);
+    }
+    return found;
+  }
+
+  /* A currency marker must stand on its own, otherwise the "e" of "Note" turns
+     the transaction id into an amount. OCR often reads the rupee sign as R or e. */
+  var marked = nums(/(?:^|\s)(?:\u20b9|\u20ac|rs\.?|inr|r|e)\s*([0-9][0-9,]*(?:\.[0-9]{1,2})?)/gi);
+  var loose  = nums(/([0-9][0-9,]*(?:\.[0-9]{1,2})?)/g);
+
+  function has(list) {
+    for (var i = 0; i < list.length; i++) if (Math.abs(list[i] - expected) < 0.01) return true;
+    return false;
+  }
+  out.amountOK = has(marked) || has(loose);
+
+  if (!out.amountOK) {
+    /* Only ever report a currency-marked figure. Guessing from bare numbers
+       puts the transaction id in the email and destroys trust in the check. */
+    var best = null;
+    for (var k = 0; k < marked.length; k++) if (best === null || marked[k] > best) best = marked[k];
+    out.seen = best === null ? '' : String(best);
+  }
+
+  var r = t.match(/(?:upi|utr|txn|transaction)[^0-9]{0,20}(\d{9,14})/) || t.match(/\b(\d{12})\b/);
+  if (r) out.utr = r[1];
+  return out;
+}
+
+/** v2 and v3 of the Drive advanced service take different arguments.
+ *  v2: `ocr: true` already implies conversion, so naming the Doc mimeType
+ *      makes Drive read it as the SOURCE type and refuse.
+ *  v3: there is no `ocr` flag; conversion comes from the mimeType. */
+function ocrImage(blob) {
+  if (typeof Drive === 'undefined' || !Drive.Files) {
+    throw new Error('Drive advanced service is not switched on');
+  }
+  var file;
+  if (Drive.Files.insert) {
+    file = Drive.Files.insert({ title: 'imap-ocr-tmp' }, blob, { ocr: true, ocrLanguage: 'en' });
+  } else if (Drive.Files.create) {
+    file = Drive.Files.create({ name: 'imap-ocr-tmp', mimeType: 'application/vnd.google-apps.document' },
+                              blob, { ocrLanguage: 'en' });
+  } else {
+    throw new Error('Drive service present but Files.insert/create missing');
+  }
+  var id = file.id || (file.getId && file.getId());
+  if (!id) throw new Error('Drive returned no file id');
+  var text = '';
+  try { text = DocumentApp.openById(id).getBody().getText(); }
+  finally { try { DriveApp.getFileById(id).setTrashed(true); } catch (err) {} }
+  return text;
 }
 
 /* ---------------- sheet ---------------- */
@@ -264,9 +370,12 @@ function appendRow(receipt, d, shot) {
     d.lines, d.ids, d.qty,
     d.expected, d.claimed, d.flags,
     d.name, "'" + d.phone, d.email,
-    '', d.ref,
+    d.utr || '', d.ref,
     shot && shot.url ? shot.url : '',
-    shot ? 'screenshot on file' : 'no screenshot',
+    !shot ? 'no screenshot'
+      : !shot.check || !shot.check.ran ? 'screenshot on file - not read (' + ((shot.check && shot.check.note) || 'unknown') + ')'
+      : shot.check.amountOK ? 'screenshot on file - amount looks right'
+      : 'screenshot on file - AMOUNT MISMATCH' + (shot.check.seen ? ' (reads Rs ' + shot.check.seen + ')' : ''),
     '', '', ''
   ]);
 }
@@ -338,7 +447,18 @@ function mailTeam(receipt, d, shot) {
     '<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="width:100%;border-collapse:collapse;table-layout:fixed">' +
       row('Name', d.name) + row('Contact', '+91 ' + d.phone) +
       row('Email', d.email || '— not given —') +
-      row('Screenshot must show', '<b style="font-size:17px">&#8377;' + d.expected + '</b>') +
+      row('Screenshot must show', '<b style="font-size:17px">&#8377;' + d.expected + '</b>' +
+        (!shot || !shot.check ? ''
+          : !shot.check.ran
+            ? '<div style="font:12px -apple-system,Segoe UI,sans-serif;color:#8a9a9c;margin-top:4px">'
+              + 'We could not read the screenshot automatically - please check it yourself.</div>'
+          : shot.check.amountOK
+            ? '<div style="font:12px -apple-system,Segoe UI,sans-serif;color:#1a7f4b;margin-top:4px">'
+              + 'The screenshot appears to show this amount.</div>'
+            : '<div style="font:12px -apple-system,Segoe UI,sans-serif;color:#8a2018;margin-top:4px">'
+              + '<b>The screenshot does NOT show this amount'
+              + (shot.check.seen ? ' - it reads &#8377;' + esc(shot.check.seen) : '')
+              + '.</b></div>')) +
       row('For', d.lines) +
       row('Receipt', receipt) + row('Reference', d.ref) +
     '</table>' +
