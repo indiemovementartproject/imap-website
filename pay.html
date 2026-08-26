@@ -702,12 +702,34 @@ $('reshoot').addEventListener('click', function(){
   $('submitBtn').disabled = true;
 });
 
+/* Reading the screenshot takes a few seconds. Without this the page looks
+   frozen and people assume the network died and press things twice. */
+var waitTimers = [];
+function startWaiting(){
+  stopWaiting();
+  $('e4').innerHTML =
+    '<span class="checking"><span class="spin"></span>' +
+    '<span id="waitMsg">Please wait. Verifying your payment screenshot.</span></span>';
+  waitTimers.push(setTimeout(function(){
+    var m = $('waitMsg');
+    if(m) m.textContent = 'Still checking your screenshot — this can take a few seconds.';
+  }, 6000));
+  waitTimers.push(setTimeout(function(){
+    var m = $('waitMsg');
+    if(m) m.textContent = 'Almost there — please don’t close this page.';
+  }, 14000));
+}
+function stopWaiting(){
+  waitTimers.forEach(clearTimeout);
+  waitTimers = [];
+}
+
 $('submitBtn').addEventListener('click', function(){
   if(sent || !order) return;
   if(!shotData){ $('e4').textContent = 'Please upload your payment screenshot first.'; return; }
   var btn = this;
   btn.disabled = true;
-  $('e4').innerHTML = '<span class="checking"><span class="spin"></span>Completing your registration…</span>';
+  startWaiting();
 
   var payload = {
     ref: order.ref, items: order.items, totalShown: order.total,
@@ -756,6 +778,7 @@ $('submitBtn').addEventListener('click', function(){
     body: JSON.stringify(payload)
   }).then(function(r){ return r.json(); })
     .then(function(res){
+      stopWaiting();
       if(res && res.ok){ sent = true; showReceipt(res); }
       else if(res && res.rejected){ showRejected(res); btn.disabled = false; }
       else {
@@ -764,6 +787,7 @@ $('submitBtn').addEventListener('click', function(){
       }
     })
     .catch(function(){
+      stopWaiting();
       /* We could not reach the studio's system. Hand off to WhatsApp, but say so
          plainly — silently treating this as done is how a payment goes missing. */
       $('e4').innerHTML = 'We could not reach our booking system, so we have opened ' +
