@@ -1,9 +1,34 @@
 # How to update the payment backend
 
-You need this whenever `apps-script/Code.gs` changes. It takes about two minutes.
-Nothing here can break the website — only the payment emails and the sheet.
+**Preferred: let Claude do it.** Once clasp is set up (below), deploying is one
+command and the manual dance is unnecessary:
+
+    ./scripts/deploy-backend.sh
+
+It pushes `apps-script/Code.gs`, updates the live deployment to a new version,
+then checks the endpoint really is serving the new build before saying done.
 
 ---
+
+## One-time clasp setup
+
+1. Turn on the Apps Script API for the Google account that owns the script:
+   <https://script.google.com/home/usersettings> → **Google Apps Script API: ON**
+
+2. In a terminal: `clasp login` — a browser opens, sign in, allow access.
+
+3. Get the **Script ID**: Apps Script editor → ⚙ **Project Settings** → *Script ID*.
+
+4. Then, from the repo root:
+
+       cd apps-script
+       clasp clone <SCRIPT_ID>      # pulls the real manifest down
+       cd ..
+       ./scripts/deploy-backend.sh
+
+---
+
+## Doing it by hand (if clasp is unavailable)
 
 ## Step 1 — open the script
 
@@ -28,6 +53,13 @@ This is the step that actually makes it live. The editor showing new code does
 1. Top right: **Deploy** → **Manage deployments**
 2. Click the **pencil icon** ✏️ on the deployment already listed
 3. Under **Version**, choose **New version**
+
+   > **This is the step that goes wrong.** The dropdown opens showing the
+   > version that is already deployed, e.g. "Version 7". If you leave it there
+   > and press Deploy, Google redeploys the OLD code and reports success. The
+   > editor will show your new code and the live site will still run the old.
+   > You must actively change it to **New version**.
+
 4. Click **Deploy**
 
 > **Do not click "New deployment".** That creates a second, different web
