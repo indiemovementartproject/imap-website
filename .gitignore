@@ -1,0 +1,4 @@
+
+# clasp credentials — never commit
+.clasprc.json
+apps-script/.clasp.json

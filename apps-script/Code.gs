@@ -30,7 +30,7 @@
 
 /* Bump this whenever you paste a new copy in. Visiting the /exec URL in a browser
    prints it, so you can always tell which version the web app is actually serving. */
-var BUILD = '2026-08-26-a';
+var BUILD = '2026-08-26-b';
 
 var CONFIG = {
   ADMIN_EMAIL:   'indiemovementartproject@gmail.com',
@@ -143,6 +143,10 @@ function doPost(e) {
           'AMOUNT MISMATCH: order is Rs ' + d.expected +
           (shot.check.seen ? ', screenshot appears to show Rs ' + shot.check.seen : ', screenshot does not show that figure');
       }
+      if (shot.check.ran && shot.check.dateOK === false) {
+        d.flags = (d.flags ? d.flags + ' | ' : '') +
+          'DATE MISMATCH: screenshot is dated ' + shot.check.dateSeen + ', not today';
+      }
       if (shot.check.utr) d.utr = shot.check.utr;
     }
 
@@ -244,7 +248,8 @@ function storeScreenshot(dataUrl, d) {
     url = folder.createFile(blob).getUrl();
   } catch (err) {}
 
-  var check = { ran: false, amountOK: null, seen: '', utr: '', note: '' };
+  var check = { ran: false, amountOK: null, seen: '', utr: '', note: '',
+                dateOK: null, dateSeen: '', dateISO: '', timeSeen: '' };
   try { check = readAmount(blob, d.expected); }
   catch (err) { check.note = String((err && err.message) || err).slice(0, 140); }
 
@@ -254,7 +259,8 @@ function storeScreenshot(dataUrl, d) {
 /** Drive will OCR an image if asked to convert it to a Doc. Returns what it
  *  made of the amount. Never throws — a failure just means "could not read". */
 function readAmount(blob, expected) {
-  var out = { ran: false, amountOK: null, seen: '', utr: '', note: '' };
+  var out = { ran: false, amountOK: null, seen: '', utr: '', note: '',
+              dateOK: null, dateSeen: '', dateISO: '', timeSeen: '' };
   var text = '', lastErr = '';
 
   /* Drive throttles OCR and a short limit clears in seconds. The payer is
@@ -304,6 +310,58 @@ function readAmount(blob, expected) {
 
   var r = t.match(/(?:upi|utr|txn|transaction)[^0-9]{0,20}(\d{9,14})/) || t.match(/\b(\d{12})\b/);
   if (r) out.utr = r[1];
+
+  var when = readWhen(t);
+  out.dateSeen = when.date;          /* as printed on the image, e.g. "26 Aug 2026" */
+  out.dateISO  = when.iso;           /* normalised, for comparing */
+  out.timeSeen = when.time;
+  if (out.dateISO) {
+    out.dateOK = (out.dateISO === Utilities.formatDate(new Date(), CONFIG.TZ, 'yyyy-MM-dd'));
+  }
+  return out;
+}
+
+var MONTHS = { jan:1, feb:2, mar:3, apr:4, may:5, jun:6,
+               jul:7, aug:8, sep:9, oct:10, nov:11, dec:12 };
+
+/** Pull the date and time a UPI app printed on the receipt.
+ *  They all format it differently, so try the common shapes and give up
+ *  quietly rather than guessing. */
+function readWhen(t) {
+  var out = { date: '', iso: '', time: '' }, m, d, mo, y;
+
+  function iso(yy, mm, dd) {
+    if (yy < 100) yy += 2000;
+    if (!(mm >= 1 && mm <= 12) || !(dd >= 1 && dd <= 31) || yy < 2000 || yy > 2100) return '';
+    return yy + '-' + (mm < 10 ? '0' : '') + mm + '-' + (dd < 10 ? '0' : '') + dd;
+  }
+
+  /* 26 Aug 2026  /  26 August, 2026 */
+  if ((m = t.match(/\b(\d{1,2})\s+(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*,?\s*(\d{4})\b/))) {
+    d = +m[1]; mo = MONTHS[m[2]]; y = +m[3];
+    out.date = m[0].replace(/,/g, ''); out.iso = iso(y, mo, d);
+  }
+  /* Aug 26, 2026 */
+  else if ((m = t.match(/\b(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*\s+(\d{1,2}),?\s*(\d{4})\b/))) {
+    mo = MONTHS[m[1]]; d = +m[2]; y = +m[3];
+    out.date = m[0].replace(/,/g, ''); out.iso = iso(y, mo, d);
+  }
+  /* 2026-08-26 */
+  else if ((m = t.match(/\b(\d{4})-(\d{1,2})-(\d{1,2})\b/))) {
+    out.date = m[0]; out.iso = iso(+m[1], +m[2], +m[3]);
+  }
+  /* 26/08/2026 or 26-08-2026 — day first, which is how Indian apps print it */
+  else if ((m = t.match(/\b(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})\b/))) {
+    out.date = m[0]; out.iso = iso(+m[3], +m[2], +m[1]);
+  }
+
+  /* 11:22 PM  /  11:22:05  /  23:22 */
+  if ((m = t.match(/\b(\d{1,2}):(\d{2})(?::(\d{2}))?\s*(am|pm)?\b/))) {
+    var hh = +m[1];
+    if (hh <= 23 && +m[2] <= 59) {
+      out.time = m[1] + ':' + m[2] + (m[3] ? ':' + m[3] : '') + (m[4] ? ' ' + m[4].toUpperCase() : '');
+    }
+  }
   return out;
 }
 
@@ -374,8 +432,9 @@ function appendRow(receipt, d, shot) {
     shot && shot.url ? shot.url : '',
     !shot ? 'no screenshot'
       : !shot.check || !shot.check.ran ? 'screenshot on file - not read (' + ((shot.check && shot.check.note) || 'unknown') + ')'
-      : shot.check.amountOK ? 'screenshot on file - amount looks right'
-      : 'screenshot on file - AMOUNT MISMATCH' + (shot.check.seen ? ' (reads Rs ' + shot.check.seen + ')' : ''),
+      : (shot.check.amountOK ? 'amount OK' : 'AMOUNT MISMATCH' + (shot.check.seen ? ' (reads Rs ' + shot.check.seen + ')' : ''))
+        + ' | ' + (shot.check.dateOK === true ? 'date OK' : shot.check.dateOK === false ? 'DATE ' + shot.check.dateSeen : 'no date')
+        + (shot.check.timeSeen ? ' | ' + shot.check.timeSeen : ''),
     '', '', ''
   ]);
 }
@@ -434,31 +493,62 @@ function shell(title, badge, badgeColor, inner) {
 /* Subjects go out as a raw mail header, and MailApp will not encode them, so
    anything above plain ASCII arrives as mojibake (Rs became 'Çπ', the middle
    dot became '¬∑'). Keep every subject ASCII. Bodies are HTML and are fine. */
+/** What the screenshot reader made of the image, in plain words. */
+function screenshotVerdict(shot) {
+  var grey  = 'font:13px/1.7 -apple-system,Segoe UI,sans-serif;color:#8a9a9c';
+  var green = 'font:13px/1.7 -apple-system,Segoe UI,sans-serif;color:#1a7f4b';
+  var red   = 'font:13px/1.7 -apple-system,Segoe UI,sans-serif;color:#8a2018';
+
+  if (!shot) return '<span style="' + grey + '">No screenshot came through.</span>';
+  var c = shot.check;
+  if (!c || !c.ran) {
+    return '<span style="' + grey + '">Could not read it automatically' +
+           (c && c.note ? ' (' + esc(c.note) + ')' : '') +
+           ' &mdash; please check it by eye.</span>';
+  }
+
+  var out = [];
+  out.push(c.amountOK
+    ? '<div style="' + green + '">&#10003; Amount matches.</div>'
+    : '<div style="' + red + '"><b>&#10007; AMOUNT MISMATCH' +
+      (c.seen ? ' &mdash; the screenshot reads &#8377;' + esc(c.seen) : ' &mdash; could not find this figure on it') +
+      '</b></div>');
+
+  if (c.dateOK === true) {
+    out.push('<div style="' + green + '">&#10003; Dated today' +
+             (c.dateSeen ? ' (' + esc(c.dateSeen) + ')' : '') + '.</div>');
+  } else if (c.dateOK === false) {
+    out.push('<div style="' + red + '"><b>&#10007; Dated ' + esc(c.dateSeen) +
+             ', which is not today.</b></div>');
+  } else {
+    out.push('<div style="' + grey + '">No date found on it.</div>');
+  }
+
+  out.push('<div style="' + grey + '">' +
+    (c.timeSeen ? 'Time on the screenshot: ' + esc(c.timeSeen) + '. ' : 'No time found. ') +
+    (c.utr ? 'UPI reference ' + esc(c.utr) + '.' : 'No UPI reference found.') +
+    '</div>');
+
+  out.push('<div style="' + grey + ';margin-top:6px">This is a reading of the image, ' +
+           'not proof of payment. Confirm against the UPI account before marking VERIFIED.</div>');
+  return out.join('');
+}
+
 function mailTeam(receipt, d, shot) {
   var body =
     '<div style="margin:0 0 16px;padding:12px 14px;border-radius:10px;background:#eef6f7;border:1px solid #bcd9dc;' +
       'color:#134e52;font:13px/1.6 -apple-system,Segoe UI,sans-serif">' +
       'Confirm the screenshot shows <b>exactly &#8377;' + d.expected + '</b> paid into the iMAP UPI account. ' +
       'If it shows any other amount, or you cannot find the payment, <b>do not mark this VERIFIED</b> &mdash; ' +
-      'message them first. Nothing here reads the screenshot for you.' +
+      'message them first.' +
     '</div>' +
     (d.flags ? '<div style="margin:0 0 16px;padding:12px 14px;border-radius:10px;background:#fdecea;border:1px solid #f0a9a1;' +
         'color:#8a2018;font:13px/1.6 -apple-system,Segoe UI,sans-serif"><b>Check this:</b> ' + esc(d.flags) + '</div>' : '') +
     '<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="width:100%;border-collapse:collapse;table-layout:fixed">' +
       row('Name', d.name) + row('Contact', '+91 ' + d.phone) +
       row('Email', d.email || '— not given —') +
-      row('Screenshot must show', '<b style="font-size:17px">&#8377;' + d.expected + '</b>' +
-        (!shot || !shot.check ? ''
-          : !shot.check.ran
-            ? '<div style="font:12px -apple-system,Segoe UI,sans-serif;color:#8a9a9c;margin-top:4px">'
-              + 'We could not read the screenshot automatically - please check it yourself.</div>'
-          : shot.check.amountOK
-            ? '<div style="font:12px -apple-system,Segoe UI,sans-serif;color:#1a7f4b;margin-top:4px">'
-              + 'The screenshot appears to show this amount.</div>'
-            : '<div style="font:12px -apple-system,Segoe UI,sans-serif;color:#8a2018;margin-top:4px">'
-              + '<b>The screenshot does NOT show this amount'
-              + (shot.check.seen ? ' - it reads &#8377;' + esc(shot.check.seen) : '')
-              + '.</b></div>')) +
+      row('Screenshot must show', '<b style="font-size:17px">&#8377;' + d.expected + '</b>') +
+      row('What we read off it', screenshotVerdict(shot)) +
       row('For', d.lines) +
       row('Receipt', receipt) + row('Reference', d.ref) +
     '</table>' +
