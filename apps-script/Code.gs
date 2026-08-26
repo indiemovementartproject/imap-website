@@ -30,7 +30,7 @@
 
 /* Bump this whenever you paste a new copy in. Visiting the /exec URL in a browser
    prints it, so you can always tell which version the web app is actually serving. */
-var BUILD = '2026-08-26-b';
+var BUILD = '2026-08-26-d';
 
 var CONFIG = {
   ADMIN_EMAIL:   'indiemovementartproject@gmail.com',
@@ -462,6 +462,16 @@ function row(k, v) {
     '</td></tr>';
 }
 
+/** Same as row(), but the value is trusted markup and must not be escaped. */
+function rowHtml(k, v) {
+  return '<tr><td style="padding:11px 0;border-bottom:1px solid #eef1f2">' +
+    '<div style="font:11px -apple-system,Segoe UI,sans-serif;color:#6b7b7d;' +
+      'letter-spacing:.08em;text-transform:uppercase">' + esc(k) + '</div>' +
+    '<div style="font:15px/1.45 -apple-system,Segoe UI,sans-serif;color:#12211f;' +
+      'margin-top:4px;word-break:break-word;overflow-wrap:break-word">' + v + '</div>' +
+    '</td></tr>';
+}
+
 function shell(title, badge, badgeColor, inner) {
   /* Without this meta the client guesses the encoding and UTF-8 arrives as
      mojibake — the rupee sign turned into 'Cp' and the middle dot into '¬∑'. */
@@ -493,45 +503,85 @@ function shell(title, badge, badgeColor, inner) {
 /* Subjects go out as a raw mail header, and MailApp will not encode them, so
    anything above plain ASCII arrives as mojibake (Rs became 'Çπ', the middle
    dot became '¬∑'). Keep every subject ASCII. Bodies are HTML and are fine. */
+/** When this order reached us, in words a person can compare against an image. */
+function submittedStamp() {
+  return Utilities.formatDate(new Date(), CONFIG.TZ, 'd MMM yyyy') + ' at ' +
+         Utilities.formatDate(new Date(), CONFIG.TZ, 'h:mm a');
+}
+
+/** "8:15 am" or "18:42" -> minutes since midnight, or -1 if unreadable. */
+function minutesOfDay(t) {
+  var m = String(t || '').match(/^(\d{1,2}):(\d{2})(?::\d{2})?\s*(AM|PM)?$/i);
+  if (!m) return -1;
+  var h = +m[1], mins = +m[2], ap = (m[3] || '').toUpperCase();
+  if (ap === 'PM' && h < 12) h += 12;
+  if (ap === 'AM' && h === 12) h = 0;
+  if (h > 23 || mins > 59) return -1;
+  return h * 60 + mins;
+}
+
 /** What the screenshot reader made of the image, in plain words. */
 function screenshotVerdict(shot) {
-  var grey  = 'font:13px/1.7 -apple-system,Segoe UI,sans-serif;color:#8a9a9c';
+  var grey  = 'font:13px/1.7 -apple-system,Segoe UI,sans-serif;color:#6b7b7d';
   var green = 'font:13px/1.7 -apple-system,Segoe UI,sans-serif;color:#1a7f4b';
   var red   = 'font:13px/1.7 -apple-system,Segoe UI,sans-serif;color:#8a2018';
 
-  if (!shot) return '<span style="' + grey + '">No screenshot came through.</span>';
+  if (!shot) return '<span style="' + grey + '">No screenshot was sent.</span>';
   var c = shot.check;
   if (!c || !c.ran) {
-    return '<span style="' + grey + '">Could not read it automatically' +
-           (c && c.note ? ' (' + esc(c.note) + ')' : '') +
-           ' &mdash; please check it by eye.</span>';
+    return '<span style="' + grey + '">We could not read this image. Please check it yourself.</span>';
   }
 
   var out = [];
+
   out.push(c.amountOK
-    ? '<div style="' + green + '">&#10003; Amount matches.</div>'
-    : '<div style="' + red + '"><b>&#10007; AMOUNT MISMATCH' +
-      (c.seen ? ' &mdash; the screenshot reads &#8377;' + esc(c.seen) : ' &mdash; could not find this figure on it') +
+    ? '<div style="' + green + '">&#10003; The amount is right.</div>'
+    : '<div style="' + red + '"><b>&#10007; Wrong amount' +
+      (c.seen ? ' &mdash; this screenshot says &#8377;' + esc(c.seen) : ' &mdash; we could not find the right figure on it') +
       '</b></div>');
 
   if (c.dateOK === true) {
-    out.push('<div style="' + green + '">&#10003; Dated today' +
-             (c.dateSeen ? ' (' + esc(c.dateSeen) + ')' : '') + '.</div>');
+    out.push('<div style="' + green + '">&#10003; Paid today.</div>');
   } else if (c.dateOK === false) {
-    out.push('<div style="' + red + '"><b>&#10007; Dated ' + esc(c.dateSeen) +
-             ', which is not today.</b></div>');
+    out.push('<div style="' + red + '"><b>&#10007; Paid on ' + esc(prettyDate(c.dateSeen)) +
+             ', not today.</b></div>');
   } else {
-    out.push('<div style="' + grey + '">No date found on it.</div>');
+    out.push('<div style="' + grey + '">We could not find a date on it.</div>');
   }
 
-  out.push('<div style="' + grey + '">' +
-    (c.timeSeen ? 'Time on the screenshot: ' + esc(c.timeSeen) + '. ' : 'No time found. ') +
-    (c.utr ? 'UPI reference ' + esc(c.utr) + '.' : 'No UPI reference found.') +
-    '</div>');
+  /* Compare the time on the image with the moment they pressed submit. A long
+     gap on the same day usually means an older receipt was re-used. */
+  if (c.timeSeen) {
+    var shotMin = minutesOfDay(c.timeSeen);
+    var nowMin  = Number(Utilities.formatDate(new Date(), CONFIG.TZ, 'H')) * 60 +
+                  Number(Utilities.formatDate(new Date(), CONFIG.TZ, 'm'));
+    var gap = (shotMin < 0) ? -1 : Math.abs(nowMin - shotMin);
+    if (c.dateOK === true && gap >= 0 && gap > 180) {
+      out.push('<div style="' + red + '"><b>&#10007; Paid at ' + esc(c.timeSeen) +
+               ', about ' + Math.round(gap / 60) + ' hours before this was sent to us.</b></div>');
+    } else {
+      out.push('<div style="' + green + '">&#10003; Paid at ' + esc(c.timeSeen) + '.</div>');
+    }
+  } else {
+    out.push('<div style="' + grey + '">We could not find a time on it.</div>');
+  }
 
-  out.push('<div style="' + grey + ';margin-top:6px">This is a reading of the image, ' +
-           'not proof of payment. Confirm against the UPI account before marking VERIFIED.</div>');
+  if (c.utr) {
+    out.push('<div style="' + grey + '">Bank reference on the image: ' + esc(c.utr) + '</div>');
+  }
+
+  out.push('<div style="' + grey + ';margin-top:8px">We only read what the picture says. ' +
+           'It is not proof the money arrived &mdash; check the UPI account before marking VERIFIED.</div>');
   return out.join('');
+}
+
+/** "16 august 2026" -> "16 Aug 2026", because the OCR text is lowercased. */
+function prettyDate(dateSeen) {
+  var d = String(dateSeen || '').trim();
+  if (!d) return d;
+  return d.replace(/\b([a-z])([a-z]{2})[a-z]*\b/g, function (whole, a, b) {
+    return MONTHS[(a + b).toLowerCase()] ? a.toUpperCase() + b : whole;
+  });
 }
 
 function mailTeam(receipt, d, shot) {
@@ -547,8 +597,11 @@ function mailTeam(receipt, d, shot) {
     '<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="width:100%;border-collapse:collapse;table-layout:fixed">' +
       row('Name', d.name) + row('Contact', '+91 ' + d.phone) +
       row('Email', d.email || '— not given —') +
-      row('Screenshot must show', '<b style="font-size:17px">&#8377;' + d.expected + '</b>') +
-      row('What we read off it', screenshotVerdict(shot)) +
+      rowHtml('Screenshot must show', '<b style="font-size:17px">&#8377;' + d.expected + '</b>') +
+      rowHtml('Submitted', '<b>' + esc(submittedStamp()) + '</b>' +
+        '<div style="font:12px -apple-system,Segoe UI,sans-serif;color:#8a9a9c;margin-top:3px">' +
+        'The screenshot should be from about this time.</div>') +
+      rowHtml('What we read off it', screenshotVerdict(shot)) +
       row('For', d.lines) +
       row('Receipt', receipt) + row('Reference', d.ref) +
     '</table>' +
@@ -587,7 +640,8 @@ function mailPayer(receipt, d) {
       'Hi ' + esc(String(d.name).split(/\s+/)[0]) + ', thank you! Your screenshot has been sent to the ' +
       'studio for verification, and our team will reach out to you on WhatsApp shortly.</p>' +
     '<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="width:100%;border-collapse:collapse;table-layout:fixed">' +
-      row('Reference', receipt) + row('For', d.lines) + row('Amount', '&#8377;' + d.expected) +
+      row('Reference', receipt) + row('For', d.lines) +
+      rowHtml('Amount', '&#8377;' + d.expected) +
     '</table>' +
     '<p style="margin:20px 0 0"><a href="' + esc(wa) + '" ' +
       'style="display:inline-block;background:#25D366;color:#fff;text-decoration:none;padding:12px 20px;' +
