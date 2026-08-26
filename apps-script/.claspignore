@@ -1,4 +1,3 @@
-# only the script and whatever manifest clasp pulls down
 **/**
 !Code.gs
 !appsscript.json

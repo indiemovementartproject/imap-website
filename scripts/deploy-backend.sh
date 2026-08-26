@@ -13,17 +13,21 @@ echo "Deploying build $BUILD"
 
 clasp push --force
 
-DEPLOY_ID="${CLASP_DEPLOYMENT_ID:-$(grep -o '"deploymentId": *"[^"]*"' .clasp.json 2>/dev/null | sed 's/.*"\([^"]*\)"$/\1/' || true)}"
-if [ -z "${DEPLOY_ID:-}" ]; then
-  echo
-  echo "No deployment id recorded. Existing deployments:"
-  clasp list-deployments
-  echo
-  echo "Re-run with:  CLASP_DEPLOYMENT_ID=<the AKfycb... id> $0"
+# The deployment the website actually posts to. There are a dozen on this
+# project; updating any other one changes nothing a customer ever touches.
+DEPLOY_ID="${CLASP_DEPLOYMENT_ID:-AKfycbyzOycWZQ8zKOWd4obluWv8frDtfFQbwa2bRN17NrHd6I-Lk3KZ5OsHhZ07FL0R_jik}"
+
+SITE_ID=$(grep -o 'AKfycb[A-Za-z0-9_-]*' ../pay.html | head -1)
+if [ -n "$SITE_ID" ] && [ "$SITE_ID" != "$DEPLOY_ID" ]; then
+  echo "pay.html posts to $SITE_ID but this script targets $DEPLOY_ID." >&2
+  echo "One of them is wrong — stopping rather than deploying to the wrong place." >&2
   exit 1
 fi
 
-clasp redeploy "$DEPLOY_ID" -d "build $BUILD"
+VERSION=$(clasp create-version "build $BUILD" | grep -oE '[0-9]+$')
+echo "Created version $VERSION"
+
+clasp redeploy "$DEPLOY_ID" -V "$VERSION" -d "build $BUILD"
 
 echo
 echo "Confirming what the live endpoint now serves..."
