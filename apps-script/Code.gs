@@ -21,7 +21,7 @@
 
 /* Bump this whenever you paste a new copy in. Visiting the /exec URL in a browser
    prints it, so you can always tell which version the web app is actually serving. */
-var BUILD = '2026-08-22-a';
+var BUILD = '2026-08-26-a';
 
 var CONFIG = {
   ADMIN_EMAIL:   'indiemovementartproject@gmail.com',
@@ -310,6 +310,9 @@ function shell(title, badge, badgeColor, inner) {
 }
 
 /** To the team: everything needed to confirm the payment and reach the payer. */
+/* Subjects go out as a raw mail header, and MailApp will not encode them, so
+   anything above plain ASCII arrives as mojibake (Rs became 'Çπ', the middle
+   dot became '¬∑'). Keep every subject ASCII. Bodies are HTML and are fine. */
 function mailTeam(receipt, d, shot) {
   var body =
     '<div style="margin:0 0 16px;padding:12px 14px;border-radius:10px;background:#eef6f7;border:1px solid #bcd9dc;' +
@@ -337,7 +340,7 @@ function mailTeam(receipt, d, shot) {
   var to = CONFIG.NOTIFY.slice(0);
   var opts = {
     to: to.shift(),
-    subject: (d.flags ? '⚠️ ' : '') + 'Payment · ₹' + d.expected + ' · ' + d.name + ' · ' + receipt,
+    subject: (d.flags ? '[CHECK] ' : '') + 'Payment Rs ' + d.expected + ' - ' + d.name + ' - ' + receipt,
     htmlBody: shell('New payment', '', '', body),
     name: 'iMAP Payments',
     replyTo: d.email || CONFIG.ADMIN_EMAIL
@@ -368,7 +371,7 @@ function mailPayer(receipt, d) {
       'Keep this for your records. See you in the studio!</p>';
   MailApp.sendEmail({
     to: d.email,
-    subject: 'We’ve got your payment · ' + receipt + ' · iMAP',
+    subject: "We've got your payment - " + receipt + ' - iMAP',
     htmlBody: shell('Screenshot received', 'Being verified', '#0f9aa0', body),
     name: CONFIG.BRAND,
     replyTo: CONFIG.ADMIN_EMAIL
