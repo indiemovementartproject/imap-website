@@ -30,7 +30,11 @@
 
 /* Bump this whenever you paste a new copy in. Visiting the /exec URL in a browser
    prints it, so you can always tell which version the web app is actually serving. */
-var BUILD = '2026-08-26-d';
+var BUILD = '2026-08-26-e';
+
+/* A genuine payer screenshots the receipt and uploads it within a couple of
+   minutes. A bigger gap means an older image, so say so. */
+var STALE_SCREENSHOT_MINUTES = 15;
 
 var CONFIG = {
   ADMIN_EMAIL:   'indiemovementartproject@gmail.com',
@@ -143,6 +147,11 @@ function doPost(e) {
           'AMOUNT MISMATCH: order is Rs ' + d.expected +
           (shot.check.seen ? ', screenshot appears to show Rs ' + shot.check.seen : ', screenshot does not show that figure');
       }
+      if (shot.check.ran && shot.check.timeOK === false) {
+        d.flags = (d.flags ? d.flags + ' | ' : '') +
+          'TIME MISMATCH: screenshot is timed ' + shot.check.timeSeen + ', ' +
+          shot.check.minutesBefore + ' minutes before it was submitted';
+      }
       if (shot.check.ran && shot.check.dateOK === false) {
         d.flags = (d.flags ? d.flags + ' | ' : '') +
           'DATE MISMATCH: screenshot is dated ' + shot.check.dateSeen + ', not today';
@@ -249,7 +258,8 @@ function storeScreenshot(dataUrl, d) {
   } catch (err) {}
 
   var check = { ran: false, amountOK: null, seen: '', utr: '', note: '',
-                dateOK: null, dateSeen: '', dateISO: '', timeSeen: '' };
+                dateOK: null, dateSeen: '', dateISO: '', timeSeen: '',
+                timeOK: null, minutesBefore: null };
   try { check = readAmount(blob, d.expected); }
   catch (err) { check.note = String((err && err.message) || err).slice(0, 140); }
 
@@ -260,7 +270,8 @@ function storeScreenshot(dataUrl, d) {
  *  made of the amount. Never throws — a failure just means "could not read". */
 function readAmount(blob, expected) {
   var out = { ran: false, amountOK: null, seen: '', utr: '', note: '',
-              dateOK: null, dateSeen: '', dateISO: '', timeSeen: '' };
+              dateOK: null, dateSeen: '', dateISO: '', timeSeen: '',
+              timeOK: null, minutesBefore: null };
   var text = '', lastErr = '';
 
   /* Drive throttles OCR and a short limit clears in seconds. The payer is
@@ -317,6 +328,16 @@ function readAmount(blob, expected) {
   out.timeSeen = when.time;
   if (out.dateISO) {
     out.dateOK = (out.dateISO === Utilities.formatDate(new Date(), CONFIG.TZ, 'yyyy-MM-dd'));
+  }
+
+  /* How long before this upload the payment was made. Only meaningful when the
+     image is from today — a different day is already caught by the date check. */
+  var shotMin = minutesOfDay(out.timeSeen);
+  if (out.dateOK === true && shotMin >= 0) {
+    var nowMin = Number(Utilities.formatDate(new Date(), CONFIG.TZ, 'H')) * 60 +
+                 Number(Utilities.formatDate(new Date(), CONFIG.TZ, 'm'));
+    out.minutesBefore = nowMin - shotMin;
+    out.timeOK = (out.minutesBefore <= STALE_SCREENSHOT_MINUTES && out.minutesBefore >= -5);
   }
   return out;
 }
@@ -434,7 +455,9 @@ function appendRow(receipt, d, shot) {
       : !shot.check || !shot.check.ran ? 'screenshot on file - not read (' + ((shot.check && shot.check.note) || 'unknown') + ')'
       : (shot.check.amountOK ? 'amount OK' : 'AMOUNT MISMATCH' + (shot.check.seen ? ' (reads Rs ' + shot.check.seen + ')' : ''))
         + ' | ' + (shot.check.dateOK === true ? 'date OK' : shot.check.dateOK === false ? 'DATE ' + shot.check.dateSeen : 'no date')
-        + (shot.check.timeSeen ? ' | ' + shot.check.timeSeen : ''),
+        + ' | ' + (!shot.check.timeSeen ? 'no time'
+                   : shot.check.timeOK === false ? 'TIME MISMATCH ' + shot.check.timeSeen + ' (' + shot.check.minutesBefore + ' min early)'
+                   : shot.check.timeSeen),
     '', '', ''
   ]);
 }
@@ -549,21 +572,22 @@ function screenshotVerdict(shot) {
     out.push('<div style="' + grey + '">We could not find a date on it.</div>');
   }
 
-  /* Compare the time on the image with the moment they pressed submit. A long
-     gap on the same day usually means an older receipt was re-used. */
-  if (c.timeSeen) {
-    var shotMin = minutesOfDay(c.timeSeen);
-    var nowMin  = Number(Utilities.formatDate(new Date(), CONFIG.TZ, 'H')) * 60 +
-                  Number(Utilities.formatDate(new Date(), CONFIG.TZ, 'm'));
-    var gap = (shotMin < 0) ? -1 : Math.abs(nowMin - shotMin);
-    if (c.dateOK === true && gap >= 0 && gap > 180) {
-      out.push('<div style="' + red + '"><b>&#10007; Paid at ' + esc(c.timeSeen) +
-               ', about ' + Math.round(gap / 60) + ' hours before this was sent to us.</b></div>');
-    } else {
-      out.push('<div style="' + green + '">&#10003; Paid at ' + esc(c.timeSeen) + '.</div>');
-    }
-  } else {
+  if (!c.timeSeen) {
     out.push('<div style="' + grey + '">We could not find a time on it.</div>');
+  } else if (c.timeOK === false) {
+    var mins = c.minutesBefore;
+    var howLong = mins < 0 ? Math.abs(mins) + ' minutes AFTER this was sent to us'
+                : mins >= 120 ? Math.round(mins / 60) + ' hours before this was sent to us'
+                : mins + ' minutes before this was sent to us';
+    out.push('<div style="' + red + '"><b>&#10007; TIME MISMATCH &mdash; paid at ' +
+             esc(c.timeSeen) + ', ' + howLong + '.</b><br>' +
+             'A genuine receipt is usually uploaded within a few minutes. ' +
+             'This looks like an older screenshot.</div>');
+  } else if (c.timeOK === true) {
+    out.push('<div style="' + green + '">&#10003; Paid at ' + esc(c.timeSeen) +
+             ', just before this was sent.</div>');
+  } else {
+    out.push('<div style="' + grey + '">Time on it: ' + esc(c.timeSeen) + '.</div>');
   }
 
   if (c.utr) {
