@@ -30,7 +30,7 @@
 
 /* Bump this whenever you paste a new copy in. Visiting the /exec URL in a browser
    prints it, so you can always tell which version the web app is actually serving. */
-var BUILD = '2026-08-26-e';
+var BUILD = '2026-08-26-g';
 
 /* A genuine payer screenshots the receipt and uploads it within a couple of
    minutes. A bigger gap means an older image, so say so. */
@@ -46,6 +46,12 @@ var CONFIG = {
     'indiemovementartproject@gmail.com'    // studio record
   ],
   BRAND: 'Indie Movement Art Project',
+  /* Who the money must have gone TO. A UPI receipt truncates long names
+     ("ROHIT RAJENDRA CHOUD..."), and OCR mangles letters, so we look for any
+     one of several fragments rather than the whole name. Spelling variants are
+     deliberate. Add to this if the receiving account ever changes. */
+  PAYEE_MARKERS: ['rohit', 'choud', 'chaud', 'choWd', 'rohitchoudhary91',
+                  'rohitchoudhary91.rc-1', 'rohitchoudhary91.rc'],
   SITE:  'https://indiemovementartproject.com',
   ENQUIRY_WHATSAPP: '918454880061',   // Ruchika — enquiries + screenshots
   PAYMENT_WHATSAPP: '919870538332',   // Rohit — money
@@ -147,6 +153,11 @@ function doPost(e) {
           'AMOUNT MISMATCH: order is Rs ' + d.expected +
           (shot.check.seen ? ', screenshot appears to show Rs ' + shot.check.seen : ', screenshot does not show that figure');
       }
+      if (shot.check.ran && shot.check.payeeOK === false) {
+        d.flags = (d.flags ? d.flags + ' | ' : '') +
+          'PAYEE MISMATCH: the screenshot does not show iMAP as the receiver' +
+          (shot.check.payeeSeen ? ' (it reads "' + shot.check.payeeSeen + '")' : '');
+      }
       if (shot.check.ran && shot.check.timeOK === false) {
         d.flags = (d.flags ? d.flags + ' | ' : '') +
           'TIME MISMATCH: screenshot is timed ' + shot.check.timeSeen + ', ' +
@@ -159,10 +170,33 @@ function doPost(e) {
       if (shot.check.utr) d.utr = shot.check.utr;
     }
 
+    /* Turn a definite mismatch away at the door, so a fabricated screenshot
+       never becomes an email or a booking.
+       Deliberately NOT rejected: a screenshot we simply could not read. That is
+       our failure, not the payer's — those still come through, flagged, for a
+       human. Rejecting on our own outage would turn away paying customers. */
+    var c = shot && shot.check;
+    var reasons = [];
+    if (c && c.ran) {
+      if (c.payeeOK  === false) reasons.push('it does not show a payment to iMAP');
+      if (c.amountOK === false) reasons.push('the amount on it is not \u20b9' + d.expected);
+      if (c.dateOK   === false) reasons.push('it is dated ' + prettyDate(c.dateSeen) + ', not today');
+      if (c.timeOK   === false) reasons.push('it was taken ' + Math.abs(c.minutesBefore) +
+                                  ' minutes ' + (c.minutesBefore < 0 ? 'after' : 'before') + ' you sent it');
+    }
+
     var lock = LockService.getScriptLock();
     lock.waitLock(25000);
     try {
       var receipt = nextReceipt();
+
+      if (reasons.length) {
+        /* Recorded, but not emailed — an audit trail without inbox noise, so a
+           genuine payer who gives up is still findable rather than invisible. */
+        appendRow(receipt, d, shot, 'REJECTED');
+        return json({ ok: false, rejected: true, receipt: receipt, reasons: reasons });
+      }
+
       appendRow(receipt, d, shot);
       try { mailTeam(receipt, d, shot); } catch (err) {}
       try { mailPayer(receipt, d); } catch (err) {}
@@ -259,7 +293,8 @@ function storeScreenshot(dataUrl, d) {
 
   var check = { ran: false, amountOK: null, seen: '', utr: '', note: '',
                 dateOK: null, dateSeen: '', dateISO: '', timeSeen: '',
-                timeOK: null, minutesBefore: null };
+                timeOK: null, minutesBefore: null,
+              payeeOK: null, payeeSeen: '' };
   try { check = readAmount(blob, d.expected); }
   catch (err) { check.note = String((err && err.message) || err).slice(0, 140); }
 
@@ -271,7 +306,8 @@ function storeScreenshot(dataUrl, d) {
 function readAmount(blob, expected) {
   var out = { ran: false, amountOK: null, seen: '', utr: '', note: '',
               dateOK: null, dateSeen: '', dateISO: '', timeSeen: '',
-              timeOK: null, minutesBefore: null };
+              timeOK: null, minutesBefore: null,
+              payeeOK: null, payeeSeen: '' };
   var text = '', lastErr = '';
 
   /* Drive throttles OCR and a short limit clears in seconds. The payer is
@@ -321,6 +357,24 @@ function readAmount(blob, expected) {
 
   var r = t.match(/(?:upi|utr|txn|transaction)[^0-9]{0,20}(\d{9,14})/) || t.match(/\b(\d{12})\b/);
   if (r) out.utr = r[1];
+
+  /* Who was paid. Without this, someone can send the right amount to their own
+     account, screenshot it, and it passes every other check. */
+  var flat = t.replace(/[^a-z0-9@.]/g, '');
+  for (var n = 0; n < CONFIG.PAYEE_MARKERS.length; n++) {
+    var marker = String(CONFIG.PAYEE_MARKERS[n]).toLowerCase();
+    if (t.indexOf(marker) !== -1 || flat.indexOf(marker.replace(/[^a-z0-9@.]/g, '')) !== -1) {
+      out.payeeOK = true;
+      out.payeeSeen = marker;
+      break;
+    }
+  }
+  if (out.payeeOK !== true) {
+    out.payeeOK = false;
+    /* Show whatever it thinks the payee was, so a real mismatch is obvious. */
+    var to = t.match(/(?:paid to|to|receiver|payee|banking name)[:\s]+([a-z][a-z .]{2,40})/);
+    out.payeeSeen = to ? to[1].trim().replace(/\s+/g, ' ') : '';
+  }
 
   var when = readWhen(t);
   out.dateSeen = when.date;          /* as printed on the image, e.g. "26 Aug 2026" */
@@ -442,10 +496,10 @@ function nextReceipt() {
   return 'IMAP-' + Utilities.formatDate(new Date(), CONFIG.TZ, 'yy') + '-' + ('000' + n).slice(-4);
 }
 
-function appendRow(receipt, d, shot) {
+function appendRow(receipt, d, shot, status) {
   sheet().appendRow([
     Utilities.formatDate(new Date(), CONFIG.TZ, 'yyyy-MM-dd HH:mm:ss'),
-    receipt, 'PENDING',                    /* internal only — never shown to the payer */
+    receipt, status || 'PENDING',          /* internal only — never shown to the payer */
     d.lines, d.ids, d.qty,
     d.expected, d.claimed, d.flags,
     d.name, "'" + d.phone, d.email,
@@ -455,6 +509,7 @@ function appendRow(receipt, d, shot) {
       : !shot.check || !shot.check.ran ? 'screenshot on file - not read (' + ((shot.check && shot.check.note) || 'unknown') + ')'
       : (shot.check.amountOK ? 'amount OK' : 'AMOUNT MISMATCH' + (shot.check.seen ? ' (reads Rs ' + shot.check.seen + ')' : ''))
         + ' | ' + (shot.check.dateOK === true ? 'date OK' : shot.check.dateOK === false ? 'DATE ' + shot.check.dateSeen : 'no date')
+        + ' | ' + (shot.check.payeeOK === true ? 'payee OK' : shot.check.payeeOK === false ? 'PAYEE MISMATCH' : 'payee unknown')
         + ' | ' + (!shot.check.timeSeen ? 'no time'
                    : shot.check.timeOK === false ? 'TIME MISMATCH ' + shot.check.timeSeen + ' (' + shot.check.minutesBefore + ' min early)'
                    : shot.check.timeSeen),
@@ -588,6 +643,14 @@ function screenshotVerdict(shot) {
              ', just before this was sent.</div>');
   } else {
     out.push('<div style="' + grey + '">Time on it: ' + esc(c.timeSeen) + '.</div>');
+  }
+
+  if (c.payeeOK === true) {
+    out.push('<div style="' + green + '">&#10003; Paid to us.</div>');
+  } else if (c.payeeOK === false) {
+    out.push('<div style="' + red + '"><b>&#10007; PAYEE MISMATCH &mdash; this does not look like a payment to iMAP' +
+             (c.payeeSeen ? '. It appears to be paid to &ldquo;' + esc(c.payeeSeen) + '&rdquo;' : '') +
+             '.</b><br>The money may have gone to somebody else&rsquo;s account.</div>');
   }
 
   if (c.utr) {
