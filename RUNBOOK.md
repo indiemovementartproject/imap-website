@@ -82,6 +82,17 @@ bump a returning visitor can see yesterday's prices.
 
 ## Redeploying the backend
 
+> **The trap, hit twice now.** "New deployment" mints a **new /exec URL** and
+> leaves the old one serving the old code. The site keeps posting to the old URL
+> and nothing changes — that is how a Retro-Jazz customer paid with no record
+> reaching the studio. Always use **Manage deployments → ✏️ → Version: New
+> version → Deploy**. If you do end up with a new URL, `ENDPOINT` in `pay.html`
+> must be updated to match, or the deploy has no effect.
+>
+> After any redeploy, confirm with:
+> `curl -sL "<exec-url>" | grep -oE '2026-[0-9]{2}-[0-9]{2}-[a-z]'`
+> and check the build matches `BUILD` in `apps-script/Code.gs`.
+
 Editing `Code.gs` in the Apps Script editor changes nothing on the live site until you publish a
 **new version** of the **existing** deployment:
 
