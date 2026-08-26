@@ -6,17 +6,26 @@
  * iMAP payments — Google Apps Script backend.
  *
  * Takes an order from pay.html together with the payer's UPI screenshot,
- * reads the screenshot with Google Drive's OCR, checks the amount and the
- * date, records everything in a Sheet, and forwards the screenshot to
- * whoever is on the iMAP WhatsApp.
+ * re-prices the order from PRICES so the page cannot decide what is charged,
+ * files the screenshot in Drive, records the order in a Sheet, and emails the
+ * team and the payer.
  *
  * Deploy as a Web App ("Execute as: Me", "Who has access: Anyone").
- * See SETUP.md — the Drive advanced service must be switched on for OCR.
  *
- * WHAT THE CHECK IS AND ISN'T: reading a screenshot proves what the image
- * says, not that money moved. Images can be edited. Treat a pass as "very
- * probably fine, and worth a glance" rather than proof — which is exactly
- * why every screenshot still reaches a human.
+ * WHAT IS AND IS NOT CHECKED AUTOMATICALLY
+ *
+ *   Checked:     the prices. The server recomputes the total from PRICES and
+ *                flags the row if the page claimed a different figure.
+ *
+ *   NOT checked: the screenshot. Nothing here opens the image, so a receipt
+ *                for Rs 1 against an order for Rs 599 will arrive looking
+ *                completely normal. Screenshot OCR was removed deliberately:
+ *                it was unreliable, it hit Drive rate limits, and a screenshot
+ *                only ever proves what an image says, not that money moved.
+ *
+ * So every row lands as PENDING and a human confirms the amount against the
+ * UPI account before marking it VERIFIED. The team email states the exact
+ * figure to look for.
  */
 
 /* Bump this whenever you paste a new copy in. Visiting the /exec URL in a browser
@@ -286,7 +295,10 @@ function row(k, v) {
 }
 
 function shell(title, badge, badgeColor, inner) {
-  return '<div style="margin:0;padding:16px 10px;background:#f4f7f7">' +
+  /* Without this meta the client guesses the encoding and UTF-8 arrives as
+     mojibake — the rupee sign turned into 'Cp' and the middle dot into '¬∑'. */
+  return '<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">' +
+    '<div style="margin:0;padding:16px 10px;background:#f4f7f7">' +
     '<table role="presentation" cellpadding="0" cellspacing="0" border="0" ' +
       'style="width:100%;max-width:520px;margin:0 auto;border-collapse:collapse;' +
       'background:#ffffff;border-radius:16px;overflow:hidden">' +
@@ -317,21 +329,24 @@ function mailTeam(receipt, d, shot) {
   var body =
     '<div style="margin:0 0 16px;padding:12px 14px;border-radius:10px;background:#eef6f7;border:1px solid #bcd9dc;' +
       'color:#134e52;font:13px/1.6 -apple-system,Segoe UI,sans-serif">' +
-      'Check the attached screenshot against the UPI account, then set this row to <b>VERIFIED</b> in the sheet.' +
+      'Confirm the screenshot shows <b>exactly &#8377;' + d.expected + '</b> paid into the iMAP UPI account. ' +
+      'If it shows any other amount, or you cannot find the payment, <b>do not mark this VERIFIED</b> &mdash; ' +
+      'message them first. Nothing here reads the screenshot for you.' +
     '</div>' +
     (d.flags ? '<div style="margin:0 0 16px;padding:12px 14px;border-radius:10px;background:#fdecea;border:1px solid #f0a9a1;' +
         'color:#8a2018;font:13px/1.6 -apple-system,Segoe UI,sans-serif"><b>Check this:</b> ' + esc(d.flags) + '</div>' : '') +
     '<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="width:100%;border-collapse:collapse;table-layout:fixed">' +
       row('Name', d.name) + row('Contact', '+91 ' + d.phone) +
       row('Email', d.email || '— not given —') +
-      row('Paid', '₹' + d.expected) + row('For', d.lines) +
+      row('Screenshot must show', '<b style="font-size:17px">&#8377;' + d.expected + '</b>') +
+      row('For', d.lines) +
       row('Receipt', receipt) + row('Reference', d.ref) +
     '</table>' +
     '<p style="font:12px/1.6 -apple-system,Segoe UI,sans-serif;color:#8a9a9c;margin:14px 0 0">' +
       (shot && shot.blob ? 'Their payment screenshot is attached.' : 'No screenshot came through.') + '</p>' +
     '<p style="margin:20px 0 0"><a href="https://wa.me/91' + esc(d.phone) + '?text=' +
       encodeURIComponent('Hi ' + d.name.split(/\s+/)[0] + '! Thanks for registering with iMAP — ' +
-        'we have your payment of ₹' + d.expected + ' for ' + d.lines + ' (reference ' + receipt + '). ') + '" ' +
+        'we have your payment of Rs ' + d.expected + ' for ' + d.lines + ' (reference ' + receipt + '). ') + '" ' +
       'style="display:inline-block;background:#25D366;color:#fff;text-decoration:none;padding:12px 20px;' +
       'border-radius:10px;font:14px -apple-system,Segoe UI,sans-serif;word-break:break-word">WhatsApp ' + esc(d.name.split(/\s+/)[0]) + '</a></p>' +
     (shot && shot.url ? '<p style="font:12px -apple-system,Segoe UI,sans-serif;margin:14px 0 0">' +
@@ -362,7 +377,7 @@ function mailPayer(receipt, d) {
       'Hi ' + esc(String(d.name).split(/\s+/)[0]) + ', thank you! Your screenshot has been sent to the ' +
       'studio for verification, and our team will reach out to you on WhatsApp shortly.</p>' +
     '<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="width:100%;border-collapse:collapse;table-layout:fixed">' +
-      row('Reference', receipt) + row('For', d.lines) + row('Amount', '₹' + d.expected) +
+      row('Reference', receipt) + row('For', d.lines) + row('Amount', '&#8377;' + d.expected) +
     '</table>' +
     '<p style="margin:20px 0 0"><a href="' + esc(wa) + '" ' +
       'style="display:inline-block;background:#25D366;color:#fff;text-decoration:none;padding:12px 20px;' +
