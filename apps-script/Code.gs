@@ -30,7 +30,7 @@
 
 /* Bump this whenever you paste a new copy in. Visiting the /exec URL in a browser
    prints it, so you can always tell which version the web app is actually serving. */
-var BUILD = '2026-08-26-j';
+var BUILD = '2026-08-26-k';
 
 /* A genuine payer screenshots the receipt and uploads it within a couple of
    minutes. A bigger gap means an older image, so say so. */
@@ -52,12 +52,19 @@ var LIMIT_GLOBAL_HOUR    = 60;
 
 var CONFIG = {
   ADMIN_EMAIL:   'indiemovementartproject@gmail.com',
-  /* Everyone who should hear about a payment. Add or remove freely — the first
-     address is the To:, the rest are copied in. */
+  /* ONE address on purpose. Every recipient here costs against the sending
+     account's daily Gmail allowance (100 on a consumer account), and each
+     order also emails the payer — so three addresses here meant four
+     recipients per order and a ceiling of about 25 orders a day.
+
+     Rohit and Ruchika still receive every payment email: the studio inbox
+     forwards to them with a Gmail filter, and Gmail's own forwarding does not
+     count against this allowance. One address here = 2 recipients per order =
+     roughly 50 orders a day, for nothing.
+
+     Adding addresses back here halves the ceiling again. Forward instead. */
   NOTIFY: [
-    'chikajain@gmail.com',                 // Ruchika — iMAP WhatsApp
-    'rohitchoudhary91.rc@gmail.com',       // Rohit — the account being paid
-    'indiemovementartproject@gmail.com'    // studio record
+    'indiemovementartproject@gmail.com'    // forwards to Ruchika and Rohit
   ],
   BRAND: 'Indie Movement Art Project',
   /* Who the money must have gone TO. A UPI receipt truncates long names

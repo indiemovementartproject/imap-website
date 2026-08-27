@@ -298,6 +298,41 @@ phrases people actually search to reach the site, which is better grounding for
 new pages than guessing.
 
 
+## The email ceiling
+
+Payment notifications go out through Apps Script's `MailApp`, and the daily
+allowance belongs to **the account the web app runs as** — not to whoever owns
+the domain. That account is `indiemovementartproject@gmail.com`, a consumer
+Gmail, so the limit is **100 recipients a day**.
+
+This matters more than it sounds: a Google Workspace subscription on the domain
+does **not** raise it. Verified on 26 Aug 2026 with the endpoint's own
+diagnostic. To get Workspace's higher limit the script, the Sheet and the Drive
+folder would all have to move to that account and be redeployed as that user —
+a real migration that changes the deployment URL.
+
+Check the current position any time:
+
+    curl -sL "<exec-url>?diag=1"
+
+It reports the executing account, recipients left today, and how many more
+orders that allows.
+
+**`CONFIG.NOTIFY` holds one address on purpose.** Each entry costs a recipient
+per order, and every order also emails the payer. Three addresses meant four
+recipients and a ceiling of ~25 orders a day; one address means two and ~50.
+Rohit and Ruchika still get every payment email — the studio inbox forwards to
+them, and Gmail's own forwarding does not count against the allowance.
+
+**Do not add addresses back to `NOTIFY`.** Add a forwarding rule in Gmail
+instead. Adding two names back there halves the ceiling.
+
+If volume ever outgrows 50 a day, the options in order of cost: send through a
+transactional email provider over `UrlFetchApp` (free tiers run to a few hundred
+a day and remove the Gmail limit entirely), or migrate the script to the
+Workspace account.
+
+
 ## Known constraints
 
 - **No WhatsApp automation.** Sending WhatsApp messages programmatically needs Meta's Cloud API,
