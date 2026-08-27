@@ -30,11 +30,25 @@
 
 /* Bump this whenever you paste a new copy in. Visiting the /exec URL in a browser
    prints it, so you can always tell which version the web app is actually serving. */
-var BUILD = '2026-08-26-g';
+var BUILD = '2026-08-26-h';
 
 /* A genuine payer screenshots the receipt and uploads it within a couple of
    minutes. A bigger gap means an older image, so say so. */
 var STALE_SCREENSHOT_MINUTES = 15;
+
+/* Rate limits. The endpoint is open to anyone who finds the URL, and the
+   binding resource is Gmail's daily recipient allowance — a loop could burn a
+   whole day of notifications in about a minute.
+
+   Apps Script does not expose the caller's IP address, so a per-IP counter is
+   not possible here. Per-phone plus a global ceiling covers the same attack:
+   one phone cannot spam, and nothing can flood the whole system.
+
+   Set generously. These must never turn away a real customer — a wrongly
+   blocked booking costs more than the abuse they prevent. */
+var LIMIT_PER_PHONE_HOUR = 5;
+var LIMIT_PER_PHONE_DAY  = 12;
+var LIMIT_GLOBAL_HOUR    = 60;
 
 var CONFIG = {
   ADMIN_EMAIL:   'indiemovementartproject@gmail.com',
@@ -125,7 +139,7 @@ var HEADERS = ['Timestamp', 'Receipt', 'Status', 'Items', 'Item IDs', 'Qty',
                'Name', 'Phone', 'Email', 'UPI ref', 'Reference',
                'Screenshot', 'Auto-check', 'Verified by', 'Verified at', 'Notes'];
 
-var COL = { STATUS: 3, SHOT: 15, CHECK: 16, VBY: 17, VAT: 18 };
+var COL = { STATUS: 3, SHOT: 15, CHECK: 16, VBY: 17, VAT: 18, NOTES: 19 };
 
 /* ------------------------------------------------------------------ */
 
@@ -138,6 +152,9 @@ function doPost(e) {
     var v = validate(body);
     if (!v.ok) return json({ ok: false, error: v.error });
     var d = v.data;
+
+    var gate = rateLimit(d.phone);
+    if (!gate.ok) return json({ ok: false, error: gate.error });
 
     /* File the screenshot, but never let a Drive hiccup fail an order that has
        already been paid — the record and the emails matter more than the filing. */
@@ -197,9 +214,27 @@ function doPost(e) {
         return json({ ok: false, rejected: true, receipt: receipt, reasons: reasons });
       }
 
+      /* Gmail allows 100 recipients a day on a consumer account and each order
+         uses four, so the allowance runs out at about 25 orders. Warn before it
+         does, and record it when it happens — swallowing the error is how a
+         booking goes unnoticed. */
+      var quotaLeft = -1;
+      try { quotaLeft = MailApp.getRemainingDailyQuota(); } catch (err) {}
+      if (quotaLeft >= 0 && quotaLeft < 12) {
+        d.flags = (d.flags ? d.flags + ' | ' : '') +
+          'EMAIL QUOTA LOW: ' + quotaLeft + ' recipients left today';
+      }
+
       appendRow(receipt, d, shot);
-      try { mailTeam(receipt, d, shot); } catch (err) {}
-      try { mailPayer(receipt, d); } catch (err) {}
+
+      var mailNote = [];
+      try { mailTeam(receipt, d, shot); }
+      catch (err) { mailNote.push('team email FAILED: ' + String((err && err.message) || err).slice(0, 90)); }
+      try { mailPayer(receipt, d); }
+      catch (err) { mailNote.push('payer email FAILED: ' + String((err && err.message) || err).slice(0, 90)); }
+      if (quotaLeft >= 0) mailNote.push(quotaLeft + ' email recipients left today');
+      if (mailNote.length) noteOnRow(receipt, mailNote.join(' | '));
+
       return json({ ok: true, receipt: receipt });
     } finally {
       lock.releaseLock();
@@ -267,6 +302,63 @@ function validate(b) {
     name: name, phone: phone, email: email, ref: ref
   }};
 }
+
+/** Write a note against a receipt's row. Used when an email did not go out,
+ *  so the sheet still shows that nobody was told. */
+function noteOnRow(receipt, note) {
+  try {
+    var sh = sheet(), data = sh.getRange(1, 2, sh.getLastRow(), 1).getValues();
+    for (var r = data.length - 1; r >= 0; r--) {
+      if (String(data[r][0]) === String(receipt)) {
+        sh.getRange(r + 1, COL.NOTES).setValue(note);
+        return;
+      }
+    }
+  } catch (err) { log('noteOnRow failed: ' + err); }
+}
+
+/* ---------------- rate limiting ---------------- */
+
+/** Count this attempt and say whether it is allowed.
+ *  CacheService is the right store here: entries expire on their own, so there
+ *  is nothing to clean up, and it survives across executions. */
+function rateLimit(phone) {
+  var cache = CacheService.getScriptCache();
+  if (!cache) return { ok: true };                 /* never block on our own plumbing */
+
+  var now  = new Date();
+  var hour = Utilities.formatDate(now, CONFIG.TZ, 'yyyyMMddHH');
+  var day  = Utilities.formatDate(now, CONFIG.TZ, 'yyyyMMdd');
+
+  var checks = [
+    { key: 'rl_p_h_' + phone + '_' + hour, cap: LIMIT_PER_PHONE_HOUR, ttl: 3600,
+      error: 'That is several attempts in a short time. Please wait a few minutes, '
+           + 'or message us on WhatsApp and we will book you in.' },
+    { key: 'rl_p_d_' + phone + '_' + day,  cap: LIMIT_PER_PHONE_DAY,  ttl: 86400,
+      error: 'You have made a lot of booking attempts today. Please message us on '
+           + 'WhatsApp and we will sort it out for you.' },
+    { key: 'rl_all_' + hour,               cap: LIMIT_GLOBAL_HOUR,    ttl: 3600,
+      error: 'We are getting an unusual number of bookings right now. Please try '
+           + 'again in a few minutes, or message us on WhatsApp.' }
+  ];
+
+  /* Read them all before writing any, so one tripped limit does not inflate
+     the others on the same request. */
+  var counts = [], i;
+  for (i = 0; i < checks.length; i++) {
+    counts[i] = Number(cache.get(checks[i].key)) || 0;
+    if (counts[i] >= checks[i].cap) {
+      log('rate limit hit: ' + checks[i].key + ' at ' + counts[i]);
+      return { ok: false, error: checks[i].error };
+    }
+  }
+  for (i = 0; i < checks.length; i++) {
+    cache.put(checks[i].key, String(counts[i] + 1), checks[i].ttl);
+  }
+  return { ok: true };
+}
+
+function log(msg) { try { Logger.log(msg); } catch (err) {} }
 
 /* ---------------- screenshot ---------------- */
 
