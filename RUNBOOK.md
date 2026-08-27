@@ -274,6 +274,30 @@ be served, and view-source exposes the tools regardless. The licence makes
 copying actionable; it cannot make it impossible.
 
 
+## Search and discovery
+
+Verified in Google Search Console on 26 Aug 2026 as a URL-prefix property, via
+the HTML tag method. **The `google-site-verification` meta tag in `index.html`
+must stay there.** Remove it and the property un-verifies, and Google stops
+reading the sitemap.
+
+`sitemap.xml` is submitted and lists 17 URLs — the homepage, all ten batch
+pages, the gallery, both tools, privacy and terms. It is written by hand, so
+**adding a page means adding it there too**, or Google will not know about it.
+
+`index.html` carries a `DanceSchool`/`LocalBusiness` JSON-LD block with the
+address, phone, area served and all ten batches as `Course` offers with their
+real prices. The prices in it are duplicated from `cart.js` — if a fee changes,
+change it in both. That block is what puts the studio in the local map pack.
+
+Deliberately kept out of search via `robots.txt` and `noindex`: `pay.html`,
+`attendance.html`, `checkin.html`, `links.html`.
+
+Worth checking Search Console → Performance after a few weeks. It reports the
+phrases people actually search to reach the site, which is better grounding for
+new pages than guessing.
+
+
 ## Known constraints
 
 - **No WhatsApp automation.** Sending WhatsApp messages programmatically needs Meta's Cloud API,
