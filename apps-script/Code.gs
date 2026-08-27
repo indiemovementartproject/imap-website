@@ -30,7 +30,7 @@
 
 /* Bump this whenever you paste a new copy in. Visiting the /exec URL in a browser
    prints it, so you can always tell which version the web app is actually serving. */
-var BUILD = '2026-08-26-h';
+var BUILD = '2026-08-26-j';
 
 /* A genuine payer screenshots the receipt and uploads it within a couple of
    minutes. A bigger gap means an older image, so say so. */
@@ -244,7 +244,26 @@ function doPost(e) {
   }
 }
 
-function doGet() {
+function doGet(e) {
+  /* ?diag=1 reports which Google account actually runs this script and how much
+     of today's email allowance is left. The MailApp quota belongs to the
+     account the web app executes as, NOT to whoever owns the domain — so a
+     Workspace subscription only raises it if the script itself runs on that
+     account. Nothing secret is exposed: an address and a number. */
+  if (e && e.parameter && e.parameter.diag === '1') {
+    var who = '', eff = '', quota = -1;
+    try { who = Session.getActiveUser().getEmail(); } catch (err) { who = '(hidden)'; }
+    try { eff = Session.getEffectiveUser().getEmail(); } catch (err) { eff = '(hidden)'; }
+    try { quota = MailApp.getRemainingDailyQuota(); } catch (err) {}
+    return ContentService.createTextOutput(JSON.stringify({
+      build: BUILD,
+      runsAs: eff,
+      caller: who,
+      emailRecipientsLeftToday: quota,
+      recipientsPerOrder: CONFIG.NOTIFY.length + 1,
+      ordersLeftToday: quota < 0 ? -1 : Math.floor(quota / (CONFIG.NOTIFY.length + 1))
+    }, null, 2)).setMimeType(ContentService.MimeType.JSON);
+  }
   return HtmlService.createHtmlOutput(
     '<p>iMAP payment endpoint is running.</p><p>build ' + BUILD +
     ' · items ' + Object.keys(PRICES).length + '</p>');
