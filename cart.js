@@ -47,14 +47,12 @@
     { id: 'ws-pass-both',     title: 'All workshops — both studios', detail: 'Orientation Series · Vashi + Seawoods',        amount: 4500 }
   ];
 
-  /* One-off partner workshop at CrossBox Fitness, Vashi. Two rates, and a
-     non-member who pays the member rate owes the difference at the door. */
-  var SPECIALS = [
-    { id: 'xb-retro-member', title: 'Retro-Jazz Workshop — CrossBox member',
-      detail: '27 Aug · CrossBox Fitness, Vashi · Rohit Choudhary', amount: 199 },
-    { id: 'xb-retro-guest',  title: 'Retro-Jazz Workshop — non-member',
-      detail: '27 Aug · CrossBox Fitness, Vashi · Rohit Choudhary', amount: 599 }
-  ];
+  /* One-off workshops, sold with a direct pay.html?buy=<id> link rather than
+     through the cart. Empty between workshops - the Retro-Jazz pair lived here
+     until 27 Aug 2026. Clearing this stops the old links taking money for an
+     event that has already happened; the server still holds matching prices in
+     PRICES, so drop them there too when you retire a workshop for good. */
+  var SPECIALS = [];
 
   /* Regular classes. */
   var BATCHES = {

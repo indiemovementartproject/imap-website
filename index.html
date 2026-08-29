@@ -409,6 +409,51 @@
   }
 }
 </script>
+<!-- The free demo class on 5 September. Google shows dated events in search and
+     in the "Events" carousel, which the plain DanceSchool block above cannot do.
+     Delete this block once the class has happened - a past Event is dead weight. -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Event",
+  "name": "Free Demo Class — Acting & Personality Development with Aryamann",
+  "description": "A free demo class opening the new Acting & Personality Development batch at iMAP Seawoods. Saturdays, 3 to 5 PM. No fee and no commitment for the demo.",
+  "startDate": "2026-09-05T15:00:00+05:30",
+  "endDate": "2026-09-05T17:00:00+05:30",
+  "eventStatus": "https://schema.org/EventScheduled",
+  "eventAttendanceMode": "https://schema.org/OfflineEventAttendanceMode",
+  "image": "https://indiemovementartproject.com/media/acting-poster.jpg",
+  "url": "https://indiemovementartproject.com/acting.html",
+  "isAccessibleForFree": true,
+  "location": {
+    "@type": "Place",
+    "name": "iMAP Seawoods Studio",
+    "address": {
+      "@type": "PostalAddress",
+      "streetAddress": "iMAP @ Ohana Fitness, Haware's Centurion Mall, Sector 19A",
+      "addressLocality": "Seawoods East, Navi Mumbai",
+      "addressRegion": "Maharashtra",
+      "postalCode": "400706",
+      "addressCountry": "IN"
+    }
+  },
+  "organizer": {
+    "@id": "https://indiemovementartproject.com/#organisation"
+  },
+  "performer": {
+    "@type": "Person",
+    "name": "Aryamann"
+  },
+  "offers": {
+    "@type": "Offer",
+    "price": "0",
+    "priceCurrency": "INR",
+    "availability": "https://schema.org/InStock",
+    "url": "https://indiemovementartproject.com/acting.html",
+    "validFrom": "2026-08-29T00:00:00+05:30"
+  }
+}
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Space+Grotesk:wght@300;400;500;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
@@ -577,7 +622,7 @@
   .admin-lock button:hover{color:var(--cyan)}
 
   /* ===== featured partner workshop ===== */
-  #retro-jazz,#events,#classes,#about{scroll-margin-top:90px}
+  #acting,#events,#classes,#about{scroll-margin-top:90px}
   .xb-badge{display:inline-flex;flex-direction:column;align-items:center;gap:12px;margin-bottom:26px}
   .xb-with{font-family:"Space Mono",monospace;font-size:10px;letter-spacing:.24em;text-transform:uppercase;color:var(--muted-2)}
   .xb-logo{height:38px;width:auto;display:block}
@@ -619,6 +664,18 @@
   .xb-btn:hover{box-shadow:0 0 26px rgba(92,225,230,.45)}
   .xb-btn.ghost{background:rgba(92,225,230,.1);color:var(--cyan);border:1px solid var(--border-cyan)}
   .xb-btn.ghost:hover{background:var(--cyan);color:#04181a}
+  /* Batch fees are monthly, unlike the one-night workshop this section replaced,
+     so the amount carries a quiet /month suffix rather than standing alone. */
+  .xb-rl .amt small{font-family:"Space Grotesk",sans-serif;font-size:12.5px;color:var(--muted);letter-spacing:.02em}
+  .xb-bio{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:11px}
+  .xb-bio li{position:relative;padding-left:20px;font-size:14.5px;line-height:1.55;color:var(--muted)}
+  .xb-bio li::before{content:"";position:absolute;left:2px;top:9px;width:6px;height:6px;border-radius:50%;
+    background:var(--cyan);opacity:.75}
+  .xb-bio b{color:var(--text);font-weight:500}
+  /* .i is only styled inside h2 site-wide, so the accents in this section's
+     lead and the play titles in the bio need their own rules to read as italic. */
+  #acting .lead .i{font-style:italic;color:var(--cyan)}
+  .xb-bio .i{font-style:italic;color:var(--text)}
   @media (max-width:820px){
     .xb-grid{grid-template-columns:1fr;gap:24px}
     .xb-poster{max-width:420px;width:100%;justify-self:center}
@@ -757,7 +814,7 @@
   <button class="burger" id="burger" aria-label="Menu" aria-expanded="false">☰</button>
   <div class="nav-links" id="navLinks">
     <a href="#about">About</a>
-    <a href="#retro-jazz">Retro-Jazz</a>
+    <a href="#acting">Acting</a>
     <a href="#events">What’s new</a>
     <a href="#classes">Classes</a>
     <a href="count-me-in.html">Count Me In</a>
@@ -791,44 +848,53 @@
     </div>
   </section>
 
-  <!-- FEATURED: partner workshop at CrossBox -->
-  <section class="section xb" id="retro-jazz" style="padding-bottom:40px">
+  <!-- FEATURED: free demo class, then a new Saturday batch.
+       Sits where the Retro-Jazz workshop sat. After 5 September this becomes a
+       regular batch and moves down into #classes — see RUNBOOK.md. -->
+  <section class="section xb" id="acting" style="padding-bottom:40px">
     <div class="xb-badge">
-      <span class="xb-with">In partnership with</span>
-      <img src="media/crossbox-mark.png" alt="CrossBox — A Lifestyle" class="xb-logo" width="420" height="116">
+      <span class="xb-with">Free demo class · new batch</span>
     </div>
-    <h2>Retro-Jazz <span class="i">Workshop</span>.</h2>
-    <p class="tagline">by Rohit Choudhary</p>
-    <p class="lead">A one-night choreography set to the retro swing of <span class="i">Chura Liya</span> — silk shirts, slow burn and a whole lot of attitude. Hosted with CrossBox Fitness in Vashi, Navi Mumbai.</p>
+    <h2>Acting &amp; Personality <span class="i">Development</span>.</h2>
+    <p class="tagline">by Aryamann</p>
+    <p class="lead">A new Saturday batch at Seawoods, opening with a <span class="i">free demo class</span> on 5 September. Come and try it — no fee, no commitment. Stay for the term if it moves you.</p>
 
     <div class="xb-grid">
       <div class="xb-poster">
-        <img src="media/retro-jazz-poster.jpg" width="880" height="1100" decoding="async" alt="Retro-Jazz Dance Choreography Workshop curated by Rohit Choudhary — 27 August, Thursday, 8 to 9:30 PM">
+        <img src="media/acting-poster.jpg" width="879" height="1160" decoding="async" alt="Free demo class — Acting &amp; Personality Development with Aryamann, Saturday 5 September, 3 to 5 PM at iMAP Seawoods">
       </div>
 
       <div class="xb-side">
         <div class="xb-facts">
-          <div class="xb-fact"><span class="k">When</span><span class="v">Thu 27 Aug</span><span class="s">8:00 – 9:30 PM</span></div>
-          <a class="xb-fact xb-map" href="https://maps.app.goo.gl/nzVyu1Yq61gQ4s7z5" target="_blank" rel="noopener"><span class="k">Where</span><span class="v">CrossBox Fitness</span><span class="s">Vashi, Navi Mumbai</span><span class="go">Open in maps →</span></a>
+          <div class="xb-fact"><span class="k">Demo class</span><span class="v">Sat 5 Sep</span><span class="s">3:00 – 5:00 PM · free</span></div>
+          <a class="xb-fact xb-map" href="https://www.google.com/maps/search/?api=1&amp;query=iMAP+Ohana+Fitness+Haware+Centurion+Mall+Sector+19A+Seawoods+East+Navi+Mumbai" target="_blank" rel="noopener"><span class="k">Where</span><span class="v">iMAP Seawoods</span><span class="s">Ohana Fitness, Centurion Mall</span><span class="go">Open in maps →</span></a>
         </div>
 
-        <div class="xb-k">Register</div>
+        <div class="xb-k">The batch, once it starts</div>
         <div class="xb-rates">
-          <div class="xb-rate">
-            <div class="xb-rl">
-              <span class="who">CrossBox member <em>·  members only</em></span>
-              <span class="amt">₹199</span>
-            </div>
-            <a class="xb-btn ghost" href="pay.html?buy=xb-retro-member">Register Now</a>
-          </div>
           <div class="xb-rate hot">
             <div class="xb-rl">
-              <span class="who">Non-member</span>
-              <span class="amt">₹599</span>
+              <span class="who">First 3 months <em>· intro offer</em></span>
+              <span class="amt">₹3,000<small>/month</small></span>
             </div>
-            <a class="xb-btn" href="pay.html?buy=xb-retro-guest">Register Now</a>
+            <a class="xb-btn" data-wa="Hi iMAP! I'd like to RSVP for the free Acting demo class on 5 September.">RSVP free</a>
+          </div>
+          <div class="xb-rate">
+            <div class="xb-rl">
+              <span class="who">After that <em>· Saturdays, 3–5 PM</em></span>
+              <span class="amt">₹3,500<small>/month</small></span>
+            </div>
+            <a class="xb-btn ghost" data-wa="Hi iMAP! I'd like to know more about the Acting &amp; Personality Development batch with Aryamann.">Ask us</a>
           </div>
         </div>
+
+        <div class="xb-k" style="margin-top:26px">Know your teacher</div>
+        <ul class="xb-bio">
+          <li>A theatre artist, actor and director, working in theatre for the last <b>7 years</b>.</li>
+          <li>Started out in <b>Delhi</b> across different productions, and went on to found <b>The Leftovers</b> — a theatre group that has since found its way to Mumbai.</li>
+          <li>Has been part of and created plays like <span class="i">Patloon</span>, <span class="i">Sann 2025</span>, <span class="i">Park</span>, <span class="i">Rang</span> and <span class="i">To Be or a Doo Be</span>.</li>
+          <li>Alongside performing and directing, he <b>teaches theatre</b> and runs workshops for young performers and adults alike.</li>
+        </ul>
       </div>
     </div>
   </section>

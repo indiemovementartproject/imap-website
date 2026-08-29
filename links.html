@@ -56,6 +56,20 @@
   <h1>Batch <span>links</span>.</h1>
   <p class="sub">Send these when someone asks about a class. Each one opens that batch page with fees and a Join button, and previews in WhatsApp with the instructor&rsquo;s photo.</p>
 
+  <div class="k">Starting now</div>
+    <article class="lk">
+      <img src="media/acting-poster.jpg" alt="" loading="lazy" onerror="this.remove()">
+      <div class="lk-x">
+        <h3>Acting &amp; Personality Development <span>Seawoods</span></h3>
+        <div class="lk-w">Aryamann &middot; free demo Sat 5 Sep</div>
+        <code>indiemovementartproject.com/acting</code>
+      </div>
+      <div class="lk-b">
+        <button data-copy="link" data-i="10">Copy link</button>
+        <button data-copy="msg"  data-i="10" class="alt">Copy message</button>
+      </div>
+    </article>
+
   <div class="k">Regular batches</div>
     <article class="lk">
       <img src="media/contemporary-seawoods.jpg" alt="" loading="lazy" onerror="this.remove()">
@@ -206,7 +220,7 @@
 <div class="toast" id="toast"></div>
 <script>
 (function(){
-  var SITE='indiemovementartproject.com', DATA=[{"n":"Ballet Training","r":"Seawoods","w":"Akash Jathar","p":"ballet","img":"contemporary-seawoods"},{"n":"Contemporary","r":"Vashi","w":"Shreya Rastogi","p":"contemporary-vashi","img":"contemporary-vashi"},{"n":"Bollywood","r":"Seawoods","w":"Ruchika Jain","p":"bollywood-seawoods","img":"bollywood-seawoods"},{"n":"Bollywood Advance","r":"Vashi","w":"Rohit Choudhary","p":"bollywood-advance","img":"bollywood-advance-vashi"},{"n":"Jazz Funk","r":"Seawoods","w":"Ruchika Jain","p":"jazz-funk","img":"jazz-funk"},{"n":"Jazz Training","r":"Seawoods","w":"Rohit Choudhary","p":"jazz-training","img":"jazz-training"},{"n":"Open Style","r":"Seawoods","w":"Tej","p":"open-style","img":"open-style"},{"n":"Afro & Dancehall","r":"Seawoods","w":"Tanvi Palande","p":"afro","img":"afro-dancehall"},{"n":"Juniors","r":"Seawoods","w":"Jeevak Gaikwad","p":"juniors","img":"juniors-seawoods"},{"n":"Kids","r":"Vashi","w":"Jeevak Gaikwad","p":"kids","img":"kids-vashi"}];
+  var SITE='indiemovementartproject.com', DATA=[{"n":"Ballet Training","r":"Seawoods","w":"Akash Jathar","p":"ballet","img":"contemporary-seawoods"},{"n":"Contemporary","r":"Vashi","w":"Shreya Rastogi","p":"contemporary-vashi","img":"contemporary-vashi"},{"n":"Bollywood","r":"Seawoods","w":"Ruchika Jain","p":"bollywood-seawoods","img":"bollywood-seawoods"},{"n":"Bollywood Advance","r":"Vashi","w":"Rohit Choudhary","p":"bollywood-advance","img":"bollywood-advance-vashi"},{"n":"Jazz Funk","r":"Seawoods","w":"Ruchika Jain","p":"jazz-funk","img":"jazz-funk"},{"n":"Jazz Training","r":"Seawoods","w":"Rohit Choudhary","p":"jazz-training","img":"jazz-training"},{"n":"Open Style","r":"Seawoods","w":"Tej","p":"open-style","img":"open-style"},{"n":"Afro & Dancehall","r":"Seawoods","w":"Tanvi Palande","p":"afro","img":"afro-dancehall"},{"n":"Juniors","r":"Seawoods","w":"Jeevak Gaikwad","p":"juniors","img":"juniors-seawoods"},{"n":"Kids","r":"Vashi","w":"Jeevak Gaikwad","p":"kids","img":"kids-vashi"},{"n":"Acting & Personality Development","r":"Seawoods","w":"Aryamann","p":"acting","img":"acting-poster","m":"Free demo class on Saturday 5 September, 3\u20135 PM at iMAP Seawoods \u2014 Acting & Personality Development with Aryamann. No fee, just come and try it:\n"}];
   var toast=document.getElementById('toast'), tt=0;
   function say(m){ toast.textContent=m; toast.classList.add('on'); clearTimeout(tt);
                    tt=setTimeout(function(){ toast.classList.remove('on'); },1800); }
@@ -230,7 +244,7 @@
     if(kind==='plain'){ copy('https://'+b.dataset.url.replace(/^https?:\/\//,''),b,'Link copied'); return; }
     var d=DATA[+b.dataset.i], url='https://'+SITE+'/'+d.p;
     if(kind==='link') copy(url,b,'Link copied');
-    else copy('Here\u2019s our '+d.n+' batch at '+d.r+', with '+d.w+' \u2014 fees and how to join:\n'+url,
+    else copy((d.m || 'Here\u2019s our '+d.n+' batch at '+d.r+', with '+d.w+' \u2014 fees and how to join:\n')+url,
               b,'Message copied');
   });
 })();

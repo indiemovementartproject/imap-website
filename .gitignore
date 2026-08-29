@@ -2,3 +2,6 @@
 # clasp credentials — never commit
 .clasprc.json
 apps-script/.clasp.json
+
+# local preview server config, not part of the site
+.claude/

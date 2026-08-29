@@ -13,7 +13,7 @@ Live at <https://indiemovementartproject.com> · GitHub Pages from `main` in
 
 | File | What it is |
 |---|---|
-| `index.html` | Home: hero, About, Retro-Jazz, Orientation Series (workshops), Regular Classes carousel, Annual Jam photo strip |
+| `index.html` | Home: hero, About, the featured slot (currently Acting), Orientation Series (workshops), Regular Classes carousel, Annual Jam photo strip |
 | `cart.js` | **The catalogue.** Every purchasable item and its price. Also the cart and nav badge. |
 | `batch.html` | One page for every batch, driven by `?batch=<slug>` |
 | `batches.html` | All batches in a carousel |
@@ -33,26 +33,58 @@ Live at <https://indiemovementartproject.com> · GitHub Pages from `main` in
   `918454880061` (Ruchika).
 - **Notified on every payment:** `CONFIG.NOTIFY` in `Code.gs` — Ruchika, Rohit, studio address.
 
-## One-off partner workshops
+## The featured slot on the homepage
 
-`SPECIALS` in `cart.js` holds workshops that are not part of a series — currently the Retro-Jazz
-workshop at CrossBox Fitness, Vashi (27 Aug). They are sold **without the cart**: the Register Now
-buttons link to `pay.html?buy=<id>`, which clears the cart, puts that single item in it, and drops
-the person straight into checkout. A registration link means that item and nothing else.
+One section sits between "About" and the Orientation Series, holding whatever iMAP is pushing right
+now. It uses the `.xb-*` styles, which were written for the Retro-Jazz workshop and are generic
+enough to reuse. Only one thing lives here at a time.
 
-`?buy=xb-retro-member` shows an amber notice **at checkout** explaining that a non-member paying the
-member rate owes the ₹400 difference at the door. That warning is deliberately kept off the
-homepage, where it reads as a threat rather than a condition — the rate there is simply labelled
-"members only".
+**Right now:** `#acting` — Aryamann's Acting & Personality Development batch, opening with a free
+demo class on **Saturday 5 September 2026**, 3–5 PM at Seawoods. Nothing is sold through it: both
+buttons are WhatsApp links via `data-wa`, because the demo is free and the batch is paid for in
+person once someone joins. Fees shown are ₹3,000/month for the first three months, ₹3,500/month
+after.
 
-**Shareable link:** `indiemovementartproject.com/retro-jazz` → `retro-jazz.html`, which carries the
-Open Graph tags (so WhatsApp and Instagram preview the poster) and forwards to
-`index.html?go=retro-jazz`. The landing uses a **query param, not a `#hash`** on purpose: the
-browser re-applies its own fragment scroll after the page settles, which was overshooting the
-section by ~390px. `?go=<id>` scrolls to any section id and stays put.
+**After 5 September** this becomes a regular batch. Prashant has the instructor photo and batch
+details to come. The move is:
 
-To retire it: delete the two entries from `SPECIALS` in `cart.js` and from `PRICES` in `Code.gs`,
-and remove the `#retro-jazz` section from `index.html`.
+1. Add it to `BATCHES` in `cart.js` and to `PRICES` in `Code.gs` (then redeploy — see below).
+2. Add a card to `#classes` in `index.html` and a `batch.html?batch=acting` entry.
+3. Move the `links.html` card from the "Starting now" group into "Regular batches", and drop the
+   custom `m` message from its `DATA` entry so it uses the standard wording.
+4. Delete the `#acting` featured section, its `Event` JSON-LD block (a past event is dead weight in
+   search results), and point `acting.html` at the new batch page.
+5. Swap `media/acting-poster.jpg` for the instructor photo where the batch card needs one.
+
+**Shareable link:** `indiemovementartproject.com/acting` → `acting.html`, which carries the Open
+Graph tags (so WhatsApp and Instagram preview the poster) and forwards to `index.html?go=acting`.
+The landing uses a **query param, not a `#hash`** on purpose: the browser re-applies its own
+fragment scroll after the page settles, which was overshooting the section by ~390px. `?go=<id>`
+scrolls to any section id and stays put.
+
+### Selling a workshop from this slot
+
+`SPECIALS` in `cart.js` holds workshops that are not part of a series. It is **empty between
+workshops**. They are sold *without* the cart: Register Now buttons link to `pay.html?buy=<id>`,
+which clears the cart, puts that single item in it, and drops the person straight into checkout. A
+registration link means that item and nothing else. An id that is not in `SPECIALS` falls through
+harmlessly and leaves the cart alone.
+
+### Retiring a workshop
+
+The Retro-Jazz workshop (CrossBox Fitness, Vashi, 27 Aug 2026) went through this on 29 August:
+
+1. Clear its entries from `SPECIALS` in `cart.js`. **This is the step that matters** — while they
+   are listed, an old `pay.html?buy=…` link shared on WhatsApp will still happily take money for an
+   event that has already happened.
+2. Remove any checkout notice keyed to its id in `pay.html`.
+3. Keep the short-link page alive but point it at the homepage, mark it `noindex, follow`, and
+   replace its Open Graph tags so a reshared link does not advertise a dead event. See
+   `retro-jazz.html` for the shape of this.
+4. Drop it from the `LINKS` list in `404.html`.
+5. Its entries in `PRICES` in `Code.gs` can stay — nothing links there once step 1 is done, and
+   leaving them means an old order can still be looked up. Remove them at the next backend deploy
+   if you want the catalogue tidy.
 
 ## Changing prices
 
@@ -70,7 +102,7 @@ so a mismatch is a visible warning, never a wrong charge.
 | All workshops — Vashi / Seawoods / both | ₹2000 / ₹3000 / ₹4500 |
 | Regular class — 1 month / 3 months | ₹2800 / ₹7500 |
 | Kids (Vashi) | ₹2000 / ₹5400 |
-| Retro-Jazz @ CrossBox — member / non-member | ₹199 / ₹599 |
+| Retro-Jazz @ CrossBox — member / non-member | ₹199 / ₹599 *(retired 29 Aug 2026; still in `PRICES`, not in `SPECIALS`)* |
 | Juniors (Seawoods) | ₹2500 / ₹6500 |
 
 Per-batch exceptions are `fees` on the batch in `cart.js` and `FEES` in `Code.gs`.
@@ -231,7 +263,8 @@ those meta tags**, so if a price changes in `cart.js`, the matching short link h
 | `/jazz-funk` · `/jazz-training` · `/open-style` | as named |
 | `/classes` | all batches |
 | `/gallery` | Annual Jam photos |
-| `/retro-jazz` | the CrossBox workshop |
+| `/acting` | Acting & Personality Development — free demo 5 Sep, then a Saturday batch |
+| `/retro-jazz` | finished 27 Aug 2026 — now redirects to the homepage |
 
 The rule: **the internal slug always works as a link**, and the four unwieldy ones have a shortcut.
 

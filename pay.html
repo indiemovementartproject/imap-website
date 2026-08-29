@@ -873,7 +873,9 @@ function showReceipt(res){
 if(/[?&]test=1\b/.test(location.search) && !Cart.has('test-1')) Cart.add('test-1');
 
 /* ?buy=<id> is a direct registration link — one item, straight to checkout,
-   bypassing the cart. Used by the Retro-Jazz Register Now buttons. */
+   bypassing the cart. Used by workshop "Register Now" buttons; the ids come
+   from SPECIALS in cart.js. Unknown or retired ids fall through and leave the
+   cart alone, so a shared link for a finished workshop cannot take money. */
 (function(){
   var m = /[?&]buy=([a-z0-9\-]+)/i.exec(location.search);
   if(!m) return;
@@ -881,17 +883,8 @@ if(/[?&]test=1\b/.test(location.search) && !Cart.has('test-1')) Cart.add('test-1
   if(!it) return;
   Cart.clear();                     /* a registration link means this and only this */
   Cart.add(it.id);
-  var note = document.getElementById('buyNote');
-  if(note && /^xb-retro/.test(it.id)){
-    note.hidden = false;
-    if(it.id === 'xb-retro-member'){
-      note.className = 'buy-note warn';
-      note.innerHTML = '<b>CrossBox members only.</b> If you\'re not a member, the door will ask for the ₹400 difference on the night — pick the non-member rate instead.';
-    } else {
-      note.className = 'buy-note';
-      note.innerHTML = 'Registering for the <b>Retro-Jazz Workshop</b> at CrossBox Fitness, Vashi — 27 Aug, 8:00–9:30 PM.';
-    }
-  }
+  /* Workshops that need a caveat on the checkout page (members-only rates and
+     the like) set it here, keyed on the item id. Nothing needs one today. */
 })();
 
 renderLines();
