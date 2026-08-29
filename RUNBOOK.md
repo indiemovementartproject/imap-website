@@ -366,6 +366,27 @@ a day and remove the Gmail limit entirely), or migrate the script to the
 Workspace account.
 
 
+## The hero video
+
+`hero-v3.mp4` is the **full-quality master**: 1280x720, 30 fps, ~2.5 Mbps, 3.4 MB.
+`hero-poster.jpg` is the still shown until it starts playing.
+
+It was compressed once, to 960x540 / 24 fps / 590 kbps (833 KB), as part of a
+page-weight pass. **That was the wrong trade and it was reverted on 29 August.**
+The video is a dance reel and the first thing anyone sees; dropping the frame
+rate made the movement look choppy and the resolution drop made it soft. Traffic
+is low enough that 3.4 MB costs nothing that matters, and the site is often being
+shown to someone in person.
+
+So: **do not re-compress it** for a Lighthouse score. If page weight ever genuinely
+becomes a problem, the honest fixes are a shorter clip or a smaller file *at the
+same resolution and frame rate* - not a smaller picture.
+
+Changing the video means **changing the filename** (`hero-v2` -> `hero-v3` and so
+on) and updating the `<source>` in `index.html`. GitHub Pages caches aggressively
+and a same-name replacement will not reach people who have already visited - that
+is why an earlier update looked to Prashant like the video had been deleted.
+
 ## Known constraints
 
 - **No WhatsApp automation.** Sending WhatsApp messages programmatically needs Meta's Cloud API,
