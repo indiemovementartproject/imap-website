@@ -56,18 +56,22 @@
 
   /* Regular classes. */
   var BATCHES = {
-    'contemporary-seawoods':  { name: 'Ballet Training',  region: 'Seawoods', who: 'Akash Jathar' },
-    'contemporary-vashi':     { name: 'Contemporary',     region: 'Vashi',    who: 'Shreya Rastogi' },
-    'bollywood-seawoods':     { name: 'Bollywood',        region: 'Seawoods', who: 'Ruchika Jain' },
-    'bollywood-advance-vashi':{ name: 'Bollywood Advance',region: 'Vashi',    who: 'Rohit Choudhary' },
-    'juniors-seawoods':       { name: 'Juniors',          region: 'Seawoods', who: 'Jeevak Gaikwad',
-                                fees: { '1m': 2500, '3m': 6500 } },
-    'kids-vashi':             { name: 'Kids',             region: 'Vashi',    who: 'Jeevak Gaikwad',
-                                fees: { '1m': 2000, '3m': 5400 } },
-    'jazz-funk':              { name: 'Jazz Funk',        region: 'Seawoods', who: 'Ruchika Jain' },
-    'jazz-training':          { name: 'Jazz Training',    region: 'Seawoods', who: 'Rohit Choudhary' },
-    'open-style':             { name: 'Open Style',       region: 'Seawoods', who: 'Tej' },
-    'afro-dancehall':         { name: 'Afro & Dancehall', region: 'Seawoods', who: 'Tanvi Palande' }
+    'contemporary-seawoods':      { name: 'Ballet Training', region: 'Seawoods', who: 'Akash Jathar' },
+    'kids-ballet-seawoods':       { name: 'Kids Ballet', region: 'Seawoods', who: 'Shreya Rastogi',
+                                    fees: { '1m': 1500, '3m': 4000 } },
+    'contemporary-vashi':         { name: 'Contemporary', region: 'Vashi', who: 'Shreya Rastogi' },
+    'bollywood-seawoods':         { name: 'Bollywood Weekends', region: 'Seawoods', who: 'Ruchika Jain' },
+    'bollywood-beginners-vashi':  { name: 'Bollywood Beginners', region: 'Vashi', who: 'Ruchika Jain' },
+    'bollywood-advance-vashi':    { name: 'Bollywood Advance', region: 'Vashi', who: 'Rohit Choudhary' },
+    'juniors-seawoods':           { name: 'Juniors', region: 'Seawoods', who: 'Jeevak Gaikwad',
+                                    fees: { '1m': 2500, '3m': 6500 } },
+    'kids-vashi':                 { name: 'Kids', region: 'Vashi', who: 'Jeevak Gaikwad',
+                                    fees: { '1m': 2000, '3m': 5400 } },
+    'jazz-funk':                  { name: 'Jazz Funk', region: 'Seawoods', who: 'Ruchika Jain' },
+    'jazz-funk-vashi':            { name: 'Jazz Funk', region: 'Vashi', who: 'Ruchika Jain' },
+    'jazz-training':              { name: 'Jazz Training', region: 'Seawoods', who: 'Rohit Choudhary' },
+    'open-style':                 { name: 'Open Style', region: 'Seawoods', who: 'Tej' },
+    'afro-dancehall':             { name: 'Afro & Dancehall', region: 'Seawoods', who: 'Tanvi Palande' }
   };
   /* Default plan prices. A batch may override them with its own `fees`. */
   var PLANS = [

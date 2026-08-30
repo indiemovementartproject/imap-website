@@ -86,6 +86,43 @@ The Retro-Jazz workshop (CrossBox Fitness, Vashi, 27 Aug 2026) went through this
    leaving them means an old order can still be looked up. Remove them at the next backend deploy
    if you want the catalogue tidy.
 
+## The timetable
+
+Days, timings and studio are shown on the batch page (`.bd-when`), on every batch card in both
+carousels (`.cf-when`), in the short-link preview text, and in the `Course` JSON-LD. **That is
+five places for one fact**, so change a slot with a single pass and check all five.
+
+| Batch | Studio | Days | Timings | Fee (1m / 3m) |
+|---|---|---|---|---|
+| Ballet Training | Seawoods | Saturday | Timings TBA | ₹2800 / ₹7500 |
+| Kids Ballet | Seawoods | Saturday | 12:30 – 1:30 PM | ₹1500 / ₹4000 |
+| Contemporary | Vashi | Tuesday & Thursday | 5:30 – 6:30 PM | ₹2800 / ₹7500 |
+| Bollywood Weekends | Seawoods | Saturday & Sunday | 6:00 – 7:00 PM | ₹2800 / ₹7500 |
+| Bollywood Beginners | Vashi | Monday & Wednesday | 5:30 – 6:30 PM | ₹2800 / ₹7500 |
+| Bollywood Advance | Vashi | Monday & Wednesday | 7:30 – 8:30 PM | ₹2800 / ₹7500 |
+| Juniors | Seawoods | Tuesday & Thursday | 4:45 – 6:00 PM | ₹2500 / ₹6500 |
+| Kids | Vashi | Tuesday & Thursday | 6:30 – 7:30 PM | ₹2000 / ₹5400 |
+| Jazz Funk | Seawoods | Sunday | 3:00 – 5:00 PM | ₹2800 / ₹7500 |
+| Jazz Funk | Vashi | Monday & Wednesday | 8:30 – 9:30 PM | ₹2800 / ₹7500 |
+| Jazz Training | Seawoods | Saturday | 7:00 – 9:00 PM | ₹2800 / ₹7500 |
+| Open Style | Seawoods | Sunday | 7:00 – 9:00 PM | ₹2800 / ₹7500 |
+| Afro & Dancehall | Seawoods | Saturday & Sunday | 5:00 – 6:00 PM | ₹2800 / ₹7500 |
+| Acting & Personality Development *(from 5 Sep)* | Seawoods | Saturday | 3:00 – 5:00 PM | ₹3000 first 3 months, then ₹3500 |
+
+The JSON-LD carries each slot as a `courseSchedule` with `byDay` and 24-hour `startTime`/
+`endTime`. Google reads those; a wrong conversion (3 PM written as `03:00`) is invisible on the
+page and wrong in search, so re-check the generated block rather than the rendered text.
+
+Ballet Training has no timings yet and is rendered as "To be announced" from an **empty** `time`
+field, not from the literal string — the batch page supplies that wording itself.
+
+### The Vashi address
+
+The footer and map on every page are the **Seawoods** studio, including on the four Vashi batch
+pages, because there is no Vashi street address anywhere in the repo. The `.bd-when` block names
+the right studio, so nobody is told the wrong thing outright, but a Vashi enquirer still sees a
+Seawoods pin. Worth fixing when someone supplies the address.
+
 ## Changing prices
 
 Prices live in **two** places and must agree:
@@ -102,6 +139,7 @@ so a mismatch is a visible warning, never a wrong charge.
 | All workshops — Vashi / Seawoods / both | ₹2000 / ₹3000 / ₹4500 |
 | Regular class — 1 month / 3 months | ₹2800 / ₹7500 |
 | Kids (Vashi) | ₹2000 / ₹5400 |
+| Kids Ballet (Seawoods) | ₹1500 / ₹4000 |
 | Retro-Jazz @ CrossBox — member / non-member | ₹199 / ₹599 *(retired 29 Aug 2026; still in `PRICES`, not in `SPECIALS`)* |
 | Juniors (Seawoods) | ₹2500 / ₹6500 |
 
@@ -257,10 +295,14 @@ those meta tags**, so if a price changes in `cart.js`, the matching short link h
 | `/juniors` · `/juniors-seawoods` | Juniors, Seawoods |
 | `/afro` · `/afro-dancehall` | Afro & Dancehall |
 | `/bollywood-advance` · `/bollywood-advance-vashi` | Bollywood Advance, Vashi |
-| `/bollywood-seawoods` | Bollywood, Seawoods |
+| `/bollywood-seawoods` | Bollywood Weekends, Seawoods |
+| `/bollywood-beginners` · `/bollywood-beginners-vashi` | Bollywood Beginners, Vashi |
+| `/kids-ballet` · `/kids-ballet-seawoods` | Kids Ballet, Seawoods |
 | `/ballet` · `/ballet-training` · `/contemporary-seawoods` | Ballet Training, Seawoods |
 | `/contemporary-vashi` | Contemporary, Vashi |
-| `/jazz-funk` · `/jazz-training` · `/open-style` | as named |
+| `/jazz-funk` | Jazz Funk, Seawoods |
+| `/jazz-funk-vashi` | Jazz Funk, Vashi |
+| `/jazz-training` · `/open-style` | as named |
 | `/classes` | all batches |
 | `/gallery` | Annual Jam photos |
 | `/acting` | Acting & Personality Development — free demo 5 Sep, then a Saturday batch |

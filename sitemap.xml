@@ -31,56 +31,6 @@
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://indiemovementartproject.com/batch.html?batch=contemporary-seawoods</loc>
-    <lastmod>2026-08-25</lastmod>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://indiemovementartproject.com/batch.html?batch=contemporary-vashi</loc>
-    <lastmod>2026-08-25</lastmod>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://indiemovementartproject.com/batch.html?batch=bollywood-seawoods</loc>
-    <lastmod>2026-08-25</lastmod>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://indiemovementartproject.com/batch.html?batch=bollywood-advance-vashi</loc>
-    <lastmod>2026-08-25</lastmod>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://indiemovementartproject.com/batch.html?batch=juniors-seawoods</loc>
-    <lastmod>2026-08-25</lastmod>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://indiemovementartproject.com/batch.html?batch=kids-vashi</loc>
-    <lastmod>2026-08-25</lastmod>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://indiemovementartproject.com/batch.html?batch=jazz-funk</loc>
-    <lastmod>2026-08-25</lastmod>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://indiemovementartproject.com/batch.html?batch=jazz-training</loc>
-    <lastmod>2026-08-25</lastmod>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://indiemovementartproject.com/batch.html?batch=open-style</loc>
-    <lastmod>2026-08-25</lastmod>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://indiemovementartproject.com/batch.html?batch=afro-dancehall</loc>
-    <lastmod>2026-08-25</lastmod>
-    <priority>0.8</priority>
-  </url>
-  <url>
     <loc>https://indiemovementartproject.com/privacy</loc>
     <lastmod>2026-08-23</lastmod>
     <priority>0.3</priority>
@@ -89,5 +39,70 @@
     <loc>https://indiemovementartproject.com/terms</loc>
     <lastmod>2026-08-23</lastmod>
     <priority>0.3</priority>
+  </url>
+  <url>
+    <loc>https://indiemovementartproject.com/batch.html?batch=contemporary-seawoods</loc>
+    <lastmod>2026-08-30</lastmod>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://indiemovementartproject.com/batch.html?batch=kids-ballet-seawoods</loc>
+    <lastmod>2026-08-30</lastmod>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://indiemovementartproject.com/batch.html?batch=contemporary-vashi</loc>
+    <lastmod>2026-08-30</lastmod>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://indiemovementartproject.com/batch.html?batch=bollywood-seawoods</loc>
+    <lastmod>2026-08-30</lastmod>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://indiemovementartproject.com/batch.html?batch=bollywood-beginners-vashi</loc>
+    <lastmod>2026-08-30</lastmod>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://indiemovementartproject.com/batch.html?batch=bollywood-advance-vashi</loc>
+    <lastmod>2026-08-30</lastmod>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://indiemovementartproject.com/batch.html?batch=juniors-seawoods</loc>
+    <lastmod>2026-08-30</lastmod>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://indiemovementartproject.com/batch.html?batch=kids-vashi</loc>
+    <lastmod>2026-08-30</lastmod>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://indiemovementartproject.com/batch.html?batch=jazz-funk</loc>
+    <lastmod>2026-08-30</lastmod>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://indiemovementartproject.com/batch.html?batch=jazz-funk-vashi</loc>
+    <lastmod>2026-08-30</lastmod>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://indiemovementartproject.com/batch.html?batch=jazz-training</loc>
+    <lastmod>2026-08-30</lastmod>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://indiemovementartproject.com/batch.html?batch=open-style</loc>
+    <lastmod>2026-08-30</lastmod>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://indiemovementartproject.com/batch.html?batch=afro-dancehall</loc>
+    <lastmod>2026-08-30</lastmod>
+    <priority>0.8</priority>
   </url>
 </urlset>

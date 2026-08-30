@@ -73,9 +73,10 @@
 /* People mistype the short batch links (/jazz for /jazz-funk). If the path is close
    to a real one, offer it rather than making them go hunting. */
 (function(){
-  var LINKS = ['ballet','contemporary-vashi','bollywood-seawoods','bollywood-advance','jazz-funk',
-               'jazz-training','open-style','afro','juniors','kids','classes','gallery',
-               'count-me-in','sync-studio','acting'];
+  var LINKS = ['ballet', 'kids-ballet', 'contemporary-vashi', 'bollywood-seawoods',
+               'bollywood-beginners', 'bollywood-advance', 'juniors', 'kids', 'jazz-funk',
+               'jazz-funk-vashi', 'jazz-training', 'open-style', 'afro', 'classes', 'gallery',
+               'count-me-in', 'sync-studio', 'acting'];
   var path = location.pathname.replace(/^\/+|\/+$|\.html$/g, '').toLowerCase();
   if(!path) return;
 

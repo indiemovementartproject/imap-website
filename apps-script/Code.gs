@@ -30,7 +30,7 @@
 
 /* Bump this whenever you paste a new copy in. Visiting the /exec URL in a browser
    prints it, so you can always tell which version the web app is actually serving. */
-var BUILD = '2026-08-26-k';
+var BUILD = '2026-08-30-a';
 
 /* A genuine payer screenshots the receipt and uploads it within a couple of
    minutes. A bigger gap means an older image, so say so. */
@@ -113,22 +113,26 @@ var PRICES = (function () {
     'ws-s-06sep':   { label: 'Ballet Training Class · 6 Sept Seawoods',                   amount: 500 }
   };
   var BATCHES = {
-    'contemporary-seawoods': 'Ballet Training (Seawoods)',
-    'contemporary-vashi': 'Contemporary (Vashi)',
-    'bollywood-seawoods': 'Bollywood (Seawoods)',
-    'bollywood-advance-vashi': 'Bollywood Advance (Vashi)',
-    'juniors-seawoods': 'Juniors (Seawoods)',
-    'kids-vashi': 'Kids (Vashi)',
-    'jazz-funk': 'Jazz Funk (Seawoods)',
-    'jazz-training': 'Jazz Training (Seawoods)',
-    'open-style': 'Open Style (Seawoods)',
-    'afro-dancehall': 'Afro & Dancehall (Seawoods)'
+    'contemporary-seawoods':       'Ballet Training (Seawoods)',
+    'kids-ballet-seawoods':        'Kids Ballet (Seawoods)',
+    'contemporary-vashi':          'Contemporary (Vashi)',
+    'bollywood-seawoods':          'Bollywood Weekends (Seawoods)',
+    'bollywood-beginners-vashi':   'Bollywood Beginners (Vashi)',
+    'bollywood-advance-vashi':     'Bollywood Advance (Vashi)',
+    'juniors-seawoods':            'Juniors (Seawoods)',
+    'kids-vashi':                  'Kids (Vashi)',
+    'jazz-funk':                   'Jazz Funk (Seawoods)',
+    'jazz-funk-vashi':             'Jazz Funk (Vashi)',
+    'jazz-training':               'Jazz Training (Seawoods)',
+    'open-style':                  'Open Style (Seawoods)',
+    'afro-dancehall':              'Afro & Dancehall (Seawoods)'
   };
   var PLANS = { '1m': { label: '1 month', amount: 2800 }, '3m': { label: '3 months', amount: 7500 } };
   /* Batches that charge their own rates. Must match `fees` in cart.js. */
   var FEES = {
-    'juniors-seawoods': { '1m': 2500, '3m': 6500 },
-    'kids-vashi':       { '1m': 2000, '3m': 5400 }
+    'juniors-seawoods':     { '1m': 2500, '3m': 6500 },
+    'kids-vashi':           { '1m': 2000, '3m': 5400 },
+    'kids-ballet-seawoods': { '1m': 1500, '3m': 4000 }
   };
   for (var slug in BATCHES) {
     for (var k in PLANS) {
