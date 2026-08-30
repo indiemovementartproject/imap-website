@@ -116,12 +116,29 @@ page and wrong in search, so re-check the generated block rather than the render
 Ballet Training has no timings yet and is rendered as "To be announced" from an **empty** `time`
 field, not from the literal string — the batch page supplies that wording itself.
 
-### The Vashi address
+### The two studios
 
-The footer and map on every page are the **Seawoods** studio, including on the four Vashi batch
-pages, because there is no Vashi street address anywhere in the repo. The `.bd-when` block names
-the right studio, so nobody is told the wrong thing outright, but a Vashi enquirer still sees a
-Seawoods pin. Worth fixing when someone supplies the address.
+| Studio | Address | Map |
+|---|---|---|
+| Seawoods | iMAP @ Ohana Fitness, Haware's Centurion Mall, Sector 19A, Seawoods East, Navi Mumbai 400706 | `maps.app.goo.gl/nzVyu1Yq61gQ4s7z5` |
+| Vashi | iMAP @ Analog House, Vashi, Navi Mumbai 400703 · 19.084371, 73.0071461 | `maps.app.goo.gl/5amjzMX7fhP57rKH6` |
+
+Both appear in the footer on every page. On a **batch page** the studio cell in `.bd-when` and the
+footer map both follow `b.region` from the `STUDIO` table in `batch.html` — before that, a Vashi
+enquirer was shown a Seawoods pin.
+
+The Vashi entry is the place name and locality, not a full street line: the Google listing is
+"Analog House" and no street address was supplied. The map embed uses **coordinates**, so it lands
+exactly right regardless. If a street line turns up, it goes in `STUDIO` in `batch.html`, the
+footer row on all nine pages, and the `PostalAddress` blocks in the homepage JSON-LD.
+
+### Batch photos
+
+`media/<slug>.jpg` per batch, 1080x1350, and **every batch has its own**. Four used to be shared
+between batches with the same instructor, which made the carousel look like it was repeating —
+fixed on 30 August from the instructor-photo set. If you add a batch and have no photo, the card
+falls back to a "photo coming soon" tile via `onerror`, which is better than borrowing another
+batch's.
 
 ## Changing prices
 
