@@ -13,7 +13,7 @@ Live at <https://indiemovementartproject.com> · GitHub Pages from `main` in
 
 | File | What it is |
 |---|---|
-| `index.html` | Home: hero, About, the featured slot (currently Acting), Orientation Series (workshops), Regular Classes carousel, Annual Jam photo strip |
+| `index.html` | Home: hero, About, the featured slot (empty), Regular Classes carousel, Annual Jam photo strip |
 | `cart.js` | **The catalogue.** Every purchasable item and its price. Also the cart and nav badge. |
 | `batch.html` | One page for every batch, driven by `?batch=<slug>` |
 | `batches.html` | All batches in a carousel |
@@ -35,56 +35,40 @@ Live at <https://indiemovementartproject.com> · GitHub Pages from `main` in
 
 ## The featured slot on the homepage
 
-One section sits between "About" and the Orientation Series, holding whatever iMAP is pushing right
-now. It uses the `.xb-*` styles, which were written for the Retro-Jazz workshop and are generic
-enough to reuse. Only one thing lives here at a time.
+**Empty right now.** There is no section between About and Regular Classes.
 
-**Right now:** `#acting` — Aryamann's Acting & Personality Development batch, opening with a free
-demo class on **Saturday 5 September 2026**, 3–5 PM at Seawoods. Nothing is sold through it: both
-buttons are WhatsApp links via `data-wa`, because the demo is free and the batch is paid for in
-person once someone joins. Fees shown are ₹3,000/month for the first three months, ₹3,500/month
-after.
+The slot has held the Retro-Jazz workshop (Aug 2026) and the Acting free demo class (Sep 2026).
+Both used the `.xb-*` styles, which were **deleted along with the last occupant** - recover them
+from git rather than rewriting them, and put the section back between `#about` and `#classes`
+with a matching `scroll-margin-top` id and a nav link.
 
-**After 5 September** this becomes a regular batch. Prashant has the instructor photo and batch
-details to come. The move is:
+Whatever goes in it, the rule that matters is the same one both times: **when it is over, empty
+the catalogue that sells it.** See "Retiring what the slot was selling" below.
 
-1. Add it to `BATCHES` in `cart.js` and to `PRICES` in `Code.gs` (then redeploy — see below).
-2. Add a card to `#classes` in `index.html` and a `batch.html?batch=acting` entry.
-3. Move the `links.html` card from the "Starting now" group into "Regular batches", and drop the
-   custom `m` message from its `DATA` entry so it uses the standard wording.
-4. Delete the `#acting` featured section, its `Event` JSON-LD block (a past event is dead weight in
-   search results), and point `acting.html` at the new batch page.
-5. Swap `media/acting-poster.jpg` for the instructor photo where the batch card needs one.
+### Selling from this slot
 
-**Shareable link:** `indiemovementartproject.com/acting` → `acting.html`, which carries the Open
-Graph tags (so WhatsApp and Instagram preview the poster) and forwards to `index.html?go=acting`.
-The landing uses a **query param, not a `#hash`** on purpose: the browser re-applies its own
-fragment scroll after the page settles, which was overshooting the section by ~390px. `?go=<id>`
-scrolls to any section id and stays put.
+`SPECIALS` in `cart.js` holds one-off workshops; `WORKSHOPS` and `PASSES` held the Orientation
+Series. All three are empty. Items here are sold *without* the cart: buttons link to
+`pay.html?buy=<id>`, which clears the cart, puts that single item in it and goes straight to
+checkout. An id that is not in the catalogue falls through and leaves the cart alone.
 
-### Selling a workshop from this slot
+### Retiring what the slot was selling
 
-`SPECIALS` in `cart.js` holds workshops that are not part of a series. It is **empty between
-workshops**. They are sold *without* the cart: Register Now buttons link to `pay.html?buy=<id>`,
-which clears the cart, puts that single item in it, and drops the person straight into checkout. A
-registration link means that item and nothing else. An id that is not in `SPECIALS` falls through
-harmlessly and leaves the cart alone.
+Done three times now - Retro-Jazz (29 Aug), the Orientation Series and the Acting demo (7 Sep):
 
-### Retiring a workshop
-
-The Retro-Jazz workshop (CrossBox Fitness, Vashi, 27 Aug 2026) went through this on 29 August:
-
-1. Clear its entries from `SPECIALS` in `cart.js`. **This is the step that matters** — while they
-   are listed, an old `pay.html?buy=…` link shared on WhatsApp will still happily take money for an
-   event that has already happened.
-2. Remove any checkout notice keyed to its id in `pay.html`.
-3. Keep the short-link page alive but point it at the homepage, mark it `noindex, follow`, and
-   replace its Open Graph tags so a reshared link does not advertise a dead event. See
-   `retro-jazz.html` for the shape of this.
-4. Drop it from the `LINKS` list in `404.html`.
-5. Its entries in `PRICES` in `Code.gs` can stay — nothing links there once step 1 is done, and
-   leaving them means an old order can still be looked up. Remove them at the next backend deploy
-   if you want the catalogue tidy.
+1. **Empty the catalogue entries in `cart.js`.** This is the step that matters. While they are
+   listed, a `pay.html?buy=...` link already shared on WhatsApp still takes money for an event
+   that has already happened.
+2. Remove the section from `index.html`, plus its CSS, its nav link, its `scroll-margin-top` id
+   and any `Event` JSON-LD - a past event is dead weight in search results.
+3. Grep for the anchor across every page. `#events` was linked from `batch.html`, `pay.html`,
+   `musicals.html`, `corporate.html` and `training.html`, none of them obvious from `index.html`.
+4. Keep the short-link page alive but repoint it, mark it `noindex, follow` if nothing replaces
+   it, and replace its Open Graph tags. `retro-jazz.html` is the pattern for a dead event;
+   `acting.html` is the pattern for one that became a batch.
+5. Drop it from `LINKS` in `404.html` and from `sitemap.xml`.
+6. `PRICES` in `Code.gs` can keep the old ids - nothing reaches them once step 1 is done, and old
+   orders stay resolvable. The Retro-Jazz pair is still there for that reason.
 
 ## The timetable
 
@@ -96,6 +80,7 @@ five places for one fact**, so change a slot with a single pass and check all fi
 |---|---|---|---|---|
 | Ballet Training | Seawoods | Saturday | Timings TBA | ₹2800 / ₹7500 |
 | Kids Ballet | Seawoods | Saturday | 12:30 – 1:30 PM | ₹1500 / ₹4000 |
+| Acting & Personality Development Regulars | Seawoods | Saturday | 3:00 – 5:00 PM | ₹3500 / ₹9000 |
 | Contemporary | Vashi | Tuesday & Thursday | 5:30 – 6:30 PM | ₹2800 / ₹7500 |
 | Bollywood Weekends | Seawoods | Saturday & Sunday | 6:00 – 7:00 PM | ₹2800 / ₹7500 |
 | Bollywood Beginners | Vashi | Monday & Wednesday | 5:30 – 6:30 PM | ₹2800 / ₹7500 |
@@ -107,7 +92,6 @@ five places for one fact**, so change a slot with a single pass and check all fi
 | Jazz Training | Seawoods | Saturday | 7:00 – 9:00 PM | ₹2800 / ₹7500 |
 | Open Style | Seawoods | Sunday | 7:00 – 9:00 PM | ₹2800 / ₹7500 |
 | Afro & Dancehall | Seawoods | Saturday & Sunday | 5:00 – 6:00 PM | ₹2800 / ₹7500 |
-| Acting & Personality Development *(from 5 Sep)* | Seawoods | Saturday | 3:00 – 5:00 PM | ₹3000 first 3 months, then ₹3500 |
 
 The JSON-LD carries each slot as a `courseSchedule` with `byDay` and 24-hour `startTime`/
 `endTime`. Google reads those; a wrong conversion (3 PM written as `03:00`) is invisible on the
@@ -140,6 +124,14 @@ fixed on 30 August from the instructor-photo set. If you add a batch and have no
 falls back to a "photo coming soon" tile via `onerror`, which is better than borrowing another
 batch's.
 
+### The one intro offer
+
+Acting is the only batch with a struck-through price, and it is not a special mechanism: the batch
+page reads `intro` and `listPrice` from its `DATA` entry in `batch.html` and renders the
+`.bd-offer` line from those two fields. The **plan prices carry the actual discount** - Rs 3500 for
+one month, Rs 9000 for three, which is Rs 3000/month. Change the offer by changing all four numbers
+together, or the page advertises a discount the cart does not give.
+
 ## Changing prices
 
 Prices live in **two** places and must agree:
@@ -157,6 +149,7 @@ so a mismatch is a visible warning, never a wrong charge.
 | Regular class — 1 month / 3 months | ₹2800 / ₹7500 |
 | Kids (Vashi) | ₹2000 / ₹5400 |
 | Kids Ballet (Seawoods) | ₹1500 / ₹4000 |
+| Acting & Personality Development (Seawoods) | ₹3500 / ₹9000 — the 3-month plan **is** the ₹3000/month intro offer |
 | Retro-Jazz @ CrossBox — member / non-member | ₹199 / ₹599 *(retired 29 Aug 2026; still in `PRICES`, not in `SPECIALS`)* |
 | Juniors (Seawoods) | ₹2500 / ₹6500 |
 
@@ -322,7 +315,7 @@ those meta tags**, so if a price changes in `cart.js`, the matching short link h
 | `/jazz-training` · `/open-style` | as named |
 | `/classes` | all batches |
 | `/gallery` | Annual Jam photos |
-| `/acting` | Acting & Personality Development — free demo 5 Sep, then a Saturday batch |
+| `/acting` · `/acting-seawoods` | Acting & Personality Development, Seawoods |
 | `/retro-jazz` | finished 27 Aug 2026 — now redirects to the homepage |
 
 The rule: **the internal slug always works as a link**, and the four unwieldy ones have a shortcut.
@@ -459,6 +452,6 @@ is why an earlier update looked to Prashant like the video had been deleted.
 
 ## Retiring the Orientation Series
 
-It is August-only. To remove it: delete the entries from `PASSES` and `WORKSHOPS` in `cart.js`
-and from `PRICES` in `Code.gs`, and drop the `#events` section from `index.html`. Anything already
-sitting in someone's cart disappears by itself, because the cart re-reads the catalogue on load.
+Done on 7 September 2026. `WORKSHOPS` and `PASSES` in `cart.js` are empty, the `ws-*` ids are
+out of `PRICES` in `Code.gs`, and the `#events` section is gone from `index.html`. Nothing
+further to do - the general steps live under "Retiring what the slot was selling".

@@ -21,31 +21,15 @@
   /* ---------------- catalogue ---------------- */
 
   /* Orientation Series workshops — ₹500 each, on until the end of August. */
-  var WORKSHOPS = [
-    { id: 'ws-v-17aug',   title: 'Choreography Workshop',      song: 'Chura Liya Hai',      when: '17 Aug', region: 'Vashi',    who: 'Rohit Choudhary' },
-    { id: 'ws-v-18aug',   title: 'Kids Dance Workshop',        song: 'Dance Ka Bhoot',      when: '18 Aug', region: 'Vashi',    who: 'Jeevak' },
-    { id: 'ws-v-19aug-a', title: 'Bollywood Workshop',         song: 'Gun Gun Guna Re',     when: '19 Aug', region: 'Vashi',    who: 'Ruchika' },
-    { id: 'ws-v-19aug-b', title: 'Jazz Funk Workshop',         song: 'Taki Taki',           when: '19 Aug', region: 'Vashi',    who: 'Ruchika' },
-    { id: 'ws-v-27aug',   title: 'Contemporary Workshop',      song: 'Ae Dil Hai Mushkil',  when: '27 Aug', region: 'Vashi',    who: 'Shreya' },
-    { id: 'ws-v-31aug',   title: 'Hip Hop Workshop',           song: '',                    when: '31 Aug', region: 'Vashi',    who: 'Rohit Mankar' },
-    { id: 'ws-s-23aug',   title: 'Semi Classical Choreography', song: 'Vachindamma',        when: '23 Aug', region: 'Seawoods', who: 'Anamika' },
-    { id: 'ws-s-27aug',   title: 'Juniors Demo Class',         song: 'Lut Put Gaya',        when: '27 Aug', region: 'Seawoods', who: 'Jeevak' },
-    { id: 'ws-s-29aug-a', title: 'Kids Ballet Demo Class',     song: '',                    when: '29 Aug', region: 'Seawoods', who: 'Shreya' },
-    { id: 'ws-s-29aug-b', title: 'Bollywood Workshop',         song: 'Just Chill',          when: '29 Aug', region: 'Seawoods', who: 'Ruchika' },
-    { id: 'ws-s-29aug-c', title: 'Jazz Choreography Workshop', song: 'Way I Are',           when: '29 Aug', region: 'Seawoods', who: 'Rohit Choudhary' },
-    { id: 'ws-s-30aug-a', title: 'Jazz Funk Choreography',     song: 'Whine Up',            when: '30 Aug', region: 'Seawoods', who: 'Ruchika' },
-    { id: 'ws-s-30aug-b', title: 'Afro & Dancehall Workshop',  song: 'Haseen',              when: '30 Aug', region: 'Seawoods', who: 'Tanvi' },
-    { id: 'ws-s-30aug-c', title: 'Open Style Choreography',    song: 'Pal Pal',             when: '30 Aug', region: 'Seawoods', who: 'Tej' },
-    { id: 'ws-s-06sep',   title: 'Ballet Training Class',      song: '',                    when: '6 Sept', region: 'Seawoods', who: 'Akash' }
-  ];
+  /* The Orientation Series ran through August 2026 and is over. Emptied rather
+     than deleted: pay.html?buy=<id> links for it were shared on WhatsApp, and an
+     empty catalogue makes those fall through instead of taking money for a
+     workshop that has already happened. */
+  var WORKSHOPS = [];
   var WORKSHOP_PRICE = 500;
 
   /* Orientation Series passes. "All classes" on the standee means all workshops. */
-  var PASSES = [
-    { id: 'ws-pass-vashi',    title: 'All workshops — Vashi',        detail: 'Orientation Series · every Vashi workshop',    amount: 2000 },
-    { id: 'ws-pass-seawoods', title: 'All workshops — Seawoods',     detail: 'Orientation Series · every Seawoods workshop', amount: 3000 },
-    { id: 'ws-pass-both',     title: 'All workshops — both studios', detail: 'Orientation Series · Vashi + Seawoods',        amount: 4500 }
-  ];
+  var PASSES = [];
 
   /* One-off workshops, sold with a direct pay.html?buy=<id> link rather than
      through the cart. Empty between workshops - the Retro-Jazz pair lived here
@@ -56,22 +40,24 @@
 
   /* Regular classes. */
   var BATCHES = {
-    'contemporary-seawoods':      { name: 'Ballet Training', region: 'Seawoods', who: 'Akash Jathar' },
-    'kids-ballet-seawoods':       { name: 'Kids Ballet', region: 'Seawoods', who: 'Shreya Rastogi',
+    'contemporary-seawoods':        { name: 'Ballet Training', region: 'Seawoods', who: 'Akash Jathar' },
+    'kids-ballet-seawoods':         { name: 'Kids Ballet', region: 'Seawoods', who: 'Shreya Rastogi',
                                     fees: { '1m': 1500, '3m': 4000 } },
-    'contemporary-vashi':         { name: 'Contemporary', region: 'Vashi', who: 'Shreya Rastogi' },
-    'bollywood-seawoods':         { name: 'Bollywood Weekends', region: 'Seawoods', who: 'Ruchika Jain' },
-    'bollywood-beginners-vashi':  { name: 'Bollywood Beginners', region: 'Vashi', who: 'Ruchika Jain' },
-    'bollywood-advance-vashi':    { name: 'Bollywood Advance', region: 'Vashi', who: 'Rohit Choudhary' },
-    'juniors-seawoods':           { name: 'Juniors', region: 'Seawoods', who: 'Jeevak Gaikwad',
+    'acting-seawoods':              { name: 'Acting & Personality Development Regulars', region: 'Seawoods', who: 'Aryamann',
+                                    fees: { '1m': 3500, '3m': 9000 } },
+    'contemporary-vashi':           { name: 'Contemporary', region: 'Vashi', who: 'Shreya Rastogi' },
+    'bollywood-seawoods':           { name: 'Bollywood Weekends', region: 'Seawoods', who: 'Ruchika Jain' },
+    'bollywood-beginners-vashi':    { name: 'Bollywood Beginners', region: 'Vashi', who: 'Ruchika Jain' },
+    'bollywood-advance-vashi':      { name: 'Bollywood Advance', region: 'Vashi', who: 'Rohit Choudhary' },
+    'juniors-seawoods':             { name: 'Juniors', region: 'Seawoods', who: 'Jeevak Gaikwad',
                                     fees: { '1m': 2500, '3m': 6500 } },
-    'kids-vashi':                 { name: 'Kids', region: 'Vashi', who: 'Jeevak Gaikwad',
+    'kids-vashi':                   { name: 'Kids', region: 'Vashi', who: 'Jeevak Gaikwad',
                                     fees: { '1m': 2000, '3m': 5400 } },
-    'jazz-funk':                  { name: 'Jazz Funk', region: 'Seawoods', who: 'Ruchika Jain' },
-    'jazz-funk-vashi':            { name: 'Jazz Funk', region: 'Vashi', who: 'Ruchika Jain' },
-    'jazz-training':              { name: 'Jazz Training', region: 'Seawoods', who: 'Rohit Choudhary' },
-    'open-style':                 { name: 'Open Style', region: 'Seawoods', who: 'Tej' },
-    'afro-dancehall':             { name: 'Afro & Dancehall', region: 'Seawoods', who: 'Tanvi Palande' }
+    'jazz-funk':                    { name: 'Jazz Funk', region: 'Seawoods', who: 'Ruchika Jain' },
+    'jazz-funk-vashi':              { name: 'Jazz Funk', region: 'Vashi', who: 'Ruchika Jain' },
+    'jazz-training':                { name: 'Jazz Training', region: 'Seawoods', who: 'Rohit Choudhary' },
+    'open-style':                   { name: 'Open Style', region: 'Seawoods', who: 'Tej' },
+    'afro-dancehall':               { name: 'Afro & Dancehall', region: 'Seawoods', who: 'Tanvi Palande' }
   };
   /* Default plan prices. A batch may override them with its own `fees`. */
   var PLANS = [

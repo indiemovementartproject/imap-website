@@ -30,7 +30,7 @@
 
 /* Bump this whenever you paste a new copy in. Visiting the /exec URL in a browser
    prints it, so you can always tell which version the web app is actually serving. */
-var BUILD = '2026-08-30-a';
+var BUILD = '2026-09-07-a';
 
 /* A genuine payer screenshots the receipt and uploads it within a couple of
    minutes. A bigger gap means an older image, so say so. */
@@ -92,47 +92,31 @@ var PRICES = (function () {
   var p = {
     'test-1':           { label: 'Test payment',                 amount: 1 },
     'xb-retro-member':  { label: 'Retro-Jazz Workshop · 27 Aug · CrossBox member',     amount: 199 },
-    'xb-retro-guest':   { label: 'Retro-Jazz Workshop · 27 Aug · non-member',          amount: 599 },
-    'ws-pass-vashi':    { label: 'All workshops — Vashi',        amount: 2000 },
-    'ws-pass-seawoods': { label: 'All workshops — Seawoods',     amount: 3000 },
-    'ws-pass-both':     { label: 'All workshops — both studios', amount: 4500 },
-    'ws-v-17aug':   { label: 'Choreography Workshop (Chura Liya Hai) · 17 Aug Vashi',     amount: 500 },
-    'ws-v-18aug':   { label: 'Kids Dance Workshop (Dance Ka Bhoot) · 18 Aug Vashi',       amount: 500 },
-    'ws-v-19aug-a': { label: 'Bollywood Workshop (Gun Gun Guna Re) · 19 Aug Vashi',       amount: 500 },
-    'ws-v-19aug-b': { label: 'Jazz Funk Workshop (Taki Taki) · 19 Aug Vashi',             amount: 500 },
-    'ws-v-27aug':   { label: 'Contemporary Workshop (Ae Dil Hai Mushkil) · 27 Aug Vashi', amount: 500 },
-    'ws-v-31aug':   { label: 'Hip Hop Workshop · 31 Aug Vashi',                           amount: 500 },
-    'ws-s-23aug':   { label: 'Semi Classical Choreography (Vachindamma) · 23 Aug Seawoods', amount: 500 },
-    'ws-s-27aug':   { label: 'Juniors Demo Class (Lut Put Gaya) · 27 Aug Seawoods',       amount: 500 },
-    'ws-s-29aug-a': { label: 'Kids Ballet Demo Class · 29 Aug Seawoods',                  amount: 500 },
-    'ws-s-29aug-b': { label: 'Bollywood Workshop (Just Chill) · 29 Aug Seawoods',         amount: 500 },
-    'ws-s-29aug-c': { label: 'Jazz Choreography Workshop (Way I Are) · 29 Aug Seawoods',  amount: 500 },
-    'ws-s-30aug-a': { label: 'Jazz Funk Choreography (Whine Up) · 30 Aug Seawoods',       amount: 500 },
-    'ws-s-30aug-b': { label: 'Afro & Dancehall Workshop (Haseen) · 30 Aug Seawoods',      amount: 500 },
-    'ws-s-30aug-c': { label: 'Open Style Choreography (Pal Pal) · 30 Aug Seawoods',       amount: 500 },
-    'ws-s-06sep':   { label: 'Ballet Training Class · 6 Sept Seawoods',                   amount: 500 }
+    'xb-retro-guest':   { label: 'Retro-Jazz Workshop · 27 Aug · non-member',          amount: 599 }
   };
   var BATCHES = {
-    'contemporary-seawoods':       'Ballet Training (Seawoods)',
-    'kids-ballet-seawoods':        'Kids Ballet (Seawoods)',
-    'contemporary-vashi':          'Contemporary (Vashi)',
-    'bollywood-seawoods':          'Bollywood Weekends (Seawoods)',
-    'bollywood-beginners-vashi':   'Bollywood Beginners (Vashi)',
-    'bollywood-advance-vashi':     'Bollywood Advance (Vashi)',
-    'juniors-seawoods':            'Juniors (Seawoods)',
-    'kids-vashi':                  'Kids (Vashi)',
-    'jazz-funk':                   'Jazz Funk (Seawoods)',
-    'jazz-funk-vashi':             'Jazz Funk (Vashi)',
-    'jazz-training':               'Jazz Training (Seawoods)',
-    'open-style':                  'Open Style (Seawoods)',
-    'afro-dancehall':              'Afro & Dancehall (Seawoods)'
+    'contemporary-seawoods':        'Ballet Training (Seawoods)',
+    'kids-ballet-seawoods':         'Kids Ballet (Seawoods)',
+    'acting-seawoods':              'Acting & Personality Development Regulars (Seawoods)',
+    'contemporary-vashi':           'Contemporary (Vashi)',
+    'bollywood-seawoods':           'Bollywood Weekends (Seawoods)',
+    'bollywood-beginners-vashi':    'Bollywood Beginners (Vashi)',
+    'bollywood-advance-vashi':      'Bollywood Advance (Vashi)',
+    'juniors-seawoods':             'Juniors (Seawoods)',
+    'kids-vashi':                   'Kids (Vashi)',
+    'jazz-funk':                    'Jazz Funk (Seawoods)',
+    'jazz-funk-vashi':              'Jazz Funk (Vashi)',
+    'jazz-training':                'Jazz Training (Seawoods)',
+    'open-style':                   'Open Style (Seawoods)',
+    'afro-dancehall':               'Afro & Dancehall (Seawoods)'
   };
   var PLANS = { '1m': { label: '1 month', amount: 2800 }, '3m': { label: '3 months', amount: 7500 } };
   /* Batches that charge their own rates. Must match `fees` in cart.js. */
   var FEES = {
-    'juniors-seawoods':     { '1m': 2500, '3m': 6500 },
-    'kids-vashi':           { '1m': 2000, '3m': 5400 },
-    'kids-ballet-seawoods': { '1m': 1500, '3m': 4000 }
+    'juniors-seawoods':         { '1m': 2500, '3m': 6500 },
+    'kids-vashi':               { '1m': 2000, '3m': 5400 },
+    'kids-ballet-seawoods':     { '1m': 1500, '3m': 4000 },
+    'acting-seawoods':          { '1m': 3500, '3m': 9000 }
   };
   for (var slug in BATCHES) {
     for (var k in PLANS) {
