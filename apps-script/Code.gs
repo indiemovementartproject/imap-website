@@ -30,7 +30,7 @@
 
 /* Bump this whenever you paste a new copy in. Visiting the /exec URL in a browser
    prints it, so you can always tell which version the web app is actually serving. */
-var BUILD = '2026-09-07-a';
+var BUILD = '2026-09-07-b';
 
 /* A genuine payer screenshots the receipt and uploads it within a couple of
    minutes. A bigger gap means an older image, so say so. */
@@ -256,12 +256,31 @@ function doGet(e) {
       caller: who,
       emailRecipientsLeftToday: quota,
       recipientsPerOrder: CONFIG.NOTIFY.length + 1,
-      ordersLeftToday: quota < 0 ? -1 : Math.floor(quota / (CONFIG.NOTIFY.length + 1))
+      ordersLeftToday: quota < 0 ? -1 : Math.floor(quota / (CONFIG.NOTIFY.length + 1)),
+      canary: canaryStatus()
     }, null, 2)).setMimeType(ContentService.MimeType.JSON);
   }
   return HtmlService.createHtmlOutput(
     '<p>iMAP payment endpoint is running.</p><p>build ' + BUILD +
     ' · items ' + Object.keys(PRICES).length + '</p>');
+}
+
+/* Reported by ?diag=1 so the canary can be checked without opening the editor.
+   Deliberately says whether it is armed and when it last ran, never the payee
+   address itself - this endpoint is public. */
+function canaryStatus() {
+  var props = PropertiesService.getScriptProperties();
+  var armed = false, all = [];
+  try { all = ScriptApp.getProjectTriggers(); } catch (err) { return 'unknown'; }
+  for (var i = 0; i < all.length; i++) {
+    if (all[i].getHandlerFunction() === 'checkSiteIntegrity') armed = true;
+  }
+  return {
+    armed: armed,
+    state: props.getProperty('canaryState') || 'never run',
+    lastChecked: props.getProperty('canaryCheckedAt') || null,
+    consecutiveFailures: Number(props.getProperty('canaryFails') || 0)
+  };
 }
 
 function json(obj) {
@@ -865,6 +884,171 @@ function onStatusEdit(e) {
     sh.getRange(r, COL.VBY).setValue(Session.getActiveUser().getEmail() || 'admin');
     sh.getRange(r, COL.VAT).setValue(Utilities.formatDate(new Date(), CONFIG.TZ, 'yyyy-MM-dd HH:mm:ss'));
   } catch (err) {}
+}
+
+/* ------------------------------------------------------------------ */
+/*  INTEGRITY CANARY                                                    */
+/*                                                                      */
+/*  Watches the two strings on the live checkout page that decide where */
+/*  money and orders go:                                                */
+/*                                                                      */
+/*    UPI_VPA   - the account customers pay INTO                        */
+/*    ENDPOINT  - where their order and screenshot are POSTed           */
+/*                                                                      */
+/*  Swapping either one is invisible to a customer: the page looks       */
+/*  completely normal and the payment simply lands somewhere else. This  */
+/*  is the one attack against the site that steals real money, and the   */
+/*  only way in is write access to the GitHub repo.                      */
+/*                                                                      */
+/*  WHY THIS LIVES HERE, NOT IN THE REPO. The expected values below are  */
+/*  on Google's side, reachable only with Prashant's Google account.     */
+/*  Someone who compromises GitHub can change pay.html but CANNOT change */
+/*  what this file expects it to say - so the alarm still fires. Putting */
+/*  the check in the repo it is checking would defeat the entire point.  */
+/*                                                                      */
+/*  Runs hourly. Emails only when something changes, so a quiet mailbox  */
+/*  means all is well.                                                   */
+/* ------------------------------------------------------------------ */
+
+/* What the live page MUST say. Update these deliberately, and only when
+   you have changed pay.html on purpose - never to silence an alert you
+   do not understand. */
+var CANARY_EXPECT = {
+  vpa:      'rohitchoudhary91.rc-1@okicici',
+  endpoint: 'AKfycbyzOycWZQ8zKOWd4obluWv8frDtfFQbwa2bRN17NrHd6I-Lk3KZ5OsHhZ07FL0R_jik'
+};
+
+/* A brief 404 or a GitHub Pages deploy blip is not an incident. Three
+   consecutive failures - three hours - is. */
+var CANARY_FAIL_THRESHOLD = 3;
+
+/**
+ * Fetch the live checkout page and compare the payee and endpoint against
+ * CANARY_EXPECT. Emails once per distinct change, not once per run.
+ * Wired to an hourly trigger by installCanaryTrigger().
+ */
+function checkSiteIntegrity() {
+  var props = PropertiesService.getScriptProperties();
+  var url = CONFIG.SITE + '/pay.html?canary=' + Date.now();   /* defeat caching */
+  var html = '', err = '';
+
+  try {
+    var res = UrlFetchApp.fetch(url, { muteHttpExceptions: true, followRedirects: true });
+    if (res.getResponseCode() !== 200) err = 'HTTP ' + res.getResponseCode();
+    else html = res.getContentText();
+  } catch (ex) { err = String(ex); }
+
+  /* --- unreachable: warn only after it has failed several hours running --- */
+  if (err || !html) {
+    var fails = Number(props.getProperty('canaryFails') || 0) + 1;
+    props.setProperty('canaryFails', String(fails));
+    if (fails === CANARY_FAIL_THRESHOLD) {
+      canaryAlert('Cannot read the checkout page',
+        'The canary has failed ' + fails + ' times in a row.<br><br>' +
+        'Last error: <b>' + esc(err || 'empty response') + '</b><br>' +
+        'URL: ' + esc(url) + '<br><br>' +
+        'The site may simply be down, but until this clears <b>nothing is ' +
+        'watching the payee address</b>. Open the checkout page and check it ' +
+        'yourself.');
+    }
+    return;
+  }
+  props.deleteProperty('canaryFails');
+
+  /* --- read the two strings out of the live page --- */
+  var vpa = matchOne(html, /UPI_VPA\s*:\s*["']([^"']+)["']/);
+  var ep  = matchOne(html, /ENDPOINT\s*:\s*["']([^"']*\/macros\/s\/([A-Za-z0-9_-]+)\/exec)["']/, 2);
+
+  var problems = [];
+  if (vpa === null) {
+    problems.push(['Payee address not found', 'The UPI_VPA line is missing from the page entirely.']);
+  } else if (vpa !== CANARY_EXPECT.vpa) {
+    problems.push(['Payee address CHANGED',
+      'Expected <b>' + esc(CANARY_EXPECT.vpa) + '</b><br>Live page says <b>' + esc(vpa) + '</b>']);
+  }
+  if (ep === null) {
+    problems.push(['Endpoint not found', 'The ENDPOINT line is missing from the page entirely.']);
+  } else if (ep !== CANARY_EXPECT.endpoint) {
+    problems.push(['Order endpoint CHANGED',
+      'Expected deployment <b>' + esc(CANARY_EXPECT.endpoint) + '</b><br>' +
+      'Live page posts to <b>' + esc(ep) + '</b>']);
+  }
+
+  /* --- report state changes only --- */
+  var fingerprint = problems.length ? (vpa + '|' + ep) : 'OK';
+  var last = props.getProperty('canaryState') || '';
+  props.setProperty('canaryState', fingerprint);
+  props.setProperty('canaryCheckedAt', new Date().toISOString());
+
+  if (!problems.length) {
+    if (last && last !== 'OK') {
+      canaryAlert('Back to normal',
+        'The checkout page reads correctly again.<br><br>' +
+        'Payee: <b>' + esc(vpa) + '</b><br>Endpoint: <b>' + esc(ep) + '</b><br><br>' +
+        'If you did not just fix this yourself, find out who did.');
+    }
+    return;
+  }
+  if (fingerprint === last) return;         /* already reported this exact state */
+
+  var body = '';
+  for (var i = 0; i < problems.length; i++) {
+    body += '<p><b>' + esc(problems[i][0]) + '</b><br>' + problems[i][1] + '</p>';
+  }
+  body += '<p style="margin-top:18px">Until this is resolved, treat every payment as ' +
+          'unverified. If the payee changed, <b>customers have been paying someone else</b> ' +
+          'and iMAP still owes them their classes.</p>' +
+          '<p><b>What to do</b><br>' +
+          '1. Open ' + esc(CONFIG.SITE) + '/pay.html and look at the address shown.<br>' +
+          '2. If it is wrong, take the site down or revert the last commit immediately.<br>' +
+          '3. Check the GitHub account for logins you do not recognise, and rotate the password.<br>' +
+          '4. Only then update CANARY_EXPECT, and only if the change was intended.</p>';
+  canaryAlert(problems.length > 1 ? 'Checkout page altered' : problems[0][0], body);
+}
+
+/** Pull capture group `g` (default 1) out of `re`, or null if it does not match. */
+function matchOne(text, re, g) {
+  var m = re.exec(text);
+  return m ? m[g || 1] : null;
+}
+
+/** Alerts go to the studio inbox, which forwards to Rohit and Ruchika. */
+function canaryAlert(subject, innerHtml) {
+  var subj = 'iMAP SITE ALERT - ' + subject;   /* ASCII: MailApp does not encode subjects */
+  try {
+    MailApp.sendEmail({
+      to: CONFIG.NOTIFY.join(','),
+      subject: subj,
+      htmlBody: shell('Site integrity', subject, '#c0392b',
+        innerHtml + '<p style="color:#7a8a8c;font-size:12px;margin-top:22px">' +
+        'Automated hourly check, build ' + BUILD + '. You only receive this when ' +
+        'something changes.</p>')
+    });
+  } catch (err) { log('canary email failed: ' + err); }
+}
+
+/** Run once from the editor to start the hourly check. Safe to re-run. */
+function installCanaryTrigger() {
+  var all = ScriptApp.getProjectTriggers();
+  for (var i = 0; i < all.length; i++) {
+    if (all[i].getHandlerFunction() === 'checkSiteIntegrity') ScriptApp.deleteTrigger(all[i]);
+  }
+  ScriptApp.newTrigger('checkSiteIntegrity').timeBased().everyHours(1).create();
+  checkSiteIntegrity();                       /* prove it works now, not in an hour */
+  Logger.log('Canary installed. State: ' +
+             PropertiesService.getScriptProperties().getProperty('canaryState'));
+}
+
+/** Stop the hourly check. */
+function uninstallCanaryTrigger() {
+  var all = ScriptApp.getProjectTriggers(), n = 0;
+  for (var i = 0; i < all.length; i++) {
+    if (all[i].getHandlerFunction() === 'checkSiteIntegrity') {
+      ScriptApp.deleteTrigger(all[i]); n++;
+    }
+  }
+  PropertiesService.getScriptProperties().deleteProperty('canaryState');
+  Logger.log('Removed ' + n + ' canary trigger(s).');
 }
 
 /* ---------------- setup ---------------- */

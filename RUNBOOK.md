@@ -439,6 +439,60 @@ on) and updating the `<source>` in `index.html`. GitHub Pages caches aggressivel
 and a same-name replacement will not reach people who have already visited - that
 is why an earlier update looked to Prashant like the video had been deleted.
 
+## The integrity canary
+
+An hourly check in `Code.gs` that fetches the live checkout page and compares two strings against
+`CANARY_EXPECT`:
+
+| Watched | Why |
+|---|---|
+| `UPI_VPA` | the account customers pay into |
+| `ENDPOINT` | where their order and screenshot are posted |
+
+Swapping either is invisible to a customer - the page looks completely normal and the money simply
+lands somewhere else. It is the one attack on this site that steals real money, and the only way in
+is write access to the GitHub repo.
+
+**The expected values deliberately live on Google, not in this repo.** Someone who compromises
+GitHub can change `pay.html` but cannot change what the canary expects it to say, so the alarm
+still fires. Never move `CANARY_EXPECT` into the repo it is checking.
+
+It emails only on a *change of state*, so a quiet mailbox means all is well. It also sends a
+"back to normal" note when a problem clears, and warns after three consecutive failures to reach
+the page - one blip is not an incident, three hours of silence is.
+
+**Checking it is alive** - `?diag=1` on the endpoint reports it, without exposing the payee address:
+
+```
+"canary": { "armed": true, "state": "OK", "lastChecked": "...", "consecutiveFailures": 0 }
+```
+
+`armed: false` means the hourly trigger is not installed and **nothing is watching**.
+
+### Installing or re-arming it
+
+The trigger cannot be created by `clasp` - the first run needs the `UrlFetchApp` permission, which
+only a human can grant. Open the Apps Script editor, pick `installCanaryTrigger` from the function
+dropdown, and Run. Authorise when asked. It installs the hourly trigger and runs one check
+immediately, so `?diag=1` should show `armed: true` within seconds.
+
+`uninstallCanaryTrigger` stops it.
+
+### When it fires
+
+Assume the worst until proven otherwise, in this order:
+
+1. Open `/pay.html` and look at the address it shows.
+2. If it is wrong, revert the last commit or take the site down. **Do not wait to investigate.**
+3. Check GitHub for logins you do not recognise; rotate the password and confirm 2FA.
+4. Treat every payment since the last good check as unverified - if the payee changed, customers
+   paid a stranger and iMAP still owes them their classes.
+5. Only then update `CANARY_EXPECT`, and only if the change was intended.
+
+**If you change the VPA or redeploy to a new endpoint on purpose, update `CANARY_EXPECT` in the
+same sitting** - otherwise it cries wolf hourly until someone silences it, which is how a real
+alert gets ignored.
+
 ## Known constraints
 
 - **No WhatsApp automation.** Sending WhatsApp messages programmatically needs Meta's Cloud API,
