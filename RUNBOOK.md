@@ -124,6 +124,26 @@ fixed on 30 August from the instructor-photo set. If you add a batch and have no
 falls back to a "photo coming soon" tile via `onerror`, which is better than borrowing another
 batch's.
 
+**The house look:** subject cut out, graded black-and-white with hard contrast, laid on flat
+`#5CE1E6`. Sample any existing card's corner and you get exactly that hex - match it, do not
+eyeball it.
+
+A photo that arrives as a poster or with a real background has to be put through
+`scripts/cutout.swift`, or it stands out badly in the carousel. It uses the macOS Vision
+subject-mask API, so it needs no third-party tooling - there is no ImageMagick or Pillow on this
+machine:
+
+```
+swiftc -O scripts/cutout.swift -o /tmp/cutout
+/tmp/cutout in.jpg out.jpg "#5CE1E6" <ev> <gamma> <contrast> <shadow> [x,y,w,h]
+sips -Z 1350 out.jpg --out media/<slug>.jpg      # every card is 1080x1350
+```
+
+Pass `--maskonly` to check the cutout before spending time on the grade. The `ev`/`gamma` lift
+matters for a low-key source: Aryamann's came off a dark theatre poster and needed `1.4 0.62`
+before the contrast curve, or his shirt crushed to a silhouette. A normally exposed photo wants
+closer to `0 1.0`.
+
 ### The one intro offer
 
 Acting is the only batch with a struck-through price, and it is not a special mechanism: the batch
