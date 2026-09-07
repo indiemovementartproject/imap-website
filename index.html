@@ -160,6 +160,48 @@
       },
       {
         "@type": "Offer",
+        "url": "https://indiemovementartproject.com/batch.html?batch=contemporary-sundays",
+        "priceCurrency": "INR",
+        "price": "2800",
+        "category": "Monthly",
+        "itemOffered": {
+          "@type": "Course",
+          "name": "Contemporary — Seawoods",
+          "description": "Contemporary dance classes at the iMAP Seawoods studio, taught by Shreya Rastogi. Sunday, 1:00 – 3:00 PM. Opens with a free demo class on Sunday 13 September 2026.",
+          "provider": {
+            "@id": "https://indiemovementartproject.com/#organisation"
+          },
+          "instructor": {
+            "@type": "Person",
+            "name": "Shreya Rastogi"
+          },
+          "courseMode": "onsite",
+          "hasCourseInstance": {
+            "@type": "CourseInstance",
+            "courseMode": "onsite",
+            "location": {
+              "@type": "Place",
+              "name": "iMAP Seawoods Studio",
+              "address": {
+                "@type": "PostalAddress",
+                "addressLocality": "Seawoods, Navi Mumbai",
+                "addressCountry": "IN"
+              }
+            },
+            "courseSchedule": {
+              "@type": "Schedule",
+              "byDay": [
+                "Sunday"
+              ],
+              "repeatFrequency": "P1W",
+              "startTime": "13:00",
+              "endTime": "15:00"
+            }
+          }
+        }
+      },
+      {
+        "@type": "Offer",
         "url": "https://indiemovementartproject.com/batch.html?batch=acting-seawoods",
         "priceCurrency": "INR",
         "price": "3500",
@@ -705,6 +747,52 @@
   ]
 }
 </script>
+
+<!-- The free demo class on 13 September. A dated Event can surface in search and in
+     Google's events carousel in ways the DanceSchool block cannot. Delete it once the
+     class has happened - a past event is dead weight in results. -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Event",
+  "name": "Free Demo Class — Contemporary Batch with Shreya at iMAP Seawoods",
+  "description": "A free demo class opening the new Contemporary batch with Shreya Rastogi at iMAP Seawoods. Sunday 13 September 2026 at 1:00 PM. The batch then runs every Sunday, 1:00 to 3:00 PM. No fee and no commitment for the demo.",
+  "startDate": "2026-09-13T13:00:00+05:30",
+  "endDate": "2026-09-13T15:00:00+05:30",
+  "eventStatus": "https://schema.org/EventScheduled",
+  "eventAttendanceMode": "https://schema.org/OfflineEventAttendanceMode",
+  "image": "https://indiemovementartproject.com/media/contemporary-sundays-poster.jpg",
+  "url": "https://indiemovementartproject.com/contemporary-sundays",
+  "isAccessibleForFree": true,
+  "location": {
+    "@type": "Place",
+    "name": "iMAP Seawoods Studio",
+    "address": {
+      "@type": "PostalAddress",
+      "streetAddress": "iMAP @ Ohana Fitness, Haware's Centurion Mall, Sector 19A",
+      "addressLocality": "Seawoods East, Navi Mumbai",
+      "addressRegion": "Maharashtra",
+      "postalCode": "400706",
+      "addressCountry": "IN"
+    }
+  },
+  "organizer": {
+    "@id": "https://indiemovementartproject.com/#organisation"
+  },
+  "performer": {
+    "@type": "Person",
+    "name": "Shreya Rastogi"
+  },
+  "offers": {
+    "@type": "Offer",
+    "price": "0",
+    "priceCurrency": "INR",
+    "availability": "https://schema.org/InStock",
+    "url": "https://indiemovementartproject.com/contemporary-sundays",
+    "validFrom": "2026-09-07T00:00:00+05:30"
+  }
+}
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Space+Grotesk:wght@300;400;500;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
@@ -873,7 +961,7 @@
   .admin-lock button:hover{color:var(--cyan)}
 
   /* ===== featured partner workshop ===== */
-  #classes,#about{scroll-margin-top:90px}
+  #contemporary-sundays,#classes,#about{scroll-margin-top:90px}
     margin-top:32px;text-align:left}
     box-shadow:0 18px 60px rgba(0,0,0,.5)}
     display:flex;flex-direction:column;gap:4px;transition:.18s}
@@ -891,6 +979,89 @@
   @media (max-width:820px){
   }
 
+  /* ===== Featured batch: poster + glass ===== */
+  /* The section paints itself from its own poster. A 51px JPEG stretched to
+     fill and blurred hard gives a colour wash that always matches the artwork,
+     costs 5 KB, and needs no hand-picked gradient when the poster changes. */
+  /* Plain stacking order: the backdrop is an ordinary positioned child painted
+     under .feat-inner, which carries z-index 1. No isolation:isolate and no
+     negative z-index, because those only make the paint order harder to reason
+     about here and buy nothing.
+
+     The blur radius is small on purpose. The source image is 51px wide, so
+     stretching it to full width IS most of the blur; the filter only smooths
+     the pixel edges. A large radius over a full-bleed layer is one of the more
+     expensive things you can ask a phone GPU to composite on scroll. */
+  .feat{position:relative;overflow:hidden}
+  .feat-bg{position:absolute;inset:0;overflow:hidden;pointer-events:none}
+  .feat-bg img{width:100%;height:100%;object-fit:cover;
+    filter:blur(18px) saturate(1.45);transform:scale(1.12);opacity:.45}
+  /* Held back so the page's own type stays legible over it. */
+  .feat-bg::after{content:"";position:absolute;inset:0;
+    background:radial-gradient(120% 80% at 50% 0%,rgba(7,10,12,.5) 0%,rgba(7,10,12,.84) 55%,var(--bg) 100%)}
+  .feat-inner{position:relative;z-index:1}
+  .feat-grid{display:grid;grid-template-columns:minmax(0,.85fr) minmax(0,1fr);gap:30px;
+    align-items:start;max-width:1040px;margin:34px auto 0;text-align:left}
+  .feat-poster{display:block;border-radius:20px;overflow:hidden;border:1px solid rgba(255,255,255,.14);
+    background:#0a0e10;box-shadow:0 24px 60px rgba(0,0,0,.5);transition:transform .25s,box-shadow .25s}
+  .feat-poster:hover{transform:translateY(-3px);box-shadow:0 30px 70px rgba(0,0,0,.6)}
+  .feat-poster img{display:block;width:100%;height:auto;aspect-ratio:1080/1350}
+
+  /* Frosted panel. backdrop-filter is the whole effect, so where it is not
+     supported the rgba background alone still reads as a solid card. */
+  .glass{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.16);
+    border-radius:20px;padding:22px;backdrop-filter:blur(22px) saturate(1.6);
+    -webkit-backdrop-filter:blur(22px) saturate(1.6);
+    box-shadow:0 18px 50px rgba(0,0,0,.42),inset 0 1px 0 rgba(255,255,255,.22)}
+  .feat-facts{display:grid;grid-template-columns:1fr 1fr;gap:11px}
+  .fx{display:flex;flex-direction:column;gap:3px;background:rgba(255,255,255,.06);
+    border:1px solid rgba(255,255,255,.12);border-radius:14px;padding:13px 15px}
+  .fx .k{font-family:"Space Mono",monospace;font-size:9.5px;letter-spacing:.2em;
+    text-transform:uppercase;color:rgba(255,255,255,.55)}
+  .fx .v{font-family:"Instrument Serif",serif;font-size:23px;line-height:1.12;color:var(--text)}
+  .fx .s{font-size:12.5px;color:rgba(255,255,255,.66);line-height:1.35}
+  .fx.hot{border-color:var(--border-cyan);background:rgba(92,225,230,.13)}
+  .fx.hot .v{color:var(--cyan)}
+  a.fx{text-decoration:none;color:inherit;cursor:pointer;transition:.18s}
+  a.fx:hover{border-color:var(--border-cyan);background:rgba(92,225,230,.1)}
+  a.fx:hover .v{color:var(--cyan)}
+  .fx .go{font-family:"Space Mono",monospace;font-size:9.5px;letter-spacing:.16em;
+    text-transform:uppercase;color:rgba(255,255,255,.4);margin-top:2px}
+  a.fx:hover .go{color:var(--cyan)}
+  .feat-k{font-family:"Space Mono",monospace;font-size:10px;letter-spacing:.2em;
+    text-transform:uppercase;color:rgba(255,255,255,.55);margin:22px 0 11px}
+  .feat-rates{display:flex;flex-direction:column;gap:10px}
+  .rt{display:flex;align-items:center;gap:14px;border:1px solid rgba(255,255,255,.12);
+    border-radius:15px;padding:12px 15px;background:rgba(255,255,255,.05)}
+  .rt.hot{border-color:var(--border-cyan);background:rgba(92,225,230,.09)}
+  .rl{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+  .rl .who{font-size:14.5px;color:var(--text)}
+  .rl .who em{font-family:"Space Mono",monospace;font-size:9.5px;letter-spacing:.12em;
+    text-transform:uppercase;color:var(--cyan);font-style:normal;margin-left:6px}
+  .rl .amt{font-family:"Instrument Serif",serif;font-size:26px;line-height:1;color:var(--cyan)}
+  .feat-btn{flex:0 0 auto;background:var(--cyan);color:#04181a;text-decoration:none;font-weight:600;
+    font-size:13.5px;padding:10px 16px;border-radius:11px;transition:.2s;white-space:nowrap;cursor:pointer}
+  .feat-btn:hover{box-shadow:0 0 26px rgba(92,225,230,.45)}
+  .feat-btn.ghost{background:rgba(92,225,230,.12);color:var(--cyan);border:1px solid var(--border-cyan)}
+  .feat-btn.ghost:hover{background:var(--cyan);color:#04181a}
+  .feat-btn.wide{display:block;text-align:center;padding:13px 18px;font-size:14.5px}
+  .feat-cta{margin-top:18px;display:flex;flex-direction:column;gap:10px;align-items:stretch}
+  .feat-link{text-align:center;font-family:"Space Mono",monospace;font-size:10.5px;
+    letter-spacing:.16em;text-transform:uppercase;color:rgba(255,255,255,.6);text-decoration:none}
+  .feat-link:hover{color:var(--cyan)}
+  @media (max-width:860px){
+    .feat-grid{grid-template-columns:1fr;gap:22px}
+    .feat-poster{max-width:420px;width:100%;justify-self:center}
+  }
+  @media (max-width:520px){
+    .feat-facts{grid-template-columns:1fr}
+    .glass{padding:17px}
+    .rt{flex-direction:column;align-items:stretch;gap:10px}
+    .feat-btn{text-align:center}
+  }
+  @media (prefers-reduced-motion:reduce){
+    .feat-poster,.feat-poster:hover{transition:none;transform:none}
+  }
   /* ===== Regular Classes carousel ===== */
   .carousel{position:relative;max-width:1000px;margin:34px auto 0;perspective:1600px;outline:none}
   .carousel.is-carousel{height:560px;overflow:hidden;touch-action:pan-y;-webkit-user-select:none;user-select:none}
@@ -977,6 +1148,7 @@
   <button class="burger" id="burger" aria-label="Menu" aria-expanded="false">☰</button>
   <div class="nav-links" id="navLinks">
     <a href="#about">About</a>
+    <a href="#contemporary-sundays">What&rsquo;s new</a>
     <a href="#classes">Classes</a>
     <a href="count-me-in.html">Count Me In</a>
     <a href="sync-studio.html">Sync Studio</a>
@@ -1012,6 +1184,78 @@
     </div>
   </section>
 
+  <!-- WHAT'S NEW: the featured slot. Shreya's Contemporary batch, opening with
+       a free demo on 13 Sep 2026. See RUNBOOK.md for how to retire this. -->
+  <section class="section feat" id="contemporary-sundays" style="padding-bottom:44px">
+    <!-- The backdrop is the poster itself: a 51px JPEG blown up and blurred, so
+         the section is tinted by the artwork for 5 KB rather than 300. -->
+    <div class="feat-bg" aria-hidden="true">
+      <img src="media/contemporary-sundays-blur.jpg" alt="" width="51" height="64" decoding="async">
+    </div>
+
+    <div class="feat-inner">
+      <div class="eyebrow">What&rsquo;s new</div>
+      <h2>Contemporary Batch <span class="i">with Shreya</span>.</h2>
+      <p class="tagline">Sundays at Seawoods · free demo class 13 September</p>
+      <p class="lead">A new Contemporary batch with <b>Shreya Rastogi</b> at our Seawoods studio &mdash;
+        release, floorwork, lines and musicality, built up week by week. It opens with a
+        <span class="i">free demo class on Sunday 13 September at 1:00 PM</span>. Come and try it;
+        stay for the term if it moves you.</p>
+
+      <div class="feat-grid">
+        <a class="feat-poster" href="media/contemporary-sundays-poster.jpg" target="_blank" rel="noopener">
+          <img src="media/contemporary-sundays-poster.jpg" width="1080" height="1350" decoding="async"
+               alt="Contemporary Batch with Shreya at iMAP Seawoods — free demo class Sunday 13 September 2026, 1:00 PM; regular batch Sundays 1:00 to 3:00 PM">
+        </a>
+
+        <div class="feat-side">
+          <div class="glass">
+            <div class="feat-facts">
+              <div class="fx hot">
+                <span class="k">Free demo class</span>
+                <span class="v">Sun 13 Sep</span>
+                <span class="s">1:00 PM &middot; no fee</span>
+              </div>
+              <div class="fx">
+                <span class="k">Then every</span>
+                <span class="v">Sunday</span>
+                <span class="s">1:00 &ndash; 3:00 PM</span>
+              </div>
+              <a class="fx fx-map" href="https://www.google.com/maps/search/?api=1&amp;query=iMAP+Ohana+Fitness+Haware+Centurion+Mall+Sector+19A+Seawoods+East+Navi+Mumbai" target="_blank" rel="noopener">
+                <span class="k">Where</span>
+                <span class="v">iMAP Seawoods</span>
+                <span class="s">Ohana Fitness, Centurion Mall</span>
+                <span class="go">Open in maps &rarr;</span>
+              </a>
+              <div class="fx">
+                <span class="k">Taught by</span>
+                <span class="v">Shreya Rastogi</span>
+                <span class="s">also teaches Contemporary at Vashi</span>
+              </div>
+            </div>
+
+            <div class="feat-k">After the demo</div>
+            <div class="feat-rates">
+              <div class="rt">
+                <div class="rl"><span class="who">1 month</span><span class="amt">&#8377;2,800</span></div>
+                <a class="feat-btn ghost" href="pay.html?buy=rc-contemporary-sundays-1m">Join &mdash; 1 month</a>
+              </div>
+              <div class="rt hot">
+                <div class="rl"><span class="who">3 months <em>&middot; save &#8377;900</em></span><span class="amt">&#8377;7,500</span></div>
+                <a class="feat-btn" href="pay.html?buy=rc-contemporary-sundays-3m">Join &mdash; 3 months</a>
+              </div>
+            </div>
+
+            <div class="feat-cta">
+              <a class="feat-btn wide" data-wa="Hi iMAP! I'd like to come to the free Contemporary demo class with Shreya on Sunday 13 September at 1 PM.">RSVP for the free demo</a>
+              <a class="feat-link" href="batch.html?batch=contemporary-sundays">Full batch details &rarr;</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <!-- REGULAR CLASSES -->
   <section class="section" id="classes" style="padding-bottom:40px">
     <h2>Regular <span class="i">Classes</span>.</h2>
@@ -1023,6 +1267,7 @@
       <div class="cf-stage" id="cStage">
 <article class="cf-card" data-href="batch.html?batch=contemporary-seawoods" tabindex="0"><div class="cf-photo"><img src="media/contemporary-seawoods.jpg" alt="Ballet Training — Akash Jathar" loading="lazy" onerror="this.remove()"><span><span class="cam">▣</span>photo</span></div><div class="cf-body"><h3>Ballet Training</h3><div class="cf-meta">Akash Jathar</div><div class="cf-loc">Seawoods Studio</div><div class="cf-when">Saturday</div></div></article>
 <article class="cf-card" data-href="batch.html?batch=kids-ballet-seawoods" tabindex="0"><div class="cf-photo"><img src="media/kids-ballet-seawoods.jpg" alt="Kids Ballet — Shreya Rastogi" loading="lazy" onerror="this.remove()"><span><span class="cam">▣</span>photo</span></div><div class="cf-body"><h3>Kids Ballet</h3><div class="cf-meta">Shreya Rastogi</div><div class="cf-loc">Seawoods Studio</div><div class="cf-when">Saturday · 12:30 – 1:30 PM</div></div></article>
+<article class="cf-card" data-href="batch.html?batch=contemporary-sundays" tabindex="0"><div class="cf-photo"><img src="media/contemporary-vashi.jpg" alt="Contemporary — Shreya Rastogi" loading="lazy" onerror="this.remove()"><span><span class="cam">▣</span>photo</span></div><div class="cf-body"><h3>Contemporary</h3><div class="cf-meta">Shreya Rastogi</div><div class="cf-loc">Seawoods Studio</div><div class="cf-when">Sunday · 1:00 – 3:00 PM</div></div></article>
 <article class="cf-card" data-href="batch.html?batch=acting-seawoods" tabindex="0"><div class="cf-photo"><img src="media/acting-seawoods.jpg" alt="Acting &amp; Personality Development Regulars — Aryamann" loading="lazy" onerror="this.remove()"><span><span class="cam">▣</span>photo</span></div><div class="cf-body"><h3>Acting &amp; Personality Development Regulars</h3><div class="cf-meta">Aryamann</div><div class="cf-loc">Seawoods Studio</div><div class="cf-when">Saturday · 3:00 – 5:00 PM</div></div></article>
 <article class="cf-card" data-href="batch.html?batch=contemporary-vashi" tabindex="0"><div class="cf-photo"><img src="media/contemporary-vashi.jpg" alt="Contemporary — Shreya Rastogi" loading="lazy" onerror="this.remove()"><span><span class="cam">▣</span>photo</span></div><div class="cf-body"><h3>Contemporary</h3><div class="cf-meta">Shreya Rastogi</div><div class="cf-loc">Vashi Studio</div><div class="cf-when">Tuesday &amp; Thursday · 5:30 – 6:30 PM</div></div></article>
 <article class="cf-card" data-href="batch.html?batch=bollywood-seawoods" tabindex="0"><div class="cf-photo"><img src="media/bollywood-seawoods.jpg" alt="Bollywood Weekends — Ruchika Jain" loading="lazy" onerror="this.remove()"><span><span class="cam">▣</span>photo</span></div><div class="cf-body"><h3>Bollywood Weekends</h3><div class="cf-meta">Ruchika Jain</div><div class="cf-loc">Seawoods Studio</div><div class="cf-when">Saturday &amp; Sunday · 6:00 – 7:00 PM</div></div></article>

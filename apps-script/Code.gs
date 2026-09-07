@@ -30,7 +30,7 @@
 
 /* Bump this whenever you paste a new copy in. Visiting the /exec URL in a browser
    prints it, so you can always tell which version the web app is actually serving. */
-var BUILD = '2026-09-07-c';
+var BUILD = '2026-09-07-d';
 
 /* A genuine payer screenshots the receipt and uploads it within a couple of
    minutes. A bigger gap means an older image, so say so. */
@@ -98,6 +98,7 @@ var PRICES = (function () {
     'contemporary-seawoods':        'Ballet Training (Seawoods)',
     'kids-ballet-seawoods':         'Kids Ballet (Seawoods)',
     'acting-seawoods':              'Acting & Personality Development Regulars (Seawoods)',
+    'contemporary-sundays':         'Contemporary Sundays (Seawoods)',
     'contemporary-vashi':           'Contemporary (Vashi)',
     'bollywood-seawoods':           'Bollywood Weekends (Seawoods)',
     'bollywood-beginners-vashi':    'Bollywood Beginners (Vashi)',

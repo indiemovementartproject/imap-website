@@ -13,7 +13,7 @@ Live at <https://indiemovementartproject.com> · GitHub Pages from `main` in
 
 | File | What it is |
 |---|---|
-| `index.html` | Home: hero, About, the featured slot (empty), Regular Classes carousel, Annual Jam photo strip |
+| `index.html` | Home: hero, About, the featured slot (Contemporary Sundays), Regular Classes carousel, Annual Jam photo strip |
 | `cart.js` | **The catalogue.** Every purchasable item and its price. Also the cart and nav badge. |
 | `batch.html` | One page for every batch, driven by `?batch=<slug>` |
 | `batches.html` | All batches in a carousel |
@@ -35,40 +35,46 @@ Live at <https://indiemovementartproject.com> · GitHub Pages from `main` in
 
 ## The featured slot on the homepage
 
-**Empty right now.** There is no section between About and Regular Classes.
+Between `#about` and `#classes`, holding whatever iMAP is pushing right now. One thing at a time.
 
-The slot has held the Retro-Jazz workshop (Aug 2026) and the Acting free demo class (Sep 2026).
-Both used the `.xb-*` styles, which were **deleted along with the last occupant** - recover them
-from git rather than rewriting them, and put the section back between `#about` and `#classes`
-with a matching `scroll-margin-top` id and a nav link.
+**Right now:** `#contemporary-sundays` - Shreya Rastogi's Contemporary batch at Seawoods, opening
+with a **free demo class on Sunday 13 September 2026 at 1:00 PM**, then Sundays 1-3 PM.
+Rs 2,800/month or Rs 7,500 for three.
 
-Whatever goes in it, the rule that matters is the same one both times: **when it is over, empty
-the catalogue that sells it.** See "Retiring what the slot was selling" below.
+### How this one is built
 
-### Selling from this slot
+The section paints itself from its own poster. `media/contemporary-sundays-blur.jpg` is that poster
+at **51px wide** - 5 KB - stretched to fill and blurred. Being scaled up is most of the blur; the
+CSS radius only smooths the pixel edges. Swap the poster and the whole section retints itself, with
+no gradient to hand-pick and nothing to keep in sync.
 
-`SPECIALS` in `cart.js` holds one-off workshops; `WORKSHOPS` and `PASSES` held the Orientation
-Series. All three are empty. Items here are sold *without* the cart: buttons link to
-`pay.html?buy=<id>`, which clears the cart, puts that single item in it and goes straight to
-checkout. An id that is not in the catalogue falls through and leaves the cart alone.
+Over it sits `.glass`: `backdrop-filter: blur(22px) saturate(1.6)` with a 1px inset highlight.
+Where `backdrop-filter` is unsupported the rgba background alone still reads as a solid card, so
+nothing breaks - check that before removing the fallback colour.
 
-### Retiring what the slot was selling
+Keep the blur radius modest and the stacking order plain. A large radius over a full-bleed layer is
+one of the more expensive things to composite on scroll, and `isolation: isolate` with negative
+z-index children buys nothing here.
 
-Done three times now - Retro-Jazz (29 Aug), the Orientation Series and the Acting demo (7 Sep):
+### Its two prices are real cart items
 
-1. **Empty the catalogue entries in `cart.js`.** This is the step that matters. While they are
-   listed, a `pay.html?buy=...` link already shared on WhatsApp still takes money for an event
-   that has already happened.
-2. Remove the section from `index.html`, plus its CSS, its nav link, its `scroll-margin-top` id
-   and any `Event` JSON-LD - a past event is dead weight in search results.
-3. Grep for the anchor across every page. `#events` was linked from `batch.html`, `pay.html`,
-   `musicals.html`, `corporate.html` and `training.html`, none of them obvious from `index.html`.
-4. Keep the short-link page alive but repoint it, mark it `noindex, follow` if nothing replaces
-   it, and replace its Open Graph tags. `retro-jazz.html` is the pattern for a dead event;
-   `acting.html` is the pattern for one that became a batch.
-5. Drop it from `LINKS` in `404.html` and from `sitemap.xml`.
-6. `PRICES` in `Code.gs` can keep the old ids - nothing reaches them once step 1 is done, and old
-   orders stay resolvable. The Retro-Jazz pair is still there for that reason.
+Unlike previous occupants, this batch is a **regular batch**: `contemporary-sundays` in `BATCHES`
+in `cart.js` and in `Code.gs`. The Join buttons are ordinary `pay.html?buy=rc-contemporary-sundays-1m`
+/ `-3m` links, so it also appears in both carousels, on `batch.html` and in `links.html`. Nothing
+special has to be retired from the catalogue when the section goes; the batch simply carries on.
+
+**Slug note:** `contemporary-seawoods` was already taken - it is Ballet Training, from an old
+rename - so this one is `contemporary-sundays`. `/contemporary-shreya` and
+`/contemporary-seawoods-sundays` resolve to it as well, because those are the phrases people type.
+
+### When the demo has happened
+
+1. Delete the `#contemporary-sundays` section from `index.html`, its `.feat-*` and `.glass` CSS,
+   the nav link, and the `scroll-margin-top` id.
+2. Delete the **Event** JSON-LD block for 13 September. A past event is dead weight in results.
+3. Drop the `demo` field from the batch's entry in `DATA` in `batch.html`, which removes the
+   "free demo" line from the batch page.
+4. Leave everything else. The batch itself is not going anywhere.
 
 ## The timetable
 
@@ -81,6 +87,7 @@ five places for one fact**, so change a slot with a single pass and check all fi
 | Ballet Training | Seawoods | Saturday | Timings TBA | ₹2800 / ₹7500 |
 | Kids Ballet | Seawoods | Saturday | 12:30 – 1:30 PM | ₹1500 / ₹4000 |
 | Acting & Personality Development Regulars | Seawoods | Saturday | 3:00 – 5:00 PM | ₹3500 / ₹9000 |
+| Contemporary | Seawoods | Sunday | 1:00 – 3:00 PM | ₹2800 / ₹7500 |
 | Contemporary | Vashi | Tuesday & Thursday | 5:30 – 6:30 PM | ₹2800 / ₹7500 |
 | Bollywood Weekends | Seawoods | Saturday & Sunday | 6:00 – 7:00 PM | ₹2800 / ₹7500 |
 | Bollywood Beginners | Vashi | Monday & Wednesday | 5:30 – 6:30 PM | ₹2800 / ₹7500 |
@@ -330,6 +337,7 @@ those meta tags**, so if a price changes in `cart.js`, the matching short link h
 | `/kids-ballet` · `/kids-ballet-seawoods` | Kids Ballet, Seawoods |
 | `/ballet` · `/ballet-training` · `/contemporary-seawoods` | Ballet Training, Seawoods |
 | `/contemporary-vashi` | Contemporary, Vashi |
+| `/contemporary-sundays` · `/contemporary-shreya` | Contemporary, Seawoods &mdash; free demo 13 Sep |
 | `/jazz-funk` | Jazz Funk, Seawoods |
 | `/jazz-funk-vashi` | Jazz Funk, Vashi |
 | `/jazz-training` · `/open-style` | as named |

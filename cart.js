@@ -45,6 +45,7 @@
                                     fees: { '1m': 1500, '3m': 4000 } },
     'acting-seawoods':              { name: 'Acting & Personality Development Regulars', region: 'Seawoods', who: 'Aryamann',
                                     fees: { '1m': 3500, '3m': 9000 } },
+    'contemporary-sundays':         { name: 'Contemporary', region: 'Seawoods', who: 'Shreya Rastogi' },
     'contemporary-vashi':           { name: 'Contemporary', region: 'Vashi', who: 'Shreya Rastogi' },
     'bollywood-seawoods':           { name: 'Bollywood Weekends', region: 'Seawoods', who: 'Ruchika Jain' },
     'bollywood-beginners-vashi':    { name: 'Bollywood Beginners', region: 'Vashi', who: 'Ruchika Jain' },
