@@ -136,6 +136,17 @@ batch's.
 `#5CE1E6`. Sample any existing card's corner and you get exactly that hex - match it, do not
 eyeball it.
 
+**Retiring a photo.** When a section or batch goes, its images stop being referenced but stay on
+disk. On 7 Sep 2026 twelve such files were removed - 1.6 MB - including the Retro-Jazz and Acting
+posters, the CrossBox mark, and older per-class photos superseded by the region-specific ones. They
+are still in git history (`git show <commit>:media/<file>`), so nothing is actually lost, and the
+`v1.0` provenance manifest remains valid: it records what was true when it was stamped, and the
+OpenTimestamps proof anchors that record whatever the working tree does later.
+
+To find them again: scan every text file in the repo for image filenames, subtract that from
+`ls media/`, and leave `media/jam/` alone - the gallery references its 330 files by pattern, not
+by literal name.
+
 **Sharing one portrait between two batches.** The batch page looks for `media/<slug>.jpg`. Where an
 instructor teaches two batches, set `photo` on the batch's entry in `DATA` in `batch.html` to the
 file to borrow - `contemporary-sundays` borrows `contemporary-vashi`. Copying the JPEG works too,
