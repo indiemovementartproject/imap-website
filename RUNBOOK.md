@@ -136,6 +136,11 @@ batch's.
 `#5CE1E6`. Sample any existing card's corner and you get exactly that hex - match it, do not
 eyeball it.
 
+**Sharing one portrait between two batches.** The batch page looks for `media/<slug>.jpg`. Where an
+instructor teaches two batches, set `photo` on the batch's entry in `DATA` in `batch.html` to the
+file to borrow - `contemporary-sundays` borrows `contemporary-vashi`. Copying the JPEG works too,
+but then a reshoot has to be dropped in twice and one of them gets forgotten.
+
 A photo that arrives as a poster or with a real background has to be put through
 `scripts/cutout.swift`, or it stands out badly in the carousel. It uses the macOS Vision
 subject-mask API, so it needs no third-party tooling - there is no ImageMagick or Pillow on this
