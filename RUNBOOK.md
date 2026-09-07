@@ -513,6 +513,40 @@ Assume the worst until proven otherwise, in this order:
 same sitting** - otherwise it cries wolf hourly until someone silences it, which is how a real
 alert gets ignored.
 
+## Clock formats on screenshots
+
+**A payment screenshot contains two times.** The phone's own status-bar clock across the very top,
+and the transaction time inside the receipt. They are not the same thing, and the status bar is
+the one OCR reaches first.
+
+On a phone set to a 12-hour clock the status bar prints a bare `1:58` with no AM/PM. Read as
+24-hour that is 01:58, which puts the payment twelve hours in the past. That is exactly what
+rejected **IMAP-26-0023** on 29 Aug 2026: Surabhi Gholap paid the right Rs 1500 to the right
+person and uploaded two minutes later, and the sheet recorded "721 minutes before it was
+submitted". 721 is twelve hours and one minute - **any mismatch near 720 minutes is this bug, not
+a fraud attempt.**
+
+Two rules now, both in `readWhen` / `screenshotVerdict`:
+
+1. **Prefer a time carrying an AM/PM marker.** The receipt line says what it means; the status bar
+   does not. Collect every time on the image and take a marked one over a bare one.
+2. **A bare time is ambiguous, so score both readings** and keep whichever sits closer to the
+   upload. `otherClockReading()` returns the alternative. Nobody is turned away over a setting on
+   their phone they never chose.
+
+**The trade this makes, deliberately:** a bare time can no longer catch a screenshot that is
+almost exactly twelve hours stale, because that case is indistinguishable from the honest one. The
+date check still confines it to today and the amount and payee checks are untouched. Wrongly
+rejecting a real booking costs more than the abuse it prevents - which is the same principle the
+rate limits are set by.
+
+`scripts/test-clock-formats.js` runs the real functions out of `Code.gs` against twelve cases,
+including the one that failed. **Run it before deploying any change to the time parsing:**
+
+```bash
+node scripts/test-clock-formats.js
+```
+
 ## Known constraints
 
 - **No WhatsApp automation.** Sending WhatsApp messages programmatically needs Meta's Cloud API,

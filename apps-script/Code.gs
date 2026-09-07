@@ -30,7 +30,7 @@
 
 /* Bump this whenever you paste a new copy in. Visiting the /exec URL in a browser
    prints it, so you can always tell which version the web app is actually serving. */
-var BUILD = '2026-09-07-b';
+var BUILD = '2026-09-07-c';
 
 /* A genuine payer screenshots the receipt and uploads it within a couple of
    minutes. A bigger gap means an older image, so say so. */
@@ -418,7 +418,7 @@ function storeScreenshot(dataUrl, d) {
 
   var check = { ran: false, amountOK: null, seen: '', utr: '', note: '',
                 dateOK: null, dateSeen: '', dateISO: '', timeSeen: '',
-                timeOK: null, minutesBefore: null,
+                timeOK: null, minutesBefore: null, timeResolved: '',
               payeeOK: null, payeeSeen: '' };
   try { check = readAmount(blob, d.expected); }
   catch (err) { check.note = String((err && err.message) || err).slice(0, 140); }
@@ -431,7 +431,7 @@ function storeScreenshot(dataUrl, d) {
 function readAmount(blob, expected) {
   var out = { ran: false, amountOK: null, seen: '', utr: '', note: '',
               dateOK: null, dateSeen: '', dateISO: '', timeSeen: '',
-              timeOK: null, minutesBefore: null,
+              timeOK: null, minutesBefore: null, timeResolved: '',
               payeeOK: null, payeeSeen: '' };
   var text = '', lastErr = '';
 
@@ -515,8 +515,36 @@ function readAmount(blob, expected) {
   if (out.dateOK === true && shotMin >= 0) {
     var nowMin = Number(Utilities.formatDate(new Date(), CONFIG.TZ, 'H')) * 60 +
                  Number(Utilities.formatDate(new Date(), CONFIG.TZ, 'm'));
-    out.minutesBefore = nowMin - shotMin;
-    out.timeOK = (out.minutesBefore <= STALE_SCREENSHOT_MINUTES && out.minutesBefore >= -5);
+
+    /* Phones show either clock format and the payer never chose which. When the
+       time carries no AM/PM we cannot know which one this is, so score BOTH
+       readings and keep whichever sits closer to the upload. Nobody is turned
+       away over a setting on their phone.
+
+       The cost, stated plainly: a bare time can no longer catch a screenshot
+       that is almost exactly twelve hours stale, because that is indistinguish-
+       able from the honest case. The date check still confines it to today, and
+       the amount and payee checks are untouched. Wrongly rejecting a real
+       booking is by far the more expensive mistake - see IMAP-26-0023. */
+    var readings = [shotMin];
+    if (!when.timeMarked) {
+      var alt = otherClockReading(out.timeSeen);
+      if (alt >= 0) readings.push(alt);
+    }
+    var best = null, bestMin = shotMin;
+    for (var r = 0; r < readings.length; r++) {
+      var diff = nowMin - readings[r];
+      if (best === null || Math.abs(diff) < Math.abs(best)) { best = diff; bestMin = readings[r]; }
+    }
+    out.minutesBefore = best;
+    out.timeOK = (best <= STALE_SCREENSHOT_MINUTES && best >= -5);
+
+    /* If we had to pick, say which way - a human reading the email should be
+       able to see the assumption rather than trust it silently. */
+    if (readings.length > 1 && bestMin !== shotMin) {
+      out.timeResolved = (bestMin < 600 ? '0' : '') + Math.floor(bestMin / 60) + ':' +
+                         (bestMin % 60 < 10 ? '0' : '') + (bestMin % 60);
+    }
   }
   return out;
 }
@@ -528,7 +556,7 @@ var MONTHS = { jan:1, feb:2, mar:3, apr:4, may:5, jun:6,
  *  They all format it differently, so try the common shapes and give up
  *  quietly rather than guessing. */
 function readWhen(t) {
-  var out = { date: '', iso: '', time: '' }, m, d, mo, y;
+  var out = { date: '', iso: '', time: '', timeMarked: false }, m, d, mo, y;
 
   function iso(yy, mm, dd) {
     if (yy < 100) yy += 2000;
@@ -555,14 +583,54 @@ function readWhen(t) {
     out.date = m[0]; out.iso = iso(+m[3], +m[2], +m[1]);
   }
 
-  /* 11:22 PM  /  11:22:05  /  23:22 */
-  if ((m = t.match(/\b(\d{1,2}):(\d{2})(?::(\d{2}))?\s*(am|pm)?\b/))) {
-    var hh = +m[1];
-    if (hh <= 23 && +m[2] <= 59) {
-      out.time = m[1] + ':' + m[2] + (m[3] ? ':' + m[3] : '') + (m[4] ? ' ' + m[4].toUpperCase() : '');
-    }
+  /* 11:22 PM  /  11:22:05  /  23:22
+   *
+   * A payment screenshot nearly always contains TWO times: the phone's own
+   * status-bar clock along the very top, and the transaction time inside the
+   * receipt. Taking the first match meant taking the status bar - which on a
+   * 12-hour phone prints a bare "1:58" with no AM/PM, while the receipt below
+   * it prints "1:57 PM" and says exactly what it means.
+   *
+   * So collect them all and prefer one carrying an AM/PM marker. That single
+   * change is what fixes IMAP-26-0023 (29 Aug 2026): a genuine payer whose
+   * bare "1:58" was read as 01:58, putting her payment 721 minutes - twelve
+   * hours and a minute - in the past, and rejecting her.
+   *
+   * `timeMarked` tells the caller whether the time it got is unambiguous.
+   * When it is not, the comparison has to consider both readings. */
+  var times = [], re = /\b(\d{1,2}):(\d{2})(?::(\d{2}))?\s*(am|pm)?\b/g, tm;
+  while ((tm = re.exec(t))) {
+    if (+tm[1] > 23 || +tm[2] > 59) continue;
+    times.push({
+      text: tm[1] + ':' + tm[2] + (tm[3] ? ':' + tm[3] : '') +
+            (tm[4] ? ' ' + tm[4].toUpperCase() : ''),
+      marked: !!tm[4]
+    });
   }
+  var chosen = null;
+  for (var i = 0; i < times.length; i++) {
+    if (times[i].marked) { chosen = times[i]; break; }      /* first marked wins */
+    if (!chosen) chosen = times[i];                         /* else first bare */
+  }
+  if (chosen) { out.time = chosen.text; out.timeMarked = chosen.marked; }
   return out;
+}
+
+/**
+ * The other reading of a bare clock time, in minutes past midnight, or -1 if
+ * there isn't one. "1:58" on a 12-hour phone and "13:58" on a 24-hour phone are
+ * the same moment; only the hour tells you whether a second reading exists.
+ *   1:58  -> 13:58     12:30 -> 00:30     15:20 -> none, already unambiguous
+ */
+function otherClockReading(timeStr) {
+  var m = String(timeStr || '').match(/^(\d{1,2}):(\d{2})/);
+  if (!m) return -1;
+  var h = +m[1];
+  if (h > 12) return -1;                       /* 13:00-23:59 can only be 24-hour */
+  var mins = minutesOfDay(timeStr);
+  if (mins < 0) return -1;
+  var alt = mins < 720 ? mins + 720 : mins - 720;
+  return (alt >= 0 && alt < 1440) ? alt : -1;
 }
 
 /** v2 and v3 of the Drive advanced service take different arguments.
@@ -765,6 +833,8 @@ function screenshotVerdict(shot) {
              'This looks like an older screenshot.</div>');
   } else if (c.timeOK === true) {
     out.push('<div style="' + green + '">&#10003; Paid at ' + esc(c.timeSeen) +
+             (c.timeResolved ? ' (read as ' + esc(c.timeResolved) + ' &mdash; their phone shows a '
+                             + '12-hour clock)' : '') +
              ', just before this was sent.</div>');
   } else {
     out.push('<div style="' + grey + '">Time on it: ' + esc(c.timeSeen) + '.</div>');
