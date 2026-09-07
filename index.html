@@ -983,23 +983,12 @@
   /* The section paints itself from its own poster. A 51px JPEG stretched to
      fill and blurred hard gives a colour wash that always matches the artwork,
      costs 5 KB, and needs no hand-picked gradient when the poster changes. */
-  /* Plain stacking order: the backdrop is an ordinary positioned child painted
-     under .feat-inner, which carries z-index 1. No isolation:isolate and no
-     negative z-index, because those only make the paint order harder to reason
-     about here and buy nothing.
-
-     The blur radius is small on purpose. The source image is 51px wide, so
-     stretching it to full width IS most of the blur; the filter only smooths
-     the pixel edges. A large radius over a full-bleed layer is one of the more
-     expensive things you can ask a phone GPU to composite on scroll. */
-  .feat{position:relative;overflow:hidden}
-  .feat-bg{position:absolute;inset:0;overflow:hidden;pointer-events:none}
-  .feat-bg img{width:100%;height:100%;object-fit:cover;
-    filter:blur(18px) saturate(1.45);transform:scale(1.12);opacity:.45}
-  /* Held back so the page's own type stays legible over it. */
-  .feat-bg::after{content:"";position:absolute;inset:0;
-    background:radial-gradient(120% 80% at 50% 0%,rgba(7,10,12,.5) 0%,rgba(7,10,12,.84) 55%,var(--bg) 100%)}
-  .feat-inner{position:relative;z-index:1}
+  /* No backdrop image. A blurred copy of the poster was tried here and dropped:
+     at the opacity needed to keep the type legible it was barely visible, and
+     object-fit left a seam at the edges. The poster carries the section on its
+     own. */
+  .feat{position:relative}
+  .feat-inner{position:relative}
   .feat-grid{display:grid;grid-template-columns:minmax(0,.85fr) minmax(0,1fr);gap:30px;
     align-items:start;max-width:1040px;margin:34px auto 0;text-align:left}
   .feat-poster{display:block;border-radius:20px;overflow:hidden;border:1px solid rgba(255,255,255,.14);
@@ -1045,9 +1034,11 @@
   .feat-btn.ghost{background:rgba(92,225,230,.12);color:var(--cyan);border:1px solid var(--border-cyan)}
   .feat-btn.ghost:hover{background:var(--cyan);color:#04181a}
   .feat-btn.wide{display:block;text-align:center;padding:13px 18px;font-size:14.5px}
-  .feat-cta{margin-top:18px;display:flex;flex-direction:column;gap:10px;align-items:stretch}
-  .feat-link{text-align:center;font-family:"Space Mono",monospace;font-size:10.5px;
-    letter-spacing:.16em;text-transform:uppercase;color:rgba(255,255,255,.6);text-decoration:none}
+  .feat-cta{margin-top:18px;display:flex;flex-direction:column;gap:7px;align-items:stretch}
+  .feat-note{text-align:center;font-size:12.5px;color:rgba(255,255,255,.62)}
+  .feat-link{display:block;margin-top:16px;text-align:center;font-family:"Space Mono",monospace;
+    font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;
+    color:rgba(255,255,255,.6);text-decoration:none}
   .feat-link:hover{color:var(--cyan)}
   @media (max-width:860px){
     .feat-grid{grid-template-columns:1fr;gap:22px}
@@ -1187,12 +1178,6 @@
   <!-- WHAT'S NEW: the featured slot. Shreya's Contemporary batch, opening with
        a free demo on 13 Sep 2026. See RUNBOOK.md for how to retire this. -->
   <section class="section feat" id="contemporary-sundays" style="padding-bottom:44px">
-    <!-- The backdrop is the poster itself: a 51px JPEG blown up and blurred, so
-         the section is tinted by the artwork for 5 KB rather than 300. -->
-    <div class="feat-bg" aria-hidden="true">
-      <img src="media/contemporary-sundays-blur.jpg" alt="" width="51" height="64" decoding="async">
-    </div>
-
     <div class="feat-inner">
       <div class="eyebrow">What&rsquo;s new</div>
       <h2>Contemporary Batch <span class="i">with Shreya</span>.</h2>
@@ -1234,7 +1219,14 @@
               </div>
             </div>
 
-            <div class="feat-k">After the demo</div>
+            <!-- The demo is free and is what anyone will want first, so it leads.
+                 Fees sit below it, for the person already convinced. -->
+            <div class="feat-cta">
+              <a class="feat-btn wide" data-wa="Hi iMAP! I'd like to come to the free Contemporary demo class with Shreya on Sunday 13 September at 1 PM.">RSVP for the free demo class</a>
+              <div class="feat-note">Free, no commitment &mdash; just tell us you&rsquo;re coming.</div>
+            </div>
+
+            <div class="feat-k">If you stay on</div>
             <div class="feat-rates">
               <div class="rt">
                 <div class="rl"><span class="who">1 month</span><span class="amt">&#8377;2,800</span></div>
@@ -1246,10 +1238,7 @@
               </div>
             </div>
 
-            <div class="feat-cta">
-              <a class="feat-btn wide" data-wa="Hi iMAP! I'd like to come to the free Contemporary demo class with Shreya on Sunday 13 September at 1 PM.">RSVP for the free demo</a>
-              <a class="feat-link" href="batch.html?batch=contemporary-sundays">Full batch details &rarr;</a>
-            </div>
+            <a class="feat-link" href="batch.html?batch=contemporary-sundays">Full batch details &rarr;</a>
           </div>
         </div>
       </div>

@@ -43,18 +43,19 @@ Rs 2,800/month or Rs 7,500 for three.
 
 ### How this one is built
 
-The section paints itself from its own poster. `media/contemporary-sundays-blur.jpg` is that poster
-at **51px wide** - 5 KB - stretched to fill and blurred. Being scaled up is most of the blur; the
-CSS radius only smooths the pixel edges. Swap the poster and the whole section retints itself, with
-no gradient to hand-pick and nothing to keep in sync.
+The poster carries the section on its own, over the page's normal background.
 
-Over it sits `.glass`: `backdrop-filter: blur(22px) saturate(1.6)` with a 1px inset highlight.
-Where `backdrop-filter` is unsupported the rgba background alone still reads as a solid card, so
-nothing breaks - check that before removing the fallback colour.
+A blurred copy of the poster was tried as a backdrop and **removed**: at the opacity needed to keep
+the type legible it was barely visible, and `object-fit` left a visible seam down the sides. Do not
+put it back without solving both.
 
-Keep the blur radius modest and the stacking order plain. A large radius over a full-bleed layer is
-one of the more expensive things to composite on scroll, and `isolation: isolate` with negative
-z-index children buys nothing here.
+Over the poster sits `.glass`: `backdrop-filter: blur(22px) saturate(1.6)` with a 1px inset
+highlight. Where `backdrop-filter` is unsupported the rgba background alone still reads as a solid
+card, so nothing breaks - check that before removing the fallback colour.
+
+**Order inside the panel is deliberate:** facts, then the free demo RSVP, then the fees. The demo
+costs nothing and is what anyone will want to try first; the prices are for the person already
+convinced, and putting them above the RSVP asks for a decision before the invitation.
 
 ### Its two prices are real cart items
 
