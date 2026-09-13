@@ -13,7 +13,7 @@ Live at <https://indiemovementartproject.com> · GitHub Pages from `main` in
 
 | File | What it is |
 |---|---|
-| `index.html` | Home: hero, About, the featured slot (Contemporary Sundays), Regular Classes carousel, Annual Jam photo strip |
+| `index.html` | Home: hero, About, the featured slot (empty), Regular Classes carousel, Annual Jam photo strip |
 | `cart.js` | **The catalogue.** Every purchasable item and its price. Also the cart and nav badge. |
 | `batch.html` | One page for every batch, driven by `?batch=<slug>` |
 | `batches.html` | All batches in a carousel |
@@ -35,47 +35,39 @@ Live at <https://indiemovementartproject.com> · GitHub Pages from `main` in
 
 ## The featured slot on the homepage
 
-Between `#about` and `#classes`, holding whatever iMAP is pushing right now. One thing at a time.
+**Empty right now.** There is no section between About and Regular Classes.
 
-**Right now:** `#contemporary-sundays` - Shreya Rastogi's Contemporary batch at Seawoods, opening
-with a **free demo class on Sunday 13 September 2026 at 1:00 PM**, then Sundays 1-3 PM.
-Rs 2,800/month or Rs 7,500 for three.
+It has held the Retro-Jazz workshop (Aug 2026), the Acting free demo (Sep 2026) and Shreya's
+Contemporary demo (Sep 2026). Each time the CSS went out with the occupant, so recover it from git
+rather than rewriting - `git show cabbd96:index.html` has the `.feat-*` and `.glass` rules, which
+are the most reusable of the three: poster on the left, frosted panel of facts on the right.
 
-### How this one is built
+Two things that version got right and are worth keeping:
 
-The poster carries the section on its own, over the page's normal background.
+- **Order inside the panel: facts, then the free trial, then the fees.** A free demo costs nothing
+  and is what anyone wants first; prices are for someone already convinced, and putting them above
+  the invitation asks for a decision before making the offer.
+- **No backdrop image.** A blurred copy of the poster was tried and dropped - at the opacity needed
+  to keep type legible it was barely visible, and `object-fit` left a seam down the sides.
 
-A blurred copy of the poster was tried as a backdrop and **removed**: at the opacity needed to keep
-the type legible it was barely visible, and `object-fit` left a visible seam down the sides. Do not
-put it back without solving both.
+### Retiring whatever is in it
 
-Over the poster sits `.glass`: `backdrop-filter: blur(22px) saturate(1.6)` with a 1px inset
-highlight. Where `backdrop-filter` is unsupported the rgba background alone still reads as a solid
-card, so nothing breaks - check that before removing the fallback colour.
+Done four times now. The steps that are easy to miss:
 
-**Order inside the panel is deliberate:** facts, then the free demo RSVP, then the fees. The demo
-costs nothing and is what anyone will want to try first; the prices are for the person already
-convinced, and putting them above the RSVP asks for a decision before the invitation.
-
-### Its two prices are real cart items
-
-Unlike previous occupants, this batch is a **regular batch**: `contemporary-sundays` in `BATCHES`
-in `cart.js` and in `Code.gs`. The Join buttons are ordinary `pay.html?buy=rc-contemporary-sundays-1m`
-/ `-3m` links, so it also appears in both carousels, on `batch.html` and in `links.html`. Nothing
-special has to be retired from the catalogue when the section goes; the batch simply carries on.
-
-**Slug note:** `contemporary-seawoods` was already taken - it is Ballet Training, from an old
-rename - so this one is `contemporary-sundays`. `/contemporary-shreya` and
-`/contemporary-seawoods-sundays` resolve to it as well, because those are the phrases people type.
-
-### When the demo has happened
-
-1. Delete the `#contemporary-sundays` section from `index.html`, its `.feat-*` and `.glass` CSS,
-   the nav link, and the `scroll-margin-top` id.
-2. Delete the **Event** JSON-LD block for 13 September. A past event is dead weight in results.
-3. Drop the `demo` field from the batch's entry in `DATA` in `batch.html`, which removes the
-   "free demo" line from the batch page.
-4. Leave everything else. The batch itself is not going anywhere.
+1. **If it was selling something, empty that catalogue first** - `SPECIALS` / `WORKSHOPS` /
+   `PASSES` in `cart.js`. While an id is listed, a `pay.html?buy=...` link already shared on
+   WhatsApp still takes money for an event that has happened. (Not needed when the occupant is a
+   regular batch, as Shreya's was - the batch simply carries on.)
+2. Remove the section, its CSS, the nav link and the `scroll-margin-top` id from `index.html`.
+   Watch that `.glass` is the section's own class while `--glass` / `--glass-2` are site-wide
+   custom properties - deleting the variables breaks buttons and cards everywhere.
+3. Delete the dated `Event` JSON-LD. A past event is dead weight in search results.
+4. **Grep for the date, not just the slug.** It also lives in the batch's `demo` field and `desc`
+   in `batch.html`, the custom `m` message in `links.html` DATA, and the title, description and
+   share tags of every short-link page. A page still advertising a passed date is worse than no
+   page.
+5. Swap any share image that has the date printed on it - the poster usually does.
+6. Check for newly orphaned files in `media/` and remove them.
 
 ## The timetable
 
@@ -354,7 +346,7 @@ those meta tags**, so if a price changes in `cart.js`, the matching short link h
 | `/kids-ballet` · `/kids-ballet-seawoods` | Kids Ballet, Seawoods |
 | `/ballet` · `/ballet-training` · `/contemporary-seawoods` | Ballet Training, Seawoods |
 | `/contemporary-vashi` | Contemporary, Vashi |
-| `/contemporary-sundays` · `/contemporary-shreya` | Contemporary, Seawoods &mdash; free demo 13 Sep |
+| `/contemporary-sundays` · `/contemporary-shreya` | Contemporary, Seawoods |
 | `/jazz-funk` | Jazz Funk, Seawoods |
 | `/jazz-funk-vashi` | Jazz Funk, Vashi |
 | `/jazz-training` · `/open-style` | as named |
