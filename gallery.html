@@ -72,8 +72,15 @@
   .hero-video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:-2;pointer-events:none}
   .hero-video::-webkit-media-controls,.hero-video::-webkit-media-controls-enclosure,.hero-video::-webkit-media-controls-panel,.hero-video::-webkit-media-controls-start-playback-button,.hero-video::-webkit-media-controls-overlay-play-button{display:none!important;-webkit-appearance:none!important;opacity:0!important;pointer-events:none!important}
   .hero::after{content:"";position:absolute;inset:0;background:radial-gradient(ellipse at center,rgba(7,10,12,.55),rgba(7,10,12,.86));z-index:-1}
-  .hero-logo-wrap{position:relative;display:flex;align-items:center;justify-content:center;isolation:isolate}
-  .hero-logo-wrap::before{content:"";position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:150%;height:300%;background:radial-gradient(ellipse at center,rgba(92,225,230,.34),rgba(92,225,230,.12) 38%,rgba(92,225,230,0) 70%);filter:blur(22px);z-index:0;pointer-events:none}
+  .hero-logo-wrap{position:relative;display:flex;align-items:center;justify-content:center}
+  /* The logo glow. NO filter:blur() and NO isolation on the wrapper, both of
+     which promote this to its own composited layer - and a translucent layer
+     over a hardware-composited video is exactly what draws a visible rectangle
+     behind the logo on some GPUs. The gradient is soft enough on its own.
+     `farthest-side ellipse` sizes the glow to the box, and the last stop hits
+     full transparency at 76%, so every edge of the box is already invisible -
+     there is no rectangle to see even if something does promote it later. */
+  .hero-logo-wrap::before{content:"";position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:210%;height:360%;z-index:0;pointer-events:none;background:radial-gradient(farthest-side ellipse at center,rgba(92,225,230,.30),rgba(92,225,230,.14) 36%,rgba(92,225,230,.035) 58%,rgba(92,225,230,0) 76%)}
   .hero-logo{width:min(54vw,280px);height:auto;opacity:.97;position:relative;z-index:1;filter:drop-shadow(0 0 9px rgba(92,225,230,.40))}
   .hero-actions{display:flex;gap:14px;margin-top:42px;flex-wrap:wrap;justify-content:center}
 

@@ -578,6 +578,26 @@ including the one that failed. **Run it before deploying any change to the time 
 node scripts/test-clock-formats.js
 ```
 
+## The logo glow
+
+The cyan halo behind the hero wordmark is a single `radial-gradient` on
+`.hero-logo-wrap::before`, on all nine pages that carry a hero.
+
+**Never put `filter: blur()` on it, and never put `isolation: isolate` on the wrapper.** Both
+promote the glow to its own composited layer, and a translucent composited layer sitting over a
+hardware-composited video is exactly what draws a **visible rectangle behind the logo** on some
+GPUs. It looked fine on the machines it was written on and showed up as an obvious glowing box on
+Prashant's, which is the worst kind of bug to carry.
+
+The gradient is soft enough without any blur. Two things keep it safe:
+
+- `farthest-side ellipse` sizes the glow to its own box rather than to the corners.
+- The last colour stop reaches **full transparency at 76%**, so every edge of the box is already
+  invisible. Even if something promotes the layer later, there is no rectangle to see.
+
+`filter: drop-shadow()` on `.hero-logo` itself is fine and stays - it follows the wordmark's alpha,
+so it can only ever produce a logo-shaped glow, never a box.
+
 ## Known constraints
 
 - **No WhatsApp automation.** Sending WhatsApp messages programmatically needs Meta's Cloud API,
