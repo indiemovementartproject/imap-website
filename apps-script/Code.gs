@@ -30,7 +30,7 @@
 
 /* Bump this whenever you paste a new copy in. Visiting the /exec URL in a browser
    prints it, so you can always tell which version the web app is actually serving. */
-var BUILD = '2026-09-07-d';
+var BUILD = '2026-09-21-a';
 
 /* A genuine payer screenshots the receipt and uploads it within a couple of
    minutes. A bigger gap means an older image, so say so. */
@@ -92,7 +92,9 @@ var PRICES = (function () {
   var p = {
     'test-1':           { label: 'Test payment',                 amount: 1 },
     'xb-retro-member':  { label: 'Retro-Jazz Workshop · 27 Aug · CrossBox member',     amount: 199 },
-    'xb-retro-guest':   { label: 'Retro-Jazz Workshop · 27 Aug · non-member',          amount: 599 }
+    'xb-retro-guest':   { label: 'Retro-Jazz Workshop · 27 Aug · non-member',          amount: 599 },
+    'ws-s-26sep':       { label: 'Bollywood Choreography Workshop (Kalyani) · 26 Sep Seawoods',        amount: 800 },
+    'ws-s-27sep':       { label: 'Afro & Dancehall Choreography Workshop (Kelebu) · 27 Sep Seawoods',  amount: 800 }
   };
   var BATCHES = {
     'contemporary-seawoods':        'Ballet Training (Seawoods)',

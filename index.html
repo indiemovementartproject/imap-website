@@ -747,6 +747,92 @@
   ]
 }
 </script>
+
+<!-- The two choreography workshops, 26 and 27 Sep. Dated Events can surface in search
+     and in Google's events carousel in ways the DanceSchool block cannot. DELETE BOTH
+     once they have run - a past event is dead weight in results. -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Event",
+  "name": "Bollywood Choreography Workshop (Kalyani) with Ruchika — iMAP Seawoods",
+  "description": "A two-hour Bollywood choreography workshop to the song Kalyani, led by Ruchika Jain at iMAP Seawoods. Saturday 26 September 2026, 5 to 7 PM. Rs 800, all levels welcome, no batch required.",
+  "startDate": "2026-09-26T17:00:00+05:30",
+  "endDate": "2026-09-26T19:00:00+05:30",
+  "eventStatus": "https://schema.org/EventScheduled",
+  "eventAttendanceMode": "https://schema.org/OfflineEventAttendanceMode",
+  "image": "https://indiemovementartproject.com/media/ws-bollywood-26sep.jpg",
+  "url": "https://indiemovementartproject.com/workshops",
+  "location": {
+    "@type": "Place",
+    "name": "iMAP Seawoods Studio",
+    "address": {
+      "@type": "PostalAddress",
+      "streetAddress": "iMAP @ Ohana Fitness, Haware's Centurion Mall, Sector 19A",
+      "addressLocality": "Seawoods East, Navi Mumbai",
+      "addressRegion": "Maharashtra",
+      "postalCode": "400706",
+      "addressCountry": "IN"
+    }
+  },
+  "organizer": {
+    "@id": "https://indiemovementartproject.com/#organisation"
+  },
+  "performer": {
+    "@type": "Person",
+    "name": "Ruchika Jain"
+  },
+  "offers": {
+    "@type": "Offer",
+    "price": "800",
+    "priceCurrency": "INR",
+    "availability": "https://schema.org/InStock",
+    "url": "https://indiemovementartproject.com/pay.html",
+    "validFrom": "2026-09-21T00:00:00+05:30"
+  }
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Event",
+  "name": "Afro & Dancehall Choreography Workshop (Kelebu) by Tanvi — iMAP Seawoods",
+  "description": "A two-hour Afro and Dancehall choreography workshop to Kelebu by Rema, led by Tanvi Palande at iMAP Seawoods. Sunday 27 September 2026, 5 to 7 PM. Rs 800, all levels welcome, no batch required.",
+  "startDate": "2026-09-27T17:00:00+05:30",
+  "endDate": "2026-09-27T19:00:00+05:30",
+  "eventStatus": "https://schema.org/EventScheduled",
+  "eventAttendanceMode": "https://schema.org/OfflineEventAttendanceMode",
+  "image": "https://indiemovementartproject.com/media/ws-afro-27sep.jpg",
+  "url": "https://indiemovementartproject.com/workshops",
+  "location": {
+    "@type": "Place",
+    "name": "iMAP Seawoods Studio",
+    "address": {
+      "@type": "PostalAddress",
+      "streetAddress": "iMAP @ Ohana Fitness, Haware's Centurion Mall, Sector 19A",
+      "addressLocality": "Seawoods East, Navi Mumbai",
+      "addressRegion": "Maharashtra",
+      "postalCode": "400706",
+      "addressCountry": "IN"
+    }
+  },
+  "organizer": {
+    "@id": "https://indiemovementartproject.com/#organisation"
+  },
+  "performer": {
+    "@type": "Person",
+    "name": "Tanvi Palande"
+  },
+  "offers": {
+    "@type": "Offer",
+    "price": "800",
+    "priceCurrency": "INR",
+    "availability": "https://schema.org/InStock",
+    "url": "https://indiemovementartproject.com/pay.html",
+    "validFrom": "2026-09-21T00:00:00+05:30"
+  }
+}
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Space+Grotesk:wght@300;400;500;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
@@ -915,7 +1001,7 @@
   .admin-lock button:hover{color:var(--cyan)}
 
   /* ===== featured partner workshop ===== */
-  #classes,#about{scroll-margin-top:90px}
+  #workshops,#classes,#about{scroll-margin-top:90px}
     margin-top:32px;text-align:left}
     box-shadow:0 18px 60px rgba(0,0,0,.5)}
     display:flex;flex-direction:column;gap:4px;transition:.18s}
@@ -933,6 +1019,56 @@
   @media (max-width:820px){
   }
 
+  /* ===== Featured: workshop posters + glass =====
+     Recovered from the Contemporary section (git show cabbd96:index.html) and
+     widened from one occupant to two. Deliberately no backdrop image: a blurred
+     poster was tried there and dropped - at the opacity that keeps type legible
+     it was barely visible, and object-fit left a seam down the sides. */
+  .feat{position:relative}
+  .feat-duo{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:26px;
+    max-width:940px;margin:34px auto 0;text-align:left}
+  .ws-card{display:flex;flex-direction:column;gap:14px}
+  .feat-poster{display:block;border-radius:18px;overflow:hidden;border:1px solid rgba(255,255,255,.14);
+    background:#0a0e10;box-shadow:0 20px 50px rgba(0,0,0,.5);transition:transform .25s,box-shadow .25s}
+  .feat-poster:hover{transform:translateY(-3px);box-shadow:0 26px 60px rgba(0,0,0,.6)}
+  .feat-poster img{display:block;width:100%;height:auto;aspect-ratio:1080/1350}
+
+  /* Frosted panel. backdrop-filter is the whole effect, so where it is not
+     supported the rgba background alone still reads as a solid card. */
+  .glass{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.16);
+    border-radius:18px;padding:18px;backdrop-filter:blur(22px) saturate(1.6);
+    -webkit-backdrop-filter:blur(22px) saturate(1.6);flex:1;
+    box-shadow:0 14px 40px rgba(0,0,0,.4),inset 0 1px 0 rgba(255,255,255,.2);
+    display:flex;flex-direction:column}
+  .ws-title{font-family:"Instrument Serif",serif;font-size:25px;line-height:1.15;color:var(--text)}
+  .ws-by{font-family:"Space Mono",monospace;font-size:10px;letter-spacing:.18em;
+    text-transform:uppercase;color:var(--cyan);margin-top:5px}
+  .ws-rows{margin:15px 0 0;display:flex;flex-direction:column;gap:9px}
+  .ws-row{display:flex;gap:11px;align-items:baseline}
+  .ws-row .k{flex:0 0 58px;font-family:"Space Mono",monospace;font-size:9.5px;letter-spacing:.16em;
+    text-transform:uppercase;color:rgba(255,255,255,.5)}
+  .ws-row .v{flex:1;font-size:14px;color:rgba(255,255,255,.88);line-height:1.4}
+  .ws-row .v b{color:var(--text);font-weight:500}
+  .ws-foot{margin-top:auto;padding-top:17px;display:flex;align-items:center;gap:12px}
+  .ws-fee{font-family:"Instrument Serif",serif;font-size:29px;line-height:1;color:var(--cyan)}
+  .ws-fee small{font-family:"Space Grotesk",sans-serif;font-size:11.5px;color:var(--muted);
+    display:block;letter-spacing:.02em;margin-top:3px}
+  .feat-btn{flex:1;text-align:center;background:var(--cyan);color:#04181a;text-decoration:none;
+    font-weight:600;font-size:14px;padding:12px 16px;border-radius:11px;transition:.2s;cursor:pointer}
+  .feat-btn:hover{box-shadow:0 0 26px rgba(92,225,230,.45)}
+  .feat-ask{margin:26px auto 0;max-width:940px;text-align:center;font-size:13.5px;color:var(--muted)}
+  .feat-ask a{color:var(--cyan);text-decoration:none}
+  .feat-ask a:hover{text-decoration:underline}
+  @media (max-width:820px){
+    .feat-duo{grid-template-columns:1fr;gap:30px;max-width:420px}
+  }
+  @media (max-width:420px){
+    .ws-foot{flex-direction:column;align-items:stretch;gap:12px}
+    .ws-fee{text-align:center}
+  }
+  @media (prefers-reduced-motion:reduce){
+    .feat-poster,.feat-poster:hover{transition:none;transform:none}
+  }
   /* ===== Regular Classes carousel ===== */
   .carousel{position:relative;max-width:1000px;margin:34px auto 0;perspective:1600px;outline:none}
   .carousel.is-carousel{height:560px;overflow:hidden;touch-action:pan-y;-webkit-user-select:none;user-select:none}
@@ -1019,6 +1155,7 @@
   <button class="burger" id="burger" aria-label="Menu" aria-expanded="false">☰</button>
   <div class="nav-links" id="navLinks">
     <a href="#about">About</a>
+    <a href="#workshops">What&rsquo;s new</a>
     <a href="#classes">Classes</a>
     <a href="count-me-in.html">Count Me In</a>
     <a href="sync-studio.html">Sync Studio</a>
@@ -1051,6 +1188,65 @@
       <h2>Who we <span class="i">are</span>.</h2>
       <p class="lead">Indie Movement Art Project is a platform for like-minded artists to connect, collaborate &amp; create. It's the holy grail where movement, music &amp; art come together and make you realise the masterpiece that you are.</p>
       <p class="lead">With regular dance classes &amp; exciting events like open mics &amp; workshops happening every month, we are a community of buzzing creative individuals who are on a mission to facilitate the transformation of artists all over India.</p>
+    </div>
+  </section>
+
+
+  <!-- WHAT'S NEW: the featured slot. Two one-off choreography workshops,
+       26 and 27 Sep 2026. Sold through SPECIALS in cart.js - see RUNBOOK.md,
+       and empty that catalogue the moment they are over. -->
+  <section class="section feat" id="workshops" style="padding-bottom:44px">
+    <div class="feat-inner">
+      <div class="eyebrow">What&rsquo;s new</div>
+      <h2>Choreography <span class="i">Workshops</span>.</h2>
+      <p class="tagline">Two evenings at Seawoods &middot; 26 &amp; 27 September</p>
+      <p class="lead">One song, two hours, one finished piece. Drop into either &mdash; no batch, no
+        commitment, all levels welcome. <span class="i">&#8377;800 each.</span></p>
+
+      <div class="feat-duo">
+        <article class="ws-card">
+          <a class="feat-poster" href="media/ws-bollywood-26sep.jpg" target="_blank" rel="noopener">
+            <img src="media/ws-bollywood-26sep.jpg" width="1080" height="1350" decoding="async"
+                 alt="Bollywood Choreography Workshop with Ruchika at iMAP Seawoods — song Kalyani, Saturday 26 September 2026, 5 to 7 PM, ₹800">
+          </a>
+          <div class="glass">
+            <div class="ws-title">Bollywood Choreography</div>
+            <div class="ws-by">with Ruchika</div>
+            <div class="ws-rows">
+              <div class="ws-row"><span class="k">Song</span><span class="v"><b>Kalyani</b></span></div>
+              <div class="ws-row"><span class="k">When</span><span class="v"><b>Saturday 26 September</b><br>5:00 &ndash; 7:00 PM</span></div>
+              <div class="ws-row"><span class="k">Where</span><span class="v">iMAP Seawoods</span></div>
+            </div>
+            <div class="ws-foot">
+              <div class="ws-fee">&#8377;800<small>per person</small></div>
+              <a class="feat-btn" href="pay.html?buy=ws-s-26sep">Register</a>
+            </div>
+          </div>
+        </article>
+
+        <article class="ws-card">
+          <a class="feat-poster" href="media/ws-afro-27sep.jpg" target="_blank" rel="noopener">
+            <img src="media/ws-afro-27sep.jpg" width="1080" height="1350" decoding="async"
+                 alt="Afro &amp; Dancehall Choreography Workshop by Tanvi at iMAP Seawoods — song Kelebu by Rema, Sunday 27 September 2026, 5 to 7 PM, ₹800">
+          </a>
+          <div class="glass">
+            <div class="ws-title">Afro &amp; Dancehall</div>
+            <div class="ws-by">by Tanvi</div>
+            <div class="ws-rows">
+              <div class="ws-row"><span class="k">Song</span><span class="v"><b>Kelebu</b> by Rema</span></div>
+              <div class="ws-row"><span class="k">When</span><span class="v"><b>Sunday 27 September</b><br>5:00 &ndash; 7:00 PM</span></div>
+              <div class="ws-row"><span class="k">Where</span><span class="v">iMAP Seawoods</span></div>
+            </div>
+            <div class="ws-foot">
+              <div class="ws-fee">&#8377;800<small>per person</small></div>
+              <a class="feat-btn" href="pay.html?buy=ws-s-27sep">Register</a>
+            </div>
+          </div>
+        </article>
+      </div>
+
+      <p class="feat-ask">Doing both? Add them to your cart and pay in one go &middot;
+        questions on <a data-wa="Hi iMAP! I'd like to know more about the choreography workshops on 26 and 27 September.">WhatsApp</a></p>
     </div>
   </section>
 

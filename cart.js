@@ -31,12 +31,19 @@
   /* Orientation Series passes. "All classes" on the standee means all workshops. */
   var PASSES = [];
 
-  /* One-off workshops, sold with a direct pay.html?buy=<id> link rather than
-     through the cart. Empty between workshops - the Retro-Jazz pair lived here
-     until 27 Aug 2026. Clearing this stops the old links taking money for an
-     event that has already happened; the server still holds matching prices in
-     PRICES, so drop them there too when you retire a workshop for good. */
-  var SPECIALS = [];
+  /* One-off workshops. The Register buttons use pay.html?buy=<id> to go straight
+     to checkout, but these are ordinary cart items too, so someone doing both
+     weekend workshops can add each and pay once.
+
+     EMPTY THIS THE DAY AFTER THEY RUN. While an id is listed, a pay.html?buy=
+     link already shared on WhatsApp still takes money for an event that has
+     happened - and nobody finds out until the payer asks where their class is. */
+  var SPECIALS = [
+    { id: 'ws-s-26sep', title: 'Bollywood Choreography Workshop (Kalyani)',
+      detail: 'Sat 26 Sep · 5–7 PM · Seawoods · Ruchika Jain', amount: 800 },
+    { id: 'ws-s-27sep', title: 'Afro & Dancehall Choreography Workshop (Kelebu)',
+      detail: 'Sun 27 Sep · 5–7 PM · Seawoods · Tanvi Palande', amount: 800 }
+  ];
 
   /* Regular classes. */
   var BATCHES = {

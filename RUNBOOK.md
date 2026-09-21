@@ -13,7 +13,7 @@ Live at <https://indiemovementartproject.com> · GitHub Pages from `main` in
 
 | File | What it is |
 |---|---|
-| `index.html` | Home: hero, About, the featured slot (empty), Regular Classes carousel, Annual Jam photo strip |
+| `index.html` | Home: hero, About, the featured slot (two workshops), Regular Classes carousel, Annual Jam photo strip |
 | `cart.js` | **The catalogue.** Every purchasable item and its price. Also the cart and nav badge. |
 | `batch.html` | One page for every batch, driven by `?batch=<slug>` |
 | `batches.html` | All batches in a carousel |
@@ -35,39 +35,52 @@ Live at <https://indiemovementartproject.com> · GitHub Pages from `main` in
 
 ## The featured slot on the homepage
 
-**Empty right now.** There is no section between About and Regular Classes.
+Between `#about` and `#classes`. One occupant at a time.
 
-It has held the Retro-Jazz workshop (Aug 2026), the Acting free demo (Sep 2026) and Shreya's
-Contemporary demo (Sep 2026). Each time the CSS went out with the occupant, so recover it from git
-rather than rewriting - `git show cabbd96:index.html` has the `.feat-*` and `.glass` rules, which
-are the most reusable of the three: poster on the left, frosted panel of facts on the right.
+**Right now:** `#workshops` - two one-off choreography workshops at Seawoods, both 5-7 PM, Rs 800
+each:
 
-Two things that version got right and are worth keeping:
+| | Teacher | Song | When |
+|---|---|---|---|
+| Bollywood Choreography | Ruchika Jain | Kalyani | Sat 26 Sep 2026 |
+| Afro & Dancehall Choreography | Tanvi Palande | Kelebu by Rema | Sun 27 Sep 2026 |
 
-- **Order inside the panel: facts, then the free trial, then the fees.** A free demo costs nothing
-  and is what anyone wants first; prices are for someone already convinced, and putting them above
-  the invitation asks for a decision before making the offer.
-- **No backdrop image.** A blurred copy of the poster was tried and dropped - at the opacity needed
-  to keep type legible it was barely visible, and `object-fit` left a seam down the sides.
+Poster on top, frosted `.glass` panel of details below, two across on desktop and stacked under
+820px. Share link: `indiemovementartproject.com/workshops`.
+
+### How these are sold
+
+They are in **`SPECIALS` in `cart.js`** (ids `ws-s-26sep`, `ws-s-27sep`) and in `PRICES` in
+`Code.gs`. The Register buttons use `pay.html?buy=<id>` to skip the cart, but they are ordinary
+cart items too, so someone doing both adds each and pays Rs 1600 in one go.
+
+Past occupants and their shapes, for recovery rather than rewriting:
+
+- **Two posters side by side** - this one. `.feat-duo` / `.ws-card` / `.ws-rows`.
+- **One poster + a details panel** - Shreya's Contemporary batch, `git show cabbd96:index.html`.
+- Both keep `.glass` and `.feat-poster`, and both deliberately have **no backdrop image**: a
+  blurred poster was tried and dropped, because at the opacity that keeps type legible it was
+  barely visible and `object-fit` left a seam down the sides.
 
 ### Retiring whatever is in it
 
-Done four times now. The steps that are easy to miss:
+Done five times now. The steps that get missed:
 
-1. **If it was selling something, empty that catalogue first** - `SPECIALS` / `WORKSHOPS` /
-   `PASSES` in `cart.js`. While an id is listed, a `pay.html?buy=...` link already shared on
-   WhatsApp still takes money for an event that has happened. (Not needed when the occupant is a
-   regular batch, as Shreya's was - the batch simply carries on.)
+1. **Empty `SPECIALS` in `cart.js` the day after the last one runs.** This is the one that costs
+   real money: while an id is listed, a `pay.html?buy=...` link already shared on WhatsApp still
+   takes payment for an event that has happened, and nobody finds out until the payer asks where
+   their class is. (Not needed when the occupant is a regular batch - that simply carries on.)
 2. Remove the section, its CSS, the nav link and the `scroll-margin-top` id from `index.html`.
-   Watch that `.glass` is the section's own class while `--glass` / `--glass-2` are site-wide
-   custom properties - deleting the variables breaks buttons and cards everywhere.
-3. Delete the dated `Event` JSON-LD. A past event is dead weight in search results.
-4. **Grep for the date, not just the slug.** It also lives in the batch's `demo` field and `desc`
-   in `batch.html`, the custom `m` message in `links.html` DATA, and the title, description and
-   share tags of every short-link page. A page still advertising a passed date is worse than no
-   page.
-5. Swap any share image that has the date printed on it - the poster usually does.
-6. Check for newly orphaned files in `media/` and remove them.
+   `.glass` is the section's own class, but `--glass` / `--glass-2` are site-wide custom properties
+   behind buttons and cards - deleting those breaks styling everywhere.
+3. Delete the dated `Event` JSON-LD blocks. A past event is dead weight in search results.
+4. **Grep for the date, not just the slug.** It also lives in short-link titles, descriptions and
+   share tags, and sometimes in a batch's `demo` field or `desc`. A page still advertising a passed
+   date is worse than no page.
+5. Swap any share image with the date printed on it - posters usually have one.
+6. Check `media/` for newly orphaned files and remove them.
+7. Leave the ids in `PRICES` in `Code.gs` if you like - nothing reaches them once step 1 is done,
+   and old orders stay resolvable.
 
 ## The timetable
 
@@ -352,6 +365,7 @@ those meta tags**, so if a price changes in `cart.js`, the matching short link h
 | `/jazz-training` · `/open-style` | as named |
 | `/classes` | all batches |
 | `/gallery` | Annual Jam photos |
+| `/workshops` | the two choreography workshops, 26 &amp; 27 Sep |
 | `/acting` · `/acting-seawoods` | Acting & Personality Development, Seawoods |
 | `/retro-jazz` | finished 27 Aug 2026 — now redirects to the homepage |
 
