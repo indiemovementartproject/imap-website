@@ -319,6 +319,34 @@ user gesture iOS requires before it will play, and a proxy leaves the visible la
 "Show all the controls" hands back the full editor untouched. If you change the classic UI, keep the
 element ids — that is the whole contract between the two layers.
 
+## AnyConvert
+
+`/anyconvert/` is the third tool in the kit: pick a file → pick a format → convert → download,
+or compress to a size you type in. Everything runs in the visitor's browser; nothing is uploaded.
+
+- **The source lives in `~/Documents/Claude Code/AnyConvert/web`, not here.** This folder is a copy.
+  Change the source, then re-copy it (leaving out the engine folders and the test files):
+
+  ```
+  rsync -a --delete --exclude '_test*.html' --exclude '_diag*' --exclude '_selftest.html' \
+    --exclude '_fixtures' --exclude '/core/' --exclude '/core-st/' --exclude '.DS_Store' \
+    ../AnyConvert/web/ anyconvert/
+  ```
+- **The 31 MB media engine is not in this repo.** It loads from jsDelivr (`@ffmpeg/core-mt` in
+  Chrome/Edge/Firefox, `@ffmpeg/core` in Safari). If jsDelivr is down, audio and video conversion
+  are down. Images, PDF and Office files keep working because they don't use that engine.
+- **`anyconvert/coi.js` is a service worker** that adds the isolation headers GitHub Pages can't
+  send. It's scoped to `/anyconvert/` on purpose. Never move it to the site root: it would
+  isolate every page and break embeds such as Instagram and YouTube.
+- **Safari gets the single-threaded engine and no service worker.** The multithreaded one hangs in WebKit.
+  Safari is slower but reliable.
+- The done screen carries the same outro and tip jar as Count Me In and Sync Studio.
+  Events: `anyconvert_convert` / `anyconvert_compress` / `anyconvert_error` (formats only, never
+  file names), `anyconvert_download`, `tip_open`, `tip_upi_open`, `outro_classes_click`.
+- The Mac app (`AnyConvert.dmg`) is the same code in a native window, with the engine bundled.
+  It adds HEIC and Word/RTF/ODT conversion and never loads analytics.
+  See `AnyConvert/README.md` for tests and releases.
+
 ## Annual Jam photos
 
 The photographs live in `media/jam/` (~25 MB, 165 files) and are named `<index>_<Performance>.jpg`.

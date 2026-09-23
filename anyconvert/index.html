@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<!--
+  Copyright (c) 2026 Indie Movement Art Project. All rights reserved.
+  Author: Prashant Nair. Proprietary - see LICENSE. Not open source.
+-->
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>AnyConvert — convert &amp; compress any file · iMAP</title>
+<meta name="description" content="Convert and compress video, audio, images, PDF and Office files in your browser. MP4 to MP3, MOV to WAV, PNG to PDF, compress to a target size. Free, and your files never leave your device.">
+<meta name="theme-color" content="#070a0c">
+<meta property="og:type" content="website">
+<meta property="og:title" content="AnyConvert · iMAP">
+<meta property="og:description" content="Convert and compress any file, right in your browser. Your files never leave your device.">
+<meta property="og:site_name" content="Indie Movement Art Project">
+<meta property="og:url" content="https://indiemovementartproject.com/anyconvert/">
+<link rel="canonical" href="https://indiemovementartproject.com/anyconvert/">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebApplication","name":"AnyConvert",
+ "url":"https://indiemovementartproject.com/anyconvert/","applicationCategory":"MultimediaApplication",
+ "operatingSystem":"Any (runs in the browser); macOS app available",
+ "description":"Convert and compress video, audio, images, PDF and Office files in the browser - MP4 to MP3, MOV to WAV, PNG to PDF, compress to a target size. Files never leave the device.",
+ "offers":{"@type":"Offer","price":"0","priceCurrency":"INR"},
+ "publisher":{"@type":"Organization","name":"Indie Movement Art Project","url":"https://indiemovementartproject.com/"}}
+</script>
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+
+<!-- Cross-origin isolation, so the media engine can use every core.
+     Scoped to this folder on purpose: at the site root it would apply
+     strict isolation to every page on the domain. -->
+<script src="coi.js"></script>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Space+Grotesk:wght@300;400;500;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" crossorigin>
+
+<style>
+  :root{
+    --cyan:#5ce1e6;--bg:#070a0c;--dust:#0c1011;--glass:rgba(255,255,255,.045);--glass-2:rgba(255,255,255,.07);
+    --border:rgba(255,255,255,.09);--border-cyan:rgba(92,225,230,.3);--text:#eef6f7;--muted:#8fa1a3;--muted-2:#5d6e70;
+    --danger:#ff8a8a;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:var(--bg);color:var(--text);font-family:"Space Grotesk",system-ui,sans-serif;
+    -webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent}
+  body{min-height:100vh;min-height:100dvh;overflow-x:hidden;position:relative}
+  button,input{font:inherit;color:inherit}
+  button{cursor:pointer;background:none;border:0}
+  [hidden]{display:none!important}
+
+  /* ---------- the glow ----------
+     Every light here is a radial gradient that reaches full transparency
+     well inside its own box - no filter:blur(). A blurred layer is its own
+     composited surface and can show its rectangle; a gradient that is
+     already zero at its edges has no edge to show. */
+  .glows{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+  .glow{position:absolute;border-radius:50%;will-change:transform;
+    background:radial-gradient(closest-side,rgba(92,225,230,.42) 0%,rgba(92,225,230,.22) 26%,
+      rgba(92,225,230,.09) 48%,rgba(92,225,230,.025) 66%,rgba(92,225,230,0) 82%)}
+  .glow.a{width:760px;height:760px;top:-300px;left:-260px;animation:d1 26s ease-in-out infinite}
+  .glow.b{width:680px;height:680px;bottom:-320px;right:-240px;opacity:.8;animation:d2 31s ease-in-out infinite}
+  .glow.c{width:520px;height:520px;top:38%;left:58%;opacity:.45;animation:d3 37s ease-in-out infinite}
+  @keyframes d1{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(140px,90px) scale(1.12)}}
+  @keyframes d2{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(-120px,-80px) scale(1.18)}}
+  @keyframes d3{0%,100%{transform:translate(0,0) scale(1)}33%{transform:translate(-110px,70px) scale(.86)}66%{transform:translate(80px,-60px) scale(1.08)}}
+  .cursor{position:fixed;top:0;left:0;width:420px;height:420px;margin:-210px 0 0 -210px;border-radius:50%;
+    z-index:1;pointer-events:none;opacity:0;transition:opacity .6s;will-change:transform;
+    background:radial-gradient(closest-side,rgba(92,225,230,.16) 0%,rgba(92,225,230,.07) 40%,rgba(92,225,230,0) 78%)}
+  .cursor.on{opacity:1}
+  /* a whisper of grain so the black reads as dusty, not flat */
+  .grain{position:fixed;inset:0;z-index:1;pointer-events:none;opacity:.035;mix-blend-mode:overlay;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+
+  /* ---------- layout ---------- */
+  .wrap{position:relative;z-index:2;max-width:640px;margin:0 auto;padding:30px 20px 70px}
+  .kit{display:flex;justify-content:center;gap:4px;flex-wrap:wrap;margin-bottom:34px}
+  .kit a{font-family:"Space Mono",monospace;font-size:10px;letter-spacing:.18em;text-transform:uppercase;
+    color:var(--muted-2);text-decoration:none;padding:6px 11px;border-radius:999px;transition:.2s}
+  .kit a:hover{color:var(--text);background:var(--glass)}
+  .kit a.here{color:var(--cyan);background:rgba(92,225,230,.08)}
+  header{text-align:center;margin-bottom:26px}
+  h1{font-family:"Instrument Serif",serif;font-weight:400;font-size:clamp(50px,12vw,82px);line-height:.95;letter-spacing:.005em}
+  h1 .i{font-style:italic;color:var(--cyan)}
+  .tag{font-family:"Space Mono",monospace;font-size:11px;letter-spacing:.2em;text-transform:uppercase;
+    color:var(--muted);margin-top:16px}
+  .tag span{color:var(--cyan)}
+
+  /* mode toggle */
+  .modes{display:flex;justify-content:center;margin:0 auto 18px}
+  .seg{position:relative;display:inline-flex;padding:4px;border-radius:999px;background:var(--glass);
+    border:1px solid var(--border)}
+  .seg button{position:relative;z-index:1;padding:10px 26px;border-radius:999px;font-size:14px;font-weight:500;
+    color:var(--muted);transition:color .25s}
+  .seg button[aria-selected="true"]{color:#04181a}
+  .seg .pill{position:absolute;top:4px;bottom:4px;left:4px;border-radius:999px;background:var(--cyan);
+    box-shadow:0 0 24px rgba(92,225,230,.35);transition:transform .32s cubic-bezier(.3,.9,.3,1),width .32s}
+
+  .card{background:var(--glass);border:1px solid var(--border);border-radius:22px;padding:22px;
+    backdrop-filter:blur(20px) saturate(1.25);-webkit-backdrop-filter:blur(20px) saturate(1.25);
+    box-shadow:0 10px 44px rgba(0,0,0,.36),inset 0 1px 0 rgba(255,255,255,.06)}
+  .card+.card{margin-top:14px}
+  .step{font-family:"Space Mono",monospace;font-size:10.5px;letter-spacing:.2em;text-transform:uppercase;
+    color:var(--cyan);margin-bottom:14px;display:flex;align-items:center;gap:9px}
+  .step::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--cyan);box-shadow:0 0 10px var(--cyan)}
+  .step .dim{color:var(--muted-2);margin-left:auto;letter-spacing:.12em}
+
+  /* ---------- 1. the drop zone ---------- */
+  .drop{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;
+    width:100%;min-height:230px;border-radius:18px;border:1.5px dashed rgba(92,225,230,.28);
+    background:radial-gradient(closest-side,rgba(92,225,230,.10),rgba(92,225,230,.03) 55%,rgba(92,225,230,0) 90%),rgba(0,0,0,.18);
+    text-align:center;padding:28px;transition:border-color .25s,background .25s,transform .25s}
+  .drop:hover,.drop:focus-visible{border-color:rgba(92,225,230,.55);outline:none}
+  .drop.over{border-color:var(--cyan);transform:scale(1.012);
+    background:radial-gradient(closest-side,rgba(92,225,230,.24),rgba(92,225,230,.07) 55%,rgba(92,225,230,0) 90%),rgba(0,0,0,.18)}
+  .drop-ico{width:54px;height:54px;border-radius:16px;display:grid;place-items:center;
+    background:rgba(92,225,230,.1);border:1px solid var(--border-cyan);color:var(--cyan);margin-bottom:6px;
+    box-shadow:0 0 30px rgba(92,225,230,.18)}
+  .drop b{font-size:18px;font-weight:500}
+  .drop small{font-size:13.5px;color:var(--muted)}
+  .drop .kinds{font-family:"Space Mono",monospace;font-size:10px;letter-spacing:.16em;text-transform:uppercase;
+    color:var(--muted-2);margin-top:8px}
+
+  /* the picked file */
+  .file{display:flex;align-items:center;gap:14px}
+  .file-ico{flex:0 0 46px;height:46px;border-radius:13px;display:grid;place-items:center;
+    background:rgba(92,225,230,.1);border:1px solid var(--border-cyan);color:var(--cyan);
+    font-family:"Space Mono",monospace;font-size:10.5px;font-weight:700;letter-spacing:.04em}
+  .file-meta{flex:1;min-width:0}
+  .file-name{font-size:15.5px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .file-sub{font-size:12.5px;color:var(--muted);margin-top:3px}
+  .file-sub .sep{color:var(--muted-2);margin:0 6px}
+  .x{flex:0 0 auto;width:34px;height:34px;border-radius:10px;color:var(--muted);display:grid;place-items:center;transition:.2s}
+  .x:hover{background:var(--glass-2);color:var(--text)}
+
+  /* ---------- 2a. format picker ---------- */
+  .search{width:100%;padding:12px 14px 12px 38px;border-radius:12px;background:rgba(0,0,0,.24);
+    border:1px solid var(--border);font-size:14.5px;outline:none;transition:border-color .2s;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' stroke='%235d6e70' stroke-width='2' stroke-linecap='round'%3E%3Ccircle cx='7' cy='7' r='5'/%3E%3Cpath d='m14 14-3.2-3.2'/%3E%3C/svg%3E");
+    background-repeat:no-repeat;background-position:13px 50%}
+  .search:focus{border-color:var(--border-cyan)}
+  .search::placeholder{color:var(--muted-2)}
+  .grp{margin-top:16px}
+  .grp-h{font-family:"Space Mono",monospace;font-size:9.5px;letter-spacing:.2em;text-transform:uppercase;
+    color:var(--muted-2);margin-bottom:9px}
+  .chips{display:flex;flex-wrap:wrap;gap:7px}
+  .chip{padding:8px 13px;border-radius:10px;font-size:13.5px;font-weight:500;background:rgba(255,255,255,.035);
+    border:1px solid var(--border);transition:.18s;display:inline-flex;align-items:baseline;gap:6px}
+  .chip:hover{border-color:var(--border-cyan);background:rgba(92,225,230,.06)}
+  .chip[aria-pressed="true"]{background:var(--cyan);color:#04181a;border-color:var(--cyan);
+    box-shadow:0 0 22px rgba(92,225,230,.35)}
+  .chip small{font-size:10.5px;color:var(--muted-2);font-weight:400}
+  .chip[aria-pressed="true"] small{color:rgba(4,24,26,.6)}
+  .chip.sug{border-color:rgba(92,225,230,.2)}
+  .none{font-size:13.5px;color:var(--muted);padding:6px 2px}
+  .more{margin-top:14px;font-size:12.5px;color:var(--muted-2)}
+  .more a{color:var(--cyan);text-decoration:none}
+
+  /* ---------- 2b. target size ---------- */
+  .size{display:flex;align-items:stretch;gap:10px}
+  .size-in{flex:1;display:flex;align-items:center;border-radius:14px;background:rgba(0,0,0,.24);
+    border:1px solid var(--border);padding:0 6px 0 18px;transition:border-color .2s}
+  .size-in:focus-within{border-color:var(--border-cyan);box-shadow:0 0 0 4px rgba(92,225,230,.07)}
+  .size-in input{flex:1;min-width:0;background:none;border:0;outline:none;font-family:"Instrument Serif",serif;
+    font-size:40px;line-height:1;padding:12px 0}
+  .size-in input::placeholder{color:var(--muted-2)}
+  .unit{display:flex;gap:2px;padding:4px;border-radius:10px;background:rgba(255,255,255,.04)}
+  .unit button{padding:7px 11px;border-radius:7px;font-family:"Space Mono",monospace;font-size:11px;
+    letter-spacing:.1em;color:var(--muted)}
+  .unit button[aria-pressed="true"]{background:var(--glass-2);color:var(--cyan)}
+  .quick{display:flex;flex-wrap:wrap;gap:7px;margin-top:12px}
+  .hint{margin-top:13px;font-size:13px;color:var(--muted);min-height:18px}
+  .hint b{color:var(--text);font-weight:500}
+  .hint .good{color:var(--cyan)}
+  .hint .bad{color:var(--danger)}
+
+  /* ---------- 3. go ---------- */
+  .go{width:100%;margin-top:14px;padding:17px 20px;border-radius:15px;background:var(--cyan);color:#04181a;
+    font-size:16px;font-weight:600;letter-spacing:.01em;box-shadow:0 0 34px rgba(92,225,230,.28);
+    transition:transform .15s,box-shadow .25s,opacity .25s}
+  .go:hover{box-shadow:0 0 46px rgba(92,225,230,.45)}
+  .go:active{transform:scale(.99)}
+  .go:disabled{opacity:.3;box-shadow:none;cursor:not-allowed}
+
+  /* working */
+  .work{text-align:center;padding:10px 4px 4px}
+  .work-l{font-size:15px;font-weight:500}
+  .work-s{font-size:12.5px;color:var(--muted);margin-top:6px;min-height:16px}
+  .bar{position:relative;height:6px;border-radius:99px;background:rgba(255,255,255,.07);overflow:hidden;margin:18px 0 6px}
+  .bar i{position:absolute;inset:0 auto 0 0;width:0;border-radius:99px;background:var(--cyan);
+    box-shadow:0 0 16px var(--cyan);transition:width .3s ease}
+  .bar.ind i{width:32%;animation:ind 1.25s ease-in-out infinite}
+  @keyframes ind{0%{transform:translateX(-110%)}100%{transform:translateX(320%)}}
+  .pct{font-family:"Space Mono",monospace;font-size:11px;color:var(--muted-2);letter-spacing:.1em}
+  .cancel{margin-top:14px;font-size:12.5px;color:var(--muted);text-decoration:underline;text-underline-offset:3px}
+  .cancel:hover{color:var(--text)}
+
+  /* done */
+  .done{text-align:center}
+  .ring{width:62px;height:62px;border-radius:50%;margin:4px auto 14px;display:grid;place-items:center;color:var(--cyan);
+    border:1.5px solid var(--border-cyan);background:rgba(92,225,230,.08);box-shadow:0 0 36px rgba(92,225,230,.22);
+    animation:pop .5s cubic-bezier(.3,1.5,.5,1)}
+  @keyframes pop{0%{transform:scale(.5);opacity:0}100%{transform:scale(1);opacity:1}}
+  .done-name{font-size:16px;font-weight:500;word-break:break-all}
+  .done-size{font-size:13px;color:var(--muted);margin-top:5px}
+  .done-size b{color:var(--cyan);font-weight:500}
+  .note{font-size:12.5px;color:var(--muted);line-height:1.55;margin:14px auto 0;max-width:460px}
+  .note.warn{color:#ffc98a}
+  .preview{margin:16px auto 0;max-width:100%}
+  .preview img,.preview video{max-width:100%;max-height:280px;border-radius:12px;border:1px solid var(--border);display:block;margin:0 auto}
+  .preview audio{width:100%}
+  .row{display:flex;gap:10px;margin-top:18px}
+  .row .go{margin-top:0}
+  .ghost{flex:0 0 auto;padding:17px 20px;border-radius:15px;border:1px solid var(--border);background:var(--glass);
+    font-size:15px;font-weight:500;color:var(--text);transition:.2s}
+  .ghost:hover{border-color:var(--border-cyan)}
+
+  .err{text-align:center}
+  .err .ring{color:var(--danger);border-color:rgba(255,138,138,.35);background:rgba(255,138,138,.07);box-shadow:none}
+  .err-msg{font-size:14px;line-height:1.55;color:var(--text);max-width:440px;margin:0 auto}
+
+
+  /* ---------- outro: come dance with us, and the tip jar ----------
+     The same card as Count Me In and Sync Studio: these tools are free, and
+     this is how they send people back to the studio. */
+  .outro{margin-top:22px;text-align:center}
+  .outro-card{border:1px solid var(--border-cyan);border-radius:18px;padding:20px 18px;background:rgba(92,225,230,.05)}
+  .outro-card h4{font-family:"Instrument Serif",serif;font-weight:400;font-size:24px;line-height:1.15;color:var(--text);margin:0 0 8px}
+  .outro-card p{color:var(--muted);font-size:14.5px;line-height:1.65;margin:0}
+  .outro-card a{color:var(--cyan);text-decoration:none;border-bottom:1px solid var(--border-cyan)}
+  .outro-card a:hover{color:var(--text);border-color:var(--text)}
+  .tipbar{margin-top:14px}
+  .tipbtn{border:1px solid var(--border);border-radius:999px;color:var(--muted);font-size:13.5px;padding:9px 18px;transition:.16s}
+  .tipbtn:hover{border-color:var(--border-cyan);color:var(--cyan)}
+  .tip{margin-top:14px;border:1px solid var(--border);border-radius:16px;padding:18px;background:rgba(255,255,255,.02)}
+  .tip p{color:var(--muted);font-size:14px;line-height:1.6;margin:0 0 14px}
+  .tip img{width:180px;height:180px;image-rendering:pixelated;border-radius:12px;background:#fff;padding:9px;display:block;margin:0 auto}
+  .tip code{display:block;font-family:"Space Mono",monospace;font-size:12.5px;color:var(--cyan);margin-top:13px;word-break:break-all}
+  .tip .upi-open{margin-top:14px}
+  .tip .upi-open a{display:inline-block;background:var(--cyan);color:#04181a;text-decoration:none;font-weight:600;
+    font-size:14px;padding:11px 20px;border-radius:12px}
+  .tip .scan-note{font-size:12px;color:var(--muted-2);margin-top:9px}
+  footer{text-align:center;margin-top:34px;font-family:"Space Mono",monospace;font-size:10.5px;letter-spacing:.14em;
+    text-transform:uppercase;color:var(--muted-2);line-height:2.1}
+  footer span{color:var(--cyan)}
+  footer a{color:var(--muted);text-decoration:none}
+  footer a:hover{color:var(--text)}
+  .stats{font-family:"Space Grotesk",sans-serif;text-transform:none;letter-spacing:0;font-size:12px;color:var(--muted-2)}
+
+  @media (max-width:520px){
+    .wrap{padding:20px 14px 60px}
+    .card{padding:18px;border-radius:19px}
+    .size-in input{font-size:34px}
+    .row{flex-direction:column-reverse}
+  }
+  @media (prefers-reduced-motion:reduce){
+    .glow,.bar.ind i,.ring{animation:none}
+    .seg .pill,.drop{transition:none}
+  }
+</style>
+</head>
+<body>
+<div class="glows" aria-hidden="true"><div class="glow a"></div><div class="glow b"></div><div class="glow c"></div></div>
+<div class="cursor" id="cursor" aria-hidden="true"></div>
+<div class="grain" aria-hidden="true"></div>
+
+<div class="wrap">
+  <nav class="kit" aria-label="iMAP toolkit" id="kit">
+    <a href="/count-me-in.html">Count Me In</a>
+    <a href="/sync-studio.html">Sync Studio</a>
+    <a class="here" href="./" aria-current="page">AnyConvert</a>
+  </nav>
+
+  <header>
+    <h1>Any<span class="i">Convert</span></h1>
+    <div class="tag">Convert · Compress · <span>100% on your device</span></div>
+  </header>
+
+  <div class="modes">
+    <div class="seg" role="tablist" aria-label="Mode">
+      <span class="pill" id="pill"></span>
+      <button role="tab" id="mConvert" aria-selected="true">Convert</button>
+      <button role="tab" id="mCompress" aria-selected="false">Compress</button>
+    </div>
+  </div>
+
+  <!-- 1 · the file -->
+  <section class="card" id="cFile">
+    <div class="step">Pick a file<span class="dim" id="stepHint"></span></div>
+    <button class="drop" id="drop" type="button" aria-describedby="dropKinds">
+      <span class="drop-ico" aria-hidden="true">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4"/><path d="m6 10 6-6 6 6"/><path d="M4 16v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
+      </span>
+      <b>Drop a file here</b>
+      <small>or click to choose one</small>
+      <span class="kinds" id="dropKinds">Video · Audio · Image · PDF · Office</span>
+    </button>
+    <input type="file" id="picker" hidden>
+
+    <div class="file" id="file" hidden>
+      <div class="file-ico" id="fIco">MP4</div>
+      <div class="file-meta">
+        <div class="file-name" id="fName"></div>
+        <div class="file-sub" id="fSub"></div>
+      </div>
+      <button class="x" id="fClear" type="button" aria-label="Choose a different file">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 4l8 8M12 4l-8 8"/></svg>
+      </button>
+    </div>
+  </section>
+
+  <!-- 2a · convert to -->
+  <section class="card" id="cTo" hidden>
+    <div class="step">Convert to<span class="dim" id="toCount"></span></div>
+    <input class="search" id="q" type="search" placeholder="Search formats" autocomplete="off" spellcheck="false" aria-label="Search formats">
+    <div id="groups"></div>
+    <div class="more" id="more" hidden></div>
+  </section>
+
+  <!-- 2b · target size -->
+  <section class="card" id="cSize" hidden>
+    <div class="step">Target size</div>
+    <div class="size">
+      <label class="size-in">
+        <input id="size" type="text" inputmode="decimal" placeholder="0" aria-label="Target size" autocomplete="off">
+        <span class="unit" role="group" aria-label="Unit">
+          <button type="button" data-u="KB" aria-pressed="false">KB</button>
+          <button type="button" data-u="MB" aria-pressed="true">MB</button>
+        </span>
+      </label>
+    </div>
+    <div class="quick" id="quick"></div>
+    <div class="hint" id="sizeHint"></div>
+  </section>
+
+  <!-- 3 · go / working / done -->
+  <section class="card" id="cGo" hidden>
+    <div id="goIdle"><button class="go" id="go" type="button" disabled>Convert</button></div>
+
+    <div class="work" id="goWork" hidden aria-live="polite">
+      <div class="work-l" id="wLabel">Converting…</div>
+      <div class="bar" id="bar"><i id="barFill"></i></div>
+      <div class="pct" id="pct"></div>
+      <div class="work-s" id="wSub"></div>
+      <button class="cancel" id="cancel" type="button">Cancel</button>
+    </div>
+
+    <div class="done" id="goDone" hidden>
+      <div class="ring" aria-hidden="true"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg></div>
+      <div class="done-name" id="dName"></div>
+      <div class="done-size" id="dSize"></div>
+      <div class="preview" id="dPrev"></div>
+      <p class="note" id="dNote"></p>
+      <div class="row">
+        <button class="ghost" id="again" type="button">Start over</button>
+        <button class="go" id="dl" type="button">Download</button>
+      </div>
+
+      <!-- the same outro as Count Me In and Sync Studio -->
+      <div class="outro" id="outro">
+        <div class="outro-card">
+          <h4>Loved it? Let&rsquo;s catch up.</h4>
+          <p>Meet us at our studio in Navi Mumbai, or read more about us
+             <a href="https://indiemovementartproject.com/index.html?go=classes" data-outro="classes" target="_blank" rel="noopener">here</a>.</p>
+        </div>
+        <div class="tipbar"><button type="button" class="tipbtn" id="tipBtn">&#9749;&nbsp; Buy us a chai</button></div>
+        <div class="tip" id="tip" hidden>
+          <p>AnyConvert is free and always will be. If it saved you an afternoon, throw us whatever it was worth.</p>
+          <img src="tip-upi.png" alt="UPI QR code to tip iMAP" width="225" height="225">
+          <code>prashantnair96@okhdfcbank</code>
+          <div class="upi-open" id="upiOpen" hidden>
+            <a href="upi://pay?pa=prashantnair96@okhdfcbank&amp;pn=Prashant%20Nair&amp;cu=INR&amp;tn=Chai%20for%20iMAP" data-tip="pay">Open your UPI app</a>
+          </div>
+          <div class="scan-note">scan the code with any UPI app</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="err" id="goErr" hidden>
+      <div class="ring" aria-hidden="true"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 7v6M12 17h.01"/></svg></div>
+      <p class="err-msg" id="eMsg"></p>
+      <div class="row">
+        <button class="ghost" id="eAgain" type="button">Start over</button>
+        <button class="go" id="eRetry" type="button">Try again</button>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    Built by <a href="https://indiemovementartproject.com">iMAP</a> · your files <span>never leave this device</span><br>
+    <span class="stats" id="stats"></span>
+  </footer>
+</div>
+
+<!-- the site's analytics, like Count Me In and Sync Studio. Website only: the
+     Mac app has AnyConvertNative and skips it, so desktop use never lands in
+     the website's numbers. No file names or contents are ever sent. -->
+<script>
+  if (!window.AnyConvertNative) {
+    var a = document.createElement('script'); a.src = '../analytics.js'; a.defer = true;
+    document.head.appendChild(a);
+  }
+</script>
+<script type="module" src="app.js"></script>
+</body>
+</html>
