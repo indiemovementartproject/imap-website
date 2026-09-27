@@ -13,7 +13,7 @@ Live at <https://indiemovementartproject.com> · GitHub Pages from `main` in
 
 | File | What it is |
 |---|---|
-| `index.html` | Home: hero, About, the featured slot (two workshops), Regular Classes carousel, Annual Jam photo strip |
+| `index.html` | Home: hero, About, the featured slot (empty right now), Regular Classes carousel, Annual Jam photo strip |
 | `cart.js` | **The catalogue.** Every purchasable item and its price. Also the cart and nav badge. |
 | `batch.html` | One page for every batch, driven by `?batch=<slug>` |
 | `batches.html` | All batches in a carousel |
@@ -37,50 +37,60 @@ Live at <https://indiemovementartproject.com> · GitHub Pages from `main` in
 
 Between `#about` and `#classes`. One occupant at a time.
 
-**Right now:** `#workshops` - two one-off choreography workshops at Seawoods, both 5-7 PM, Rs 800
-each:
+**Right now: empty.** The last occupants were two choreography workshops at Seawoods, 5–7 PM, ₹800 each.
+Their section, posters and JSON-LD came out on 28 Sep:
 
 | | Teacher | Song | When |
 |---|---|---|---|
 | Bollywood Choreography | Ruchika Jain | Kalyani | Sat 26 Sep 2026 |
 | Afro & Dancehall Choreography | Tanvi Palande | Kelebu by Rema | Sun 27 Sep 2026 |
 
-Poster on top, frosted `.glass` panel of details below, two across on desktop and stacked under
-820px. Share link: `indiemovementartproject.com/workshops`.
+Past shapes, for recovering rather than rewriting:
 
-### How these are sold
+- **Two posters side by side:** those workshops. `git show e04447c:index.html`, using `.feat-duo` / `.ws-card` / `.ws-rows`.
+- **One poster + a details panel:** Shreya's Contemporary batch. `git show cabbd96:index.html`.
+- The `.feat` / `.glass` / `.ws-*` styles **stay in index.html** between occupants. A template comment marks where the section goes.
+- Neither shape has a backdrop image. A blurred poster was tried and dropped: at an opacity that keeps the type legible it was barely visible,
+  and `object-fit` left a seam down the sides.
 
-They are in **`SPECIALS` in `cart.js`** (ids `ws-s-26sep`, `ws-s-27sep`) and in `PRICES` in
-`Code.gs`. The Register buttons use `pay.html?buy=<id>` to skip the cart, but they are ordinary
-cart items too, so someone doing both adds each and pays Rs 1600 in one go.
+### Everything dated expires by itself
 
-Past occupants and their shapes, for recovery rather than rewriting:
+Anything that's only true until a date carries the moment it **ends**, in strict ISO with the IST offset: `2026-10-18T19:00:00+05:30`.
+Once that moment passes it disappears on its own:
 
-- **Two posters side by side** - this one. `.feat-duo` / `.ws-card` / `.ws-rows`.
-- **One poster + a details panel** - Shreya's Contemporary batch, `git show cabbd96:index.html`.
-- Both keep `.glass` and `.feat-poster`, and both deliberately have **no backdrop image**: a
-  blurred poster was tried and dropped, because at the opacity that keeps type legible it was
-  barely visible and `object-fit` left a seam down the sides.
+| Where | How to mark it | What happens after the date |
+|---|---|---|
+| Event cards, the section, the nav link, Event JSON-LD | `data-until="…"` on the element | `expire.js` removes it before the page paints |
+| A section holding dated cards | also `data-expire-group` | removed once nothing dated is left inside, a safety net if its own `data-until` is forgotten |
+| `SPECIALS` in `cart.js` | `until: '…'` | `lookup()` stops knowing the id, so a shared `pay.html?buy=` link does nothing and stale carts drop it |
+| `PRICES` in `Code.gs` | `until: '…'` | orders refused 12 h after (`UNTIL_GRACE_MS`) with a "message us on WhatsApp" note. The grace covers someone who paid just before the end and submitted late |
+| A batch's free demo in `batch.html` | `"demoUntil": "…"` in its DATA entry | the "Free demo" line stops showing |
+
+Put `data-until` on each card **and** on the section and nav link (the latest end among them), so the whole slot goes at once.
+`expire.js` is loaded at the top of `<head>` on `index.html` and `batch.html`. Add it to any other page that gets dated content.
+
+**The dates must be strict ISO with an offset.** Browsers read a typo like `27 Sepp` as a date in 2001, which would hide a live event.
+So anything that isn't exactly `YYYY-MM-DDTHH:MM(:SS)+05:30` is treated as **not** expired, and the report flags it.
+
+**The countdown is for us, never visitors.** Two places show it:
+
+- `node scripts/events.js` lists every dated item across the pages, `cart.js`, `Code.gs` and `batch.html`: `ends in 3 days`,
+  or `ENDED … - hidden; delete from source`. It exits 1 on a malformed date.
+- `?diag=1` on the Apps Script endpoint includes `events`, the live backend view of each `PRICES` item with an `until`:
+  on sale, inside the grace period, or refused.
 
 ### Retiring whatever is in it
 
-Done five times now. The steps that get missed:
+Visitors stop seeing it and it stops selling on its own at `until`. Cleaning up the source is housekeeping, not urgent:
 
-1. **Empty `SPECIALS` in `cart.js` the day after the last one runs.** This is the one that costs
-   real money: while an id is listed, a `pay.html?buy=...` link already shared on WhatsApp still
-   takes payment for an event that has happened, and nobody finds out until the payer asks where
-   their class is. (Not needed when the occupant is a regular batch - that simply carries on.)
-2. Remove the section, its CSS, the nav link and the `scroll-margin-top` id from `index.html`.
-   `.glass` is the section's own class, but `--glass` / `--glass-2` are site-wide custom properties
-   behind buttons and cards - deleting those breaks styling everywhere.
-3. Delete the dated `Event` JSON-LD blocks. A past event is dead weight in search results.
-4. **Grep for the date, not just the slug.** It also lives in short-link titles, descriptions and
-   share tags, and sometimes in a batch's `demo` field or `desc`. A page still advertising a passed
-   date is worse than no page.
-5. Swap any share image with the date printed on it - posters usually have one.
-6. Check `media/` for newly orphaned files and remove them.
-7. Leave the ids in `PRICES` in `Code.gs` if you like - nothing reaches them once step 1 is done,
-   and old orders stay resolvable.
+1. Run `node scripts/events.js`. Everything marked ENDED can go.
+2. Delete the section and its nav link from `index.html`, and restore the template comment.
+   `.glass` is the section's own class, but `--glass` / `--glass-2` are site-wide custom properties behind buttons and cards,
+   so deleting those breaks styling everywhere.
+3. Empty the entries from `SPECIALS`. You can leave them in `PRICES`: they're refused anyway, and old orders stay resolvable.
+4. **Grep for the date, not just the slug.** It also turns up in short-link titles, descriptions and share tags.
+   `/workshops` is deliberately date-free. Keep it that way.
+5. Remove the posters from `media/`.
 
 ## The timetable
 
@@ -393,7 +403,7 @@ those meta tags**, so if a price changes in `cart.js`, the matching short link h
 | `/jazz-training` · `/open-style` | as named |
 | `/classes` | all batches |
 | `/gallery` | Annual Jam photos |
-| `/workshops` | the two choreography workshops, 26 &amp; 27 Sep |
+| `/workshops` | the featured slot when something is in it, otherwise the classes. Carries no date, so it never goes stale |
 | `/acting` · `/acting-seawoods` | Acting & Personality Development, Seawoods |
 | `/retro-jazz` | finished 27 Aug 2026 — now redirects to the homepage |
 

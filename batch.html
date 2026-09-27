@@ -5,6 +5,8 @@
 -->
 <html lang="en">
 <head>
+<!-- removes anything carrying data-until="<end time>" once it has passed - see expire.js -->
+<script src="expire.js"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Batch — iMAP</title>
@@ -460,7 +462,8 @@
        come from the same two fields - never hardcode one of them here. */
     /* A batch that opens with a free trial says so above the fee, because that
        is the thing that decides whether someone turns up at all. */
-    if(b.demo){
+    /* demoUntil is when the demo ENDS (strict ISO, IST) - after it the line goes by itself */
+    if(b.demo && !(b.demoUntil && window.imapExpired && imapExpired(b.demoUntil))){
       var dm=document.createElement('div');
       dm.className='bd-demo';
       dm.innerHTML='<span class="k">Free demo</span><span class="v">'+

@@ -30,7 +30,7 @@
 
 /* Bump this whenever you paste a new copy in. Visiting the /exec URL in a browser
    prints it, so you can always tell which version the web app is actually serving. */
-var BUILD = '2026-09-21-a';
+var BUILD = '2026-09-28-a';
 
 /* A genuine payer screenshots the receipt and uploads it within a couple of
    minutes. A bigger gap means an older image, so say so. */
@@ -93,8 +93,13 @@ var PRICES = (function () {
     'test-1':           { label: 'Test payment',                 amount: 1 },
     'xb-retro-member':  { label: 'Retro-Jazz Workshop · 27 Aug · CrossBox member',     amount: 199 },
     'xb-retro-guest':   { label: 'Retro-Jazz Workshop · 27 Aug · non-member',          amount: 599 },
-    'ws-s-26sep':       { label: 'Bollywood Choreography Workshop (Kalyani) · 26 Sep Seawoods',        amount: 800 },
-    'ws-s-27sep':       { label: 'Afro & Dancehall Choreography Workshop (Kelebu) · 27 Sep Seawoods',  amount: 800 }
+    /* One-off events carry `until`, the moment they END (IST), same as SPECIALS
+       in cart.js. After it (plus a grace period for a form left open) the
+       order is refused - the site stops selling at `until` itself. */
+    'ws-s-26sep':       { label: 'Bollywood Choreography Workshop (Kalyani) · 26 Sep Seawoods',        amount: 800,
+                          until: '2026-09-26T19:00:00+05:30' },
+    'ws-s-27sep':       { label: 'Afro & Dancehall Choreography Workshop (Kelebu) · 27 Sep Seawoods',  amount: 800,
+                          until: '2026-09-27T19:00:00+05:30' }
   };
   var BATCHES = {
     'contemporary-seawoods':        'Ballet Training (Seawoods)',
@@ -131,6 +136,36 @@ var PRICES = (function () {
   }
   return p;
 })();
+
+/* Accept an order this long after an event's `until`: someone who opened the
+   page before it ended and paid, then submitted late, is still honoured. */
+var UNTIL_GRACE_MS = 12 * 60 * 60 * 1000;
+
+/* Strict ISO only - Date parsing is lenient enough to read a typo as 2001. */
+function untilMs(iso) {
+  return /^\d{4}-\d\d-\d\dT\d\d:\d\d(:\d\d)?([+-]\d\d:\d\d|Z)$/.test(iso || '') ? Date.parse(iso) : NaN;
+}
+function soldOut(item) {
+  var t = untilMs(item.until);
+  return isFinite(t) && Date.now() > t + UNTIL_GRACE_MS;
+}
+
+/* The backend countdown, for ?diag=1: every dated item, how long it has left,
+   and which have ended (so their ids can be retired from the source). */
+function eventCountdown() {
+  var out = [], now = Date.now();
+  for (var id in PRICES) {
+    if (!PRICES[id].until) continue;
+    var t = untilMs(PRICES[id].until);
+    if (!isFinite(t)) { out.push({ id: id, until: PRICES[id].until, status: 'BAD DATE - not being enforced' }); continue; }
+    var span = function (ms) { var h = Math.round(Math.abs(ms) / 3600000); return h >= 48 ? Math.round(h / 24) + ' days' : h + ' h'; };
+    out.push({ id: id, until: PRICES[id].until,
+               status: t > now ? 'on sale - ends in ' + span(t - now)
+                     : now < t + UNTIL_GRACE_MS ? 'ended ' + span(now - t) + ' ago - late orders accepted for ' + span(t + UNTIL_GRACE_MS - now) + ' more'
+                     : 'ended ' + span(now - t) + ' ago - refused now, safe to remove' });
+  }
+  return out;
+}
 
 var HEADERS = ['Timestamp', 'Receipt', 'Status', 'Items', 'Item IDs', 'Qty',
                'Total (expected)', 'Total (claimed)', 'Flags',
@@ -260,7 +295,8 @@ function doGet(e) {
       emailRecipientsLeftToday: quota,
       recipientsPerOrder: CONFIG.NOTIFY.length + 1,
       ordersLeftToday: quota < 0 ? -1 : Math.floor(quota / (CONFIG.NOTIFY.length + 1)),
-      canary: canaryStatus()
+      canary: canaryStatus(),
+      events: eventCountdown()
     }, null, 2)).setMimeType(ContentService.MimeType.JSON);
   }
   return HtmlService.createHtmlOutput(
@@ -307,6 +343,7 @@ function validate(b) {
   for (i = 0; i < raw.length; i++) {
     var id = s(raw[i] && raw[i].id, 40);
     if (!PRICES.hasOwnProperty(id)) return { ok: false, error: 'One of the items is no longer available. Please reload and try again.' };
+    if (soldOut(PRICES[id])) return { ok: false, error: '"' + PRICES[id].label + '" has already taken place, so it can\'t be booked any more. If you have paid for it, message us on WhatsApp and we\'ll sort it out.' };
     var qty = parseInt(raw[i].qty, 10);
     if (!(qty >= 1 && qty <= 20)) qty = 1;
     expected += PRICES[id].amount * qty;

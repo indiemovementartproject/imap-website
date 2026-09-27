@@ -5,6 +5,8 @@
 -->
 <html lang="en">
 <head>
+<!-- removes anything carrying data-until="<end time>" once it has passed - see expire.js -->
+<script src="expire.js"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="google-site-verification" content="GUM1FETlAZaLz8YIAfawIHnYk0SIOCsjpy4yBBDxIxw" />
@@ -748,91 +750,6 @@
 }
 </script>
 
-<!-- The two choreography workshops, 26 and 27 Sep. Dated Events can surface in search
-     and in Google's events carousel in ways the DanceSchool block cannot. DELETE BOTH
-     once they have run - a past event is dead weight in results. -->
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "Event",
-  "name": "Bollywood Choreography Workshop (Kalyani) with Ruchika — iMAP Seawoods",
-  "description": "A two-hour Bollywood choreography workshop to the song Kalyani, led by Ruchika Jain at iMAP Seawoods. Saturday 26 September 2026, 5 to 7 PM. Rs 800, all levels welcome, no batch required.",
-  "startDate": "2026-09-26T17:00:00+05:30",
-  "endDate": "2026-09-26T19:00:00+05:30",
-  "eventStatus": "https://schema.org/EventScheduled",
-  "eventAttendanceMode": "https://schema.org/OfflineEventAttendanceMode",
-  "image": "https://indiemovementartproject.com/media/ws-bollywood-26sep.jpg",
-  "url": "https://indiemovementartproject.com/workshops",
-  "location": {
-    "@type": "Place",
-    "name": "iMAP Seawoods Studio",
-    "address": {
-      "@type": "PostalAddress",
-      "streetAddress": "iMAP @ Ohana Fitness, Haware's Centurion Mall, Sector 19A",
-      "addressLocality": "Seawoods East, Navi Mumbai",
-      "addressRegion": "Maharashtra",
-      "postalCode": "400706",
-      "addressCountry": "IN"
-    }
-  },
-  "organizer": {
-    "@id": "https://indiemovementartproject.com/#organisation"
-  },
-  "performer": {
-    "@type": "Person",
-    "name": "Ruchika Jain"
-  },
-  "offers": {
-    "@type": "Offer",
-    "price": "800",
-    "priceCurrency": "INR",
-    "availability": "https://schema.org/InStock",
-    "url": "https://indiemovementartproject.com/pay.html",
-    "validFrom": "2026-09-21T00:00:00+05:30"
-  }
-}
-</script>
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "Event",
-  "name": "Afro & Dancehall Choreography Workshop (Kelebu) by Tanvi — iMAP Seawoods",
-  "description": "A two-hour Afro and Dancehall choreography workshop to Kelebu by Rema, led by Tanvi Palande at iMAP Seawoods. Sunday 27 September 2026, 5 to 7 PM. Rs 800, all levels welcome, no batch required.",
-  "startDate": "2026-09-27T17:00:00+05:30",
-  "endDate": "2026-09-27T19:00:00+05:30",
-  "eventStatus": "https://schema.org/EventScheduled",
-  "eventAttendanceMode": "https://schema.org/OfflineEventAttendanceMode",
-  "image": "https://indiemovementartproject.com/media/ws-afro-27sep.jpg",
-  "url": "https://indiemovementartproject.com/workshops",
-  "location": {
-    "@type": "Place",
-    "name": "iMAP Seawoods Studio",
-    "address": {
-      "@type": "PostalAddress",
-      "streetAddress": "iMAP @ Ohana Fitness, Haware's Centurion Mall, Sector 19A",
-      "addressLocality": "Seawoods East, Navi Mumbai",
-      "addressRegion": "Maharashtra",
-      "postalCode": "400706",
-      "addressCountry": "IN"
-    }
-  },
-  "organizer": {
-    "@id": "https://indiemovementartproject.com/#organisation"
-  },
-  "performer": {
-    "@type": "Person",
-    "name": "Tanvi Palande"
-  },
-  "offers": {
-    "@type": "Offer",
-    "price": "800",
-    "priceCurrency": "INR",
-    "availability": "https://schema.org/InStock",
-    "url": "https://indiemovementartproject.com/pay.html",
-    "validFrom": "2026-09-21T00:00:00+05:30"
-  }
-}
-</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Space+Grotesk:wght@300;400;500;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
@@ -1162,7 +1079,6 @@
   <button class="burger" id="burger" aria-label="Menu" aria-expanded="false">☰</button>
   <div class="nav-links" id="navLinks">
     <a href="#about">About</a>
-    <a href="#workshops">What&rsquo;s new</a>
     <a href="#classes">Classes</a>
     <a href="count-me-in.html">Count Me In</a>
     <a href="sync-studio.html">Sync Studio</a>
@@ -1200,63 +1116,22 @@
   </section>
 
 
-  <!-- WHAT'S NEW: the featured slot. Two one-off choreography workshops,
-       26 and 27 Sep 2026. Sold through SPECIALS in cart.js - see RUNBOOK.md,
-       and empty that catalogue the moment they are over. -->
-  <section class="section feat" id="workshops" style="padding-bottom:44px">
-    <div class="feat-inner">
-      <div class="eyebrow">What&rsquo;s new</div>
-      <h2>Choreography <span class="i">Workshops</span>.</h2>
-      <p class="tagline">Two evenings at Seawoods &middot; 26 &amp; 27 September</p>
-      <p class="lead">One song, two hours, one finished piece. Drop into either &mdash; no batch, no
-        commitment, all levels welcome. <span class="i">&#8377;800 each.</span></p>
+  <!-- WHAT'S NEW: the featured slot - empty right now. Past occupants are in git
+       (RUNBOOK.md, "The featured slot"); the .feat / .glass / .ws-* styles stay
+       in this file for the next one.
 
-      <div class="feat-duo">
-        <article class="ws-card">
-          <a class="feat-poster" href="media/ws-bollywood-26sep.jpg" target="_blank" rel="noopener">
-            <img src="media/ws-bollywood-26sep.jpg" width="1080" height="1350" decoding="async"
-                 alt="Bollywood Choreography Workshop with Ruchika at iMAP Seawoods — song Kalyani, Saturday 26 September 2026, 5 to 7 PM, ₹800">
-          </a>
-          <div class="glass">
-            <div class="ws-title">Bollywood Choreography</div>
-            <div class="ws-by">with Ruchika</div>
-            <div class="ws-rows">
-              <div class="ws-row"><span class="k">Song</span><span class="v"><b>Kalyani</b></span></div>
-              <div class="ws-row"><span class="k">When</span><span class="v"><b>Saturday 26 September</b><br>5:00 &ndash; 7:00 PM</span></div>
-              <div class="ws-row"><span class="k">Where</span><span class="v">iMAP Seawoods</span></div>
-            </div>
-            <div class="ws-foot">
-              <div class="ws-fee">&#8377;800<small>per person</small></div>
-              <a class="feat-btn" href="pay.html?buy=ws-s-26sep">Register</a>
-            </div>
-          </div>
-        </article>
+       Every dated thing gets the moment it ENDS, and expire.js removes it once
+       that has passed, before it is painted:
 
-        <article class="ws-card">
-          <a class="feat-poster" href="media/ws-afro-27sep.jpg" target="_blank" rel="noopener">
-            <img src="media/ws-afro-27sep.jpg" width="1080" height="1350" decoding="async"
-                 alt="Afro &amp; Dancehall Choreography Workshop by Tanvi at iMAP Seawoods — song Kelebu by Rema, Sunday 27 September 2026, 5 to 7 PM, ₹800">
-          </a>
-          <div class="glass">
-            <div class="ws-title">Afro &amp; Dancehall</div>
-            <div class="ws-by">by Tanvi</div>
-            <div class="ws-rows">
-              <div class="ws-row"><span class="k">Song</span><span class="v"><b>Kelebu</b> by Rema</span></div>
-              <div class="ws-row"><span class="k">When</span><span class="v"><b>Sunday 27 September</b><br>5:00 &ndash; 7:00 PM</span></div>
-              <div class="ws-row"><span class="k">Where</span><span class="v">iMAP Seawoods</span></div>
-            </div>
-            <div class="ws-foot">
-              <div class="ws-fee">&#8377;800<small>per person</small></div>
-              <a class="feat-btn" href="pay.html?buy=ws-s-27sep">Register</a>
-            </div>
-          </div>
-        </article>
-      </div>
+         <section class="section feat" id="workshops" data-expire-group
+                  data-until="2026-10-18T19:00:00+05:30">      latest end of all
+           <article class="ws-card" data-until="2026-10-17T19:00:00+05:30">
+           <article class="ws-card" data-until="2026-10-18T19:00:00+05:30">
+         the nav link:  <a href="#workshops" data-until="(latest end)">What's new</a>
+         Event JSON-LD: <script type="application/ld+json" data-until="(its end)">
+         and in cart.js SPECIALS / Code.gs PRICES: until: '(its end)'
 
-      <p class="feat-ask">Doing both? Add them to your cart and pay in one go &middot;
-        questions on <a data-wa="Hi iMAP! I'd like to know more about the choreography workshops on 26 and 27 September.">WhatsApp</a></p>
-    </div>
-  </section>
+       `node scripts/events.js` prints the countdown for all of them. -->
 
   <!-- REGULAR CLASSES -->
   <section class="section" id="classes" style="padding-bottom:40px">
@@ -1576,6 +1451,8 @@
     var m = /[?&]go=([a-z0-9\-]+)/i.exec(location.search);
     if(!m) return;
     var target = document.getElementById(m[1]);
+    /* /workshops outlives any one workshop: with nothing featured, show the classes */
+    if(!target && m[1] === 'workshops') target = document.getElementById('classes');
     if(!target) return;
     function land(){
       var y = target.getBoundingClientRect().top + window.pageYOffset - 84;

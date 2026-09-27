@@ -31,19 +31,28 @@
   /* Orientation Series passes. "All classes" on the standee means all workshops. */
   var PASSES = [];
 
-  /* One-off workshops. The Register buttons use pay.html?buy=<id> to go straight
-     to checkout, but these are ordinary cart items too, so someone doing both
-     weekend workshops can add each and pay once.
+  /* One-off workshops, masterclasses and events. The Register buttons use
+     pay.html?buy=<id> to go straight to checkout, but these are ordinary cart
+     items too, so someone doing two can add each and pay once.
 
-     EMPTY THIS THE DAY AFTER THEY RUN. While an id is listed, a pay.html?buy=
-     link already shared on WhatsApp still takes money for an event that has
-     happened - and nobody finds out until the payer asks where their class is. */
-  var SPECIALS = [
-    { id: 'ws-s-26sep', title: 'Bollywood Choreography Workshop (Kalyani)',
-      detail: 'Sat 26 Sep · 5–7 PM · Seawoods · Ruchika Jain', amount: 800 },
-    { id: 'ws-s-27sep', title: 'Afro & Dancehall Choreography Workshop (Kelebu)',
-      detail: 'Sun 27 Sep · 5–7 PM · Seawoods · Tanvi Palande', amount: 800 }
-  ];
+     Every entry carries `until`, the moment the event ENDS (IST). After it, the
+     item stops existing as far as the site is concerned: lookup() returns
+     nothing, so a pay.html?buy= link already shared on WhatsApp falls through
+     instead of taking money for something that has happened, and a stale cart
+     drops it. Code.gs has the same date and refuses it too.
+
+       { id: 'ws-s-18oct', title: '...', detail: 'Sun 18 Oct · 5–7 PM · Seawoods · ...',
+         amount: 800, until: '2026-10-18T19:00:00+05:30' }
+
+     Last occupants: the Bollywood (Kalyani) and Afro & Dancehall (Kelebu)
+     choreography workshops, 26-27 Sep 2026. */
+  var SPECIALS = [];
+
+  /* strict ISO only - Date.parse reads a typo like "27 Sepp" as a date in 2001 */
+  function over(until) {
+    if (!/^\d{4}-\d\d-\d\dT\d\d:\d\d(:\d\d)?([+-]\d\d:\d\d|Z)$/.test(until || '')) return false;
+    return Date.parse(until) <= Date.now();
+  }
 
   /* Regular classes. */
   var BATCHES = {
@@ -85,7 +94,7 @@
   function lookup(id) {
     var i;
     for (i = 0; i < SPECIALS.length; i++) {
-      if (SPECIALS[i].id === id) {
+      if (SPECIALS[i].id === id && !over(SPECIALS[i].until)) {
         return { id: id, type: 'workshop', title: SPECIALS[i].title,
                  detail: SPECIALS[i].detail, amount: SPECIALS[i].amount };
       }
