@@ -2,7 +2,8 @@
  * AnyConvert - the interface.
  *
  * Four steps and nothing else: pick a file, pick a format (or a size),
- * go, download. Everything the engines need to know is worked out behind
+ * go, download. Pick up to 50 and the same four steps run over all of them,
+ * one after another, ending in a ZIP of the lot and a download per file. Everything the engines need to know is worked out behind
  * the scenes - including starting the 31 MB media engine download the
  * moment a video or audio file is picked, so it is usually ready before
  * the user has chosen what to turn it into.
@@ -10,16 +11,20 @@
 import { FORMATS, BY_ID, detect, targetsFor, canCompress, SUGGEST, KIND_LABEL, matrixStats } from './formats.js';
 import * as router from './engines/router.js';
 import * as media from './engines/media.js';
+import { zip as pdfZip } from './engines/pdf.js';
 
 const $ = id => document.getElementById(id);
 const MAC = !!router.native();
+const MAX_FILES = 50;
 
 const S = {
   mode: 'convert',
   file: null, src: null, info: null, probing: null,
   target: null, unit: 'MB',
   job: 0, result: null, url: null,
+  items: [],        /* two or more files: [{ file, src, status, result, error }] */
 };
+const batch = () => S.items.length > 1;
 
 /* ---------------------------------------------------------------- */
 /* boot                                                              */
@@ -71,9 +76,9 @@ placePill();
 /* 1 - picking a file                                                */
 /* ---------------------------------------------------------------- */
 
-$('drop').onclick = () => $('picker').click();
-$('picker').onchange = e => { if (e.target.files[0]) take(e.target.files[0]); e.target.value = ''; };
-$('fClear').onclick = () => { clearFile(); $('drop').focus(); };
+$('drop').onclick = $('fAdd').onclick = $('bAdd').onclick = () => $('picker').click();
+$('picker').onchange = e => { if (e.target.files.length) addFiles(e.target.files); e.target.value = ''; };
+$('fClear').onclick = $('bClear').onclick = () => { clearFile(); $('drop').focus(); };
 
 const drop = $('drop');
 let depth = 0;
@@ -83,24 +88,48 @@ addEventListener('dragover', e => { if (hasFiles(e)) e.preventDefault(); });
 addEventListener('drop', e => {
   if (!hasFiles(e)) return;
   e.preventDefault(); depth = 0; drop.classList.remove('over');
-  const f = e.dataTransfer.files[0];
-  if (f) take(f);
+  if (e.dataTransfer.files.length) addFiles(e.dataTransfer.files);
 });
 function hasFiles(e) { return [...(e.dataTransfer?.types || [])].includes('Files'); }
 
 /* paste a screenshot straight in */
 addEventListener('paste', e => {
-  const f = [...(e.clipboardData?.files || [])][0];
-  if (f) { e.preventDefault(); take(f.name && f.name !== 'image.png' ? f : new File([f], 'pasted.png', { type: f.type })); }
+  const fs = [...(e.clipboardData?.files || [])];
+  if (!fs.length) return;
+  e.preventDefault();
+  addFiles(fs.map(f => f.name && f.name !== 'image.png' ? f : new File([f], 'pasted.png', { type: f.type })));
 });
+
+/**
+ * Files arriving by any route - picker, drop, paste, "Add more". They join
+ * what is already picked, unless the last job has finished, in which case
+ * they start a fresh selection. One file keeps the single-file flow (probe,
+ * preview, exact details); two or more become a batch.
+ */
+function addFiles(list) {
+  if (!$('goWork').hidden) return;
+  const finished = !$('goDone').hidden || !$('goErr').hidden;
+  const have = finished ? [] : S.items.length ? S.items.map(i => i.file) : S.file ? [S.file] : [];
+  const same = (a, b) => a.name === b.name && a.size === b.size && a.lastModified === b.lastModified;
+  const all = have.concat([...list].filter(f => !have.some(h => same(h, f))));
+  const left = Math.max(0, all.length - MAX_FILES);
+  all.length = Math.min(all.length, MAX_FILES);
+  if (finished) { S.items = []; S.file = null; }
+  if (all.length === 1) take(all[0]); else takeMany(all);
+  if (left) $('stepHint').textContent = `50 at a time · ${left} left out`;
+}
 
 function take(file) {
   const src = detect(file);
   resetOutcome();
+  S.items = [];
   S.file = file; S.src = src; S.info = null; S.target = null;
+  $('stepHint').textContent = '';
 
   $('drop').hidden = true;
+  $('batch').hidden = true;
   $('file').hidden = false;
+  $('fMore').hidden = false;
   $('fName').textContent = file.name;
   $('fIco').textContent = (src?.label || file.name.split('.').pop() || '?').slice(0, 4).toUpperCase();
 
@@ -148,10 +177,89 @@ function describe() {
   $('fSub').innerHTML = bits.map(esc).join('<span class="sep">·</span>');
 }
 
+/* ---- several files ---- */
+
+function takeMany(files) {
+  S.job++;
+  resetOutcome();
+  const before = S.target;
+  S.file = S.src = S.info = null;
+  S.items = files.map(file => ({ file, src: detect(file), status: 'queued', result: null, error: '' }));
+  /* keep the format already chosen if every file can still become it */
+  S.target = before && commonTargets().includes(before) ? before : null;
+  $('stepHint').textContent = '';
+  $('drop').hidden = true;
+  $('file').hidden = true;
+  $('fMore').hidden = true;
+  $('batch').hidden = false;
+  renderBatch();
+  render();
+  /* warm the media engine now if anything will need it */
+  if (S.items.some(i => i.src && router.needsFF(i.src, null, S.mode))) {
+    media.ensureFF().catch(() => { /* reported per file if it matters */ });
+  }
+}
+
+const known = () => S.items.filter(i => i.src);
+
+function renderBatch() {
+  const n = S.items.length, total = S.items.reduce((a, i) => a + i.file.size, 0);
+  const unknown = n - known().length;
+  $('bCount').textContent = `${n} files`;
+  $('bTotal').textContent = fmtBytes(total) + (unknown ? ` · ${unknown} not supported` : '');
+  const locked = !$('goWork').hidden;
+  $('bList').innerHTML = S.items.map((it, k) => {
+    const label = (it.src?.label || it.file.name.split('.').pop() || '?').slice(0, 4).toUpperCase();
+    let badge = '', sub = `${fmtBytes(it.file.size)}${it.src ? ' · ' + esc(it.src.label) : ''}`;
+    if (!it.src) sub += '<span class="sep">·</span><span class="why">not a format AnyConvert knows</span>';
+    if (it.status === 'working') badge = '<span class="badge on">working</span>';
+    else if (it.status === 'done') {
+      badge = '<span class="badge ok">done</span>';
+      sub = `${fmtBytes(it.file.size)} → ${fmtBytes(it.result.blob.size)}`;
+    } else if (it.status === 'failed') {
+      badge = '<span class="badge bad">failed</span>';
+      sub = `<span class="why">${esc(it.error)}</span>`;
+    } else if (it.status === 'skipped') {
+      badge = '<span class="badge">skipped</span>';
+      sub = `<span class="why">${esc(it.error)}</span>`;
+    } else if (it.status === 'cancelled') badge = '<span class="badge">cancelled</span>';
+    const x = it.status === 'queued' && !locked
+      ? `<button class="x" type="button" data-rm="${k}" aria-label="Remove ${esc(it.file.name)}">
+           <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 4l8 8M12 4l-8 8"/></svg></button>` : '';
+    return `<li class="brow${it.src ? '' : ' skip'}" data-k="${k}">
+      <div class="file-ico">${esc(label)}</div>
+      <div class="file-meta"><div class="file-name">${esc(it.file.name)}</div><div class="file-sub">${sub}</div></div>
+      ${badge}${x}</li>`;
+  }).join('');
+  $('bList').querySelectorAll('[data-rm]').forEach(b => b.onclick = () => {
+    const rest = S.items.filter((_, k) => k !== +b.dataset.rm).map(i => i.file);
+    S.items = [];
+    if (rest.length === 1) take(rest[0]); else takeMany(rest);
+  });
+}
+
+/* one row changed - repaint it and keep it in view while the batch runs */
+function paintRow(k) {
+  renderBatch();
+  const row = $('bList').querySelector(`[data-k="${k}"]`);
+  if (row) row.scrollIntoView({ block: 'nearest' });
+}
+
+/** Formats every recognised file in the batch can become. */
+function commonTargets() {
+  const srcs = [...new Set(known().map(i => i.src))];
+  if (!srcs.length) return [];
+  const lists = srcs.map(s => targetsFor(s, { mac: MAC, info: null }));
+  return lists[0].filter(t => lists.every(l => l.includes(t)));
+}
+
 function clearFile() {
   S.job++;
   S.file = S.src = S.info = S.target = null;
+  S.items = [];
   $('file').hidden = true;
+  $('fMore').hidden = true;
+  $('batch').hidden = true;
   $('drop').hidden = false;
   $('stepHint').textContent = '';
   resetOutcome();
@@ -163,7 +271,7 @@ function clearFile() {
 /* ---------------------------------------------------------------- */
 
 function render() {
-  const has = !!S.file;
+  const has = !!S.file || batch();
   $('cTo').hidden = !has || S.mode !== 'convert';
   $('cSize').hidden = !has || S.mode !== 'compress';
   $('cGo').hidden = !has;
@@ -175,17 +283,29 @@ function render() {
 function renderTargets() {
   const box = $('groups');
   const q = $('q').value.trim().toLowerCase();
-  if (!S.src) {
-    box.innerHTML = `<p class="none">AnyConvert does not recognise <b>.${esc(S.file.name.split('.').pop())}</b> files yet.</p>`;
+  const many = batch();
+  /* in a batch the suggestions and grouping follow the first recognised file */
+  const lead = many ? known()[0]?.src : S.src;
+  if (!lead) {
+    box.innerHTML = many
+      ? '<p class="none">AnyConvert does not recognise any of these files yet.</p>'
+      : `<p class="none">AnyConvert does not recognise <b>.${esc(S.file.name.split('.').pop())}</b> files yet.</p>`;
     $('toCount').textContent = ''; $('q').hidden = true; $('more').hidden = true;
     return;
   }
-  const all = targetsFor(S.src, { mac: MAC, info: S.info });
+  const all = many ? commonTargets() : targetsFor(S.src, { mac: MAC, info: S.info });
   $('q').hidden = all.length < 8;
   $('toCount').textContent = all.length ? `${all.length} formats` : '';
   /* a target picked before the probe landed may no longer make sense */
   if (S.target && !all.includes(S.target)) { S.target = null; updateGo(); }
 
+  if (!all.length && many) {
+    const kinds = [...new Set(known().map(i => i.src.label))];
+    box.innerHTML = `<p class="none">These files (${esc(kinds.join(', '))}) have no format in common to convert into.
+      Convert them in separate groups, one kind at a time.</p>`;
+    $('more').hidden = true;
+    return;
+  }
   if (!all.length) {
     const why = S.src.kind === 'office'
       ? `${S.src.label} files can be <b>compressed</b> here - switch to Compress above. Converting them to other document formats needs the Mac app.`
@@ -199,14 +319,14 @@ function renderTargets() {
     || (t.note || '').toLowerCase().includes(q);
   const shown = all.filter(match);
 
-  const sug = (SUGGEST[S.src.kind] || []).map(id => BY_ID[id]).filter(t => t && shown.includes(t));
+  const sug = (SUGGEST[lead.kind] || []).map(id => BY_ID[id]).filter(t => t && shown.includes(t));
   const rest = shown.filter(t => !sug.includes(t));
   const groups = [];
   if (sug.length && !q) groups.push(['Popular', sug, true]);
-  const order = S.src.kind === 'video' ? ['video', 'audio', 'image', 'doc'] : ['audio', 'video', 'image', 'doc', 'office'];
+  const order = lead.kind === 'video' ? ['video', 'audio', 'image', 'doc'] : ['audio', 'video', 'image', 'doc', 'office'];
   for (const k of order) {
     const g = (q ? shown : rest).filter(t => (t.animated ? 'image' : t.kind) === k);
-    if (g.length) groups.push([groupName(k), g, false]);
+    if (g.length) groups.push([groupName(k, lead), g, false]);
   }
 
   box.innerHTML = groups.map(([h, list, isSug]) =>
@@ -218,6 +338,14 @@ function renderTargets() {
 
   /* say what is missing and why, rather than leave a gap to puzzle over */
   const notes = [];
+  if (many) {
+    const out = S.items.length - known().length;
+    if (out) notes.push(`${out} file${out === 1 ? '' : 's'} AnyConvert doesn't recognise will be skipped.`);
+    if (new Set(known().map(i => i.src)).size > 1) notes.push('Only formats every file can become are shown.');
+    $('more').hidden = !notes.length;
+    $('more').textContent = notes.join(' ');
+    return;
+  }
   const i = S.info;
   if (S.src.kind === 'video' && i && i.duration > 0 && !i.audio) {
     notes.push('This video has no sound, so there is no audio to extract.');
@@ -236,8 +364,8 @@ function renderTargets() {
   $('more').textContent = notes.join(' ');
 }
 
-function groupName(k) {
-  if (k === 'image' && (S.src.kind === 'video' || S.src.animated)) return 'Animation & stills';
+function groupName(k, lead) {
+  if (k === 'image' && (lead.kind === 'video' || lead.animated)) return 'Animation & stills';
   return { audio: 'Audio', video: 'Video', image: 'Image', doc: 'Document', office: 'Document' }[k];
 }
 
@@ -265,6 +393,9 @@ $('q').addEventListener('keydown', e => {
 /* ---- target size ---- */
 
 function renderSize() {
+  $('uPct').hidden = !batch();
+  if (batch()) return renderBatchSize();
+  if (S.unit === '%') setUnit('MB');
   const src = S.src, f = S.file;
   const box = $('quick');
   if (!src || !canCompress(src, { mac: MAC })) {
@@ -298,14 +429,46 @@ function renderSize() {
   sizeChanged();
 }
 
+/* A batch can't share one byte count - files differ - so it offers a
+   percentage of each file, or a ceiling every file is brought under. */
+const compressible = () => known().filter(i => canCompress(i.src, { mac: MAC }));
+
+function renderBatchSize() {
+  const box = $('quick');
+  const ok = compressible();
+  $('size').disabled = !ok.length;
+  if (!ok.length) {
+    box.innerHTML = '';
+    $('sizeHint').innerHTML = '<span class="bad">None of these files can be compressed here.</span>';
+    updateGo();
+    return;
+  }
+  if (!$('size').value && S.unit !== '%') setUnit('%');
+  const biggest = Math.max(...ok.map(i => i.file.size));
+  const picks = [75, 50, 25].map(p => ({ label: `${p}% each`, u: '%', v: p }));
+  for (const mb of [10, 5, 2, 1, 0.5]) {
+    if (mb * 1024 * 1024 < biggest * 0.9) picks.push({ label: `under ${mb < 1 ? mb * 1000 + ' KB' : mb + ' MB'}`, u: mb < 1 ? 'KB' : 'MB', v: mb < 1 ? mb * 1000 : mb });
+  }
+  box.innerHTML = picks.slice(0, 7).map(p =>
+    `<button type="button" class="chip" data-u="${p.u}" data-v="${p.v}">${p.label}</button>`).join('');
+  box.querySelectorAll('.chip').forEach(b => b.onclick = () => {
+    setUnit(b.dataset.u);
+    $('size').value = b.dataset.v;
+    sizeChanged();
+    $('go').focus({ preventScroll: true });
+  });
+  sizeChanged();
+}
+
 function setUnit(u) {
   S.unit = u;
   document.querySelectorAll('.unit button').forEach(b => b.setAttribute('aria-pressed', b.dataset.u === u));
 }
 document.querySelectorAll('.unit button').forEach(b => b.onclick = () => {
-  const bytes = targetBytes();
+  const was = S.unit, bytes = was === '%' ? 0 : targetBytes();
   setUnit(b.dataset.u);
-  if (bytes) $('size').value = trimNum(S.unit === 'KB' ? bytes / 1024 : bytes / 1024 / 1024);
+  if (b.dataset.u === '%' || was === '%') $('size').value = '';
+  else if (bytes) $('size').value = trimNum(S.unit === 'KB' ? bytes / 1024 : bytes / 1024 / 1024);
   sizeChanged();
 });
 $('size').addEventListener('input', () => {
@@ -316,14 +479,17 @@ $('size').addEventListener('input', () => {
 });
 $('size').addEventListener('keydown', e => { if (e.key === 'Enter' && !$('go').disabled) go(); });
 
-function targetBytes() {
+/** The target in bytes - for a batch in %, the target for that particular file. */
+function targetBytes(file = S.file) {
   const n = parseFloat($('size').value);
   if (!n || n <= 0) return 0;
+  if (S.unit === '%') return n >= 100 || !file ? 0 : Math.round(file.size * n / 100);
   return Math.round(n * (S.unit === 'KB' ? 1024 : 1024 * 1024));
 }
 
 function sizeChanged() {
   resetOutcome();
+  if (batch()) return batchSizeChanged();
   const t = targetBytes(), f = S.file;
   const hint = $('sizeHint');
   document.querySelectorAll('#quick .chip').forEach(c =>
@@ -337,6 +503,26 @@ function sizeChanged() {
     const floor = minimumFor(S.src, S.info);
     if (floor && t < floor) warn = ` <span class="bad">· below about ${fmtBytes(floor)} this can't sound or look right</span>`;
     hint.innerHTML = `<b>${fmtBytes(f.size)}</b> → <b class="good">${fmtBytes(t)}</b> · ${pct}% smaller${warn}`;
+  }
+  updateGo();
+}
+
+function batchSizeChanged() {
+  const hint = $('sizeHint'), n = parseFloat($('size').value);
+  document.querySelectorAll('#quick .chip').forEach(c =>
+    c.setAttribute('aria-pressed', c.dataset.u === S.unit && parseFloat(c.dataset.v) === n));
+  const ok = compressible();
+  const cant = known().length - ok.length;
+  const tail = cant ? ` <span class="bad">· ${cant} can't be compressed here and will be skipped</span>` : '';
+  const total = ok.reduce((a, i) => a + i.file.size, 0);
+  if (!n) hint.innerHTML = `<b>${ok.length} files</b>, ${fmtBytes(total)} in all. Shrink each by a percentage, or bring each under a size.` + tail;
+  else if (S.unit === '%') {
+    hint.innerHTML = n >= 100 ? '<span class="bad">Pick less than 100%.</span>'
+      : `Each file to <b class="good">${trimNum(n)}%</b> of its size · about <b>${fmtBytes(total)}</b> → <b class="good">${fmtBytes(total * n / 100)}</b>` + tail;
+  } else {
+    const t = targetBytes(), under = ok.filter(i => i.file.size <= t).length;
+    hint.innerHTML = `Each file brought under <b class="good">${fmtBytes(t)}</b>`
+      + (under ? ` · ${under} already ${under === 1 ? 'is' : 'are'} and will be kept as ${under === 1 ? 'it is' : 'they are'}` : '') + tail;
   }
   updateGo();
 }
@@ -356,6 +542,19 @@ function minimumFor(src, info) {
 
 function updateGo() {
   const b = $('go');
+  if (batch()) {
+    if (S.mode === 'convert') {
+      const n = known().length;
+      b.disabled = !S.target || !n;
+      b.textContent = S.target ? `Convert ${n} files to ${S.target.label}` : 'Choose a format';
+    } else {
+      const n = compressible().length, v = parseFloat($('size').value);
+      const ok = n > 0 && v > 0 && !(S.unit === '%' && v >= 100);
+      b.disabled = !ok;
+      b.textContent = ok ? `Compress ${n} files` : 'Set a target size';
+    }
+    return;
+  }
   if (S.mode === 'convert') {
     b.disabled = !S.target;
     b.textContent = S.target ? `Convert to ${S.target.label}` : 'Choose a format';
@@ -371,6 +570,7 @@ $('go').onclick = go;
 $('eRetry').onclick = go;
 
 async function go() {
+  if (batch()) return goBatch();
   const job = ++S.job;
   show('work');
   const file = S.file, src = S.src, mode = S.mode;
@@ -418,8 +618,183 @@ async function go() {
 $('cancel').onclick = () => {
   S.job++;
   media.cancel();                  /* kills the worker; the next job reloads it */
+  if (batch()) {
+    /* keep whatever already finished - losing 40 done files to one stray click is worse */
+    S.items.forEach(i => { if (i.status === 'working' || i.status === 'queued') i.status = 'cancelled'; });
+    if (S.items.some(i => i.status === 'done')) { show('done'); finishBatch(true); return; }
+    S.items.forEach(i => { i.status = 'queued'; i.error = ''; });
+    show('idle'); renderBatch(); updateGo();
+    return;
+  }
   resetOutcome();
 };
+
+/* ---- a batch: the same job, file after file ----
+   One at a time on purpose. Every media job gets a fresh engine instance with
+   1 GB of its own, so two side by side would be 2 GB - more than a phone gives
+   a tab - and the canvas jobs finish in milliseconds anyway. */
+async function goBatch() {
+  const job = ++S.job;
+  const mode = S.mode, target = S.target;
+  S.items.forEach(i => { i.status = 'queued'; i.result = null; i.error = ''; });
+  for (const it of S.items) {
+    if (!it.src) { it.status = 'skipped'; it.error = 'not a format AnyConvert knows'; }
+    else if (mode === 'compress' && !canCompress(it.src, { mac: MAC })) { it.status = 'skipped'; it.error = `${it.src.label} can't be compressed here`; }
+  }
+  const todo = S.items.filter(i => i.status === 'queued');
+  show('work');
+  renderBatch();
+  const t0 = performance.now();
+
+  for (let k = 0; k < todo.length; k++) {
+    const it = todo[k], at = S.items.indexOf(it);
+    if (job !== S.job) return;
+    it.status = 'working';
+    paintRow(at);
+    label(`${mode === 'convert' ? 'Converting' : 'Compressing'} ${k + 1} of ${todo.length}`);
+    sub(it.file.name);
+    const whole = p => progress((k + Math.max(0, Math.min(1, p))) / todo.length);
+    whole(0);
+    try {
+      if (router.needsFF(it.src, target, mode)) {
+        await media.ensureFF((p, msg) => {
+          if (job !== S.job || p >= 1) return;
+          if (msg) sub(msg);
+          progress(p, 'engine');
+        });
+        if (job !== S.job) return;
+        sub(it.file.name);
+      }
+      let r;
+      if (mode === 'convert') {
+        r = await router.convertJob(it.file, it.src, target, null, p => job === S.job && whole(p));
+      } else {
+        const bytes = targetBytes(it.file);
+        if (it.file.size <= bytes) {
+          r = { blob: it.file, name: it.file.name, note: 'Already under the target - kept as it was.' };
+        } else {
+          /* compression aims by duration, so audio and video need reading first */
+          const av = it.src.kind === 'audio' || it.src.kind === 'video' || it.src.animated;
+          const info = av ? await media.probe(it.file, it.src.ext) : null;
+          if (job !== S.job) return;
+          r = await router.compressJob(it.file, it.src, bytes, info, p => job === S.job && whole(p));
+        }
+      }
+      if (job !== S.job) return;
+      it.result = r; it.status = 'done';
+    } catch (e) {
+      if (job !== S.job) return;
+      console.error(it.file.name, e);
+      it.status = 'failed';
+      it.error = explain(e, it.src, mode === 'convert' ? target : null);
+    }
+    paintRow(at);
+  }
+  if (job !== S.job) return;
+  progress(1);
+  finishBatch(false, performance.now() - t0);
+}
+
+function finishBatch(cancelled, ms) {
+  const done = S.items.filter(i => i.status === 'done');
+  const failed = S.items.filter(i => i.status === 'failed');
+  renderBatch();
+  uniqueNames(done);
+  ev('anyconvert_batch', { mode: S.mode, to: S.mode === 'convert' ? S.target?.id : undefined,
+    files: S.items.length, done: done.length, failed: failed.length });
+
+  if (!done.length) {
+    $('eMsg').textContent = failed.length
+      ? `None of the ${S.items.length} files could be ${S.mode === 'convert' ? 'converted' : 'compressed'}. ${failed[0].error}`
+      : 'None of these files could be processed.';
+    show('err');
+    return;
+  }
+  const verb = S.mode === 'convert' ? 'converted' : 'compressed';
+  $('dName').textContent = done.length === S.items.length ? `All ${done.length} files ${verb}` : `${done.length} of ${S.items.length} files ${verb}`;
+  const before = done.reduce((a, i) => a + i.file.size, 0), after = done.reduce((a, i) => a + i.result.blob.size, 0);
+  if (S.mode === 'compress') {
+    const pct = Math.round((1 - after / before) * 100);
+    $('dSize').innerHTML = `${fmtBytes(before)} → <b>${fmtBytes(after)}</b> · ${pct > 0 ? pct + '% smaller' : 'no smaller'}`;
+  } else {
+    $('dSize').innerHTML = `<b>${fmtBytes(after)}</b> in all${ms ? ` · done in ${fmtTime(ms)}` : ''}`;
+  }
+  const notes = [];
+  if (cancelled) notes.push('Stopped part way - these are the ones that finished.');
+  if (failed.length) notes.push(`${failed.length} couldn't be ${verb} - the list above says why.`);
+  const skipped = S.items.filter(i => i.status === 'skipped').length;
+  if (skipped) notes.push(`${skipped} skipped.`);
+  $('dNote').textContent = notes.join(' ');
+  $('dNote').hidden = !notes.length;
+  $('dNote').classList.toggle('warn', !!(failed.length || cancelled));
+  $('dPrev').innerHTML = '';
+
+  $('dl').textContent = done.length > 1 ? `Download all (.zip)` : 'Download';
+  $('dBatch').hidden = done.length < 2;
+  $('dList').innerHTML = done.map(it => `<li class="brow">
+      <div class="file-meta"><div class="file-name">${esc(it.result.name)}</div>
+        <div class="file-sub">${fmtBytes(it.result.blob.size)}${it.result.over ? ' · <span class="why">above the target</span>' : ''}</div></div>
+      <button class="save1" type="button" data-save="${S.items.indexOf(it)}">Download</button></li>`).join('');
+  $('dList').querySelectorAll('[data-save]').forEach(b => b.onclick = () => {
+    const it = S.items[+b.dataset.save];
+    save(it.result.blob, it.result.name);
+    ev('anyconvert_download', { batch: 1 });
+  });
+  show('done');
+  $('dl').focus({ preventScroll: true });
+}
+
+/* photo.png and photo.jpg both becoming photo.webp must not overwrite each other */
+function uniqueNames(items) {
+  const seen = new Map();
+  for (const it of items) {
+    const n = it.result.name, dot = n.lastIndexOf('.');
+    const stem = dot > 0 ? n.slice(0, dot) : n, ext = dot > 0 ? n.slice(dot) : '';
+    const key = n.toLowerCase(), c = (seen.get(key) || 0) + 1;
+    seen.set(key, c);
+    if (c > 1) it.result = { ...it.result, name: `${stem} (${c})${ext}` };
+  }
+}
+
+/* Built when asked for, not up front: most people take the ZIP or the files,
+   rarely both. Already-compressed media gains nothing from deflate, so files
+   go in stored - which is also what keeps 50 videos from taking a minute. */
+async function zipAll() {
+  const done = S.items.filter(i => i.status === 'done');
+  const b = $('dl'), was = b.textContent;
+  const total = done.reduce((a, i) => a + i.result.blob.size, 0);
+  if (total > 2 * 1024 ** 3) {
+    $('dNote').textContent = `That's ${fmtBytes(total)} - too much for a browser to zip in one go. Save the files one by one below.`;
+    $('dNote').hidden = false; $('dNote').classList.add('warn');
+    return;
+  }
+  b.disabled = true;
+  try {
+    const Z = await pdfZip();
+    const z = new Z();
+    for (const it of done) {
+      /* a multi-page PDF already came back as a ZIP of pages - give it a folder instead of nesting ZIPs */
+      if (it.result.pages && /\.zip$/i.test(it.result.name)) {
+        const inner = await Z.loadAsync(it.result.blob);
+        const dir = z.folder(it.result.name.replace(/\.zip$/i, ''));
+        for (const f of Object.values(inner.files)) if (!f.dir) dir.file(f.name, await f.async('blob'), { binary: true });
+      } else {
+        z.file(it.result.name, it.result.blob, { binary: true });
+      }
+    }
+    const blob = await z.generateAsync({ type: 'blob', compression: 'STORE' },
+      m => { b.textContent = `Zipping… ${Math.round(m.percent)}%`; });
+    const tag = S.mode === 'convert' && S.target ? S.target.ext : 'compressed';
+    save(blob, `anyconvert-${done.length}-files-${tag}.zip`);
+    ev('anyconvert_download', { batch: done.length, zip: 1 });
+  } catch (e) {
+    console.error(e);
+    $('dNote').textContent = 'The ZIP could not be built - probably too large for the browser. Save the files one by one below.';
+    $('dNote').hidden = false; $('dNote').classList.add('warn');
+  } finally {
+    b.disabled = false; b.textContent = was;
+  }
+}
 
 function finish(r, ms) {
   S.result = r;
@@ -439,6 +814,8 @@ function finish(r, ms) {
   note.hidden = !r.note;
   note.classList.toggle('warn', !!(r.over || r.lossy));
 
+  $('dBatch').hidden = true;
+  $('dl').textContent = 'Download';
   preview(r);
   show('done');
   ev(S.mode === 'convert' ? 'anyconvert_convert' : 'anyconvert_compress',
@@ -465,7 +842,14 @@ function preview(r) {
   }
 }
 
-$('dl').onclick = () => { save(S.result.blob, S.result.name); ev('anyconvert_download'); };
+$('dl').onclick = () => {
+  if (batch()) {
+    const done = S.items.filter(i => i.status === 'done');
+    if (done.length > 1) return zipAll();
+    save(done[0].result.blob, done[0].result.name);
+  } else save(S.result.blob, S.result.name);
+  ev('anyconvert_download');
+};
 
 /* the tip jar - same wording and events as the other iMAP tools */
 $('tipBtn').onclick = () => {
@@ -491,14 +875,22 @@ $('again').onclick = $('eAgain').onclick = () => { clearFile(); scrollTo({ top: 
 async function save(blob, name) {
   const n = router.native();
   if (n?.save) return n.save(blob, name);          /* the Mac app shows a real save panel */
+  const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
-  a.href = S.url; a.download = name;
+  a.href = url; a.download = name;
   document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 60_000);
 }
 
 function fail(e) {
+  $('eMsg').textContent = explain(e, S.src, S.mode === 'convert' ? S.target : null);
+  show('err');
+  ev('anyconvert_error', { mode: S.mode, from: S.src?.id, to: S.target?.id });
+}
+
+/** What went wrong, in words - the engines' own messages mean nothing to most people. */
+function explain(e, s, t) {
   let msg = e?.message || String(e);
-  const t = S.target, s = S.src;
   if (/does not contain any stream|Output file is empty|matches no streams/i.test(msg)) {
     msg = t?.kind === 'audio'
       ? 'This file has no sound in it, so there is nothing to turn into audio.'
@@ -515,9 +907,7 @@ function fail(e) {
     /* first visit: the isolation worker needs one reload to take control */
     msg += ' ';
   }
-  $('eMsg').textContent = msg;
-  show('err');
-  ev('anyconvert_error', { mode: S.mode, from: S.src?.id, to: S.target?.id });
+  return msg;
 }
 
 /* ---------------------------------------------------------------- */
@@ -531,11 +921,14 @@ function show(which) {
   $('goErr').hidden = which !== 'err';
   /* while working, nothing upstream can change under it */
   const lock = which === 'work';
-  document.querySelectorAll('#cTo button, #cTo input, #cSize button, #cSize input, #fClear, .seg button')
+  document.querySelectorAll('#cTo button, #cTo input, #cSize button, #cSize input, #fClear, #fAdd, #bAdd, #bClear, .seg button')
     .forEach(el => { el.disabled = lock || (el.id === 'size' && S.src && !canCompress(S.src, { mac: MAC })); });
+  if (batch()) renderBatch();            /* the per-row remove buttons come and go with the lock */
 }
 function resetOutcome() {
   if ($('goWork') && !$('goWork').hidden) return;
+  /* a finished batch going back to idle (new format, new size) forgets its results */
+  if (S.items.some(i => i.status !== 'queued')) S.items.forEach(i => { i.status = 'queued'; i.result = null; i.error = ''; });
   show('idle');
   updateGo();
 }

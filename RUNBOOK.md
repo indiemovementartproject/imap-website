@@ -350,6 +350,11 @@ or compress to a size you type in. Everything runs in the visitor's browser; not
   isolate every page and break embeds such as Instagram and YouTube.
 - **Safari gets the single-threaded engine and no service worker.** The multithreaded one hangs in WebKit.
   Safari is slower but reliable.
+- **Up to 50 files at once.** Drop several and they share one target. Convert offers only the formats every file can become.
+  Compress takes a percentage of each file, or a ceiling each file is brought under.
+  Files run **one after another**, never side by side: each media job reserves 1 GB, and two at once is more than a phone gives a tab.
+  The finish screen offers a ZIP of the lot, built only when someone asks for it and stored uncompressed so it's quick,
+  plus a Download button per file. Cancelling keeps whatever already finished.
 - The done screen carries the same outro and tip jar as Count Me In and Sync Studio.
   Events: `anyconvert_convert` / `anyconvert_compress` / `anyconvert_error` (formats only, never
   file names), `anyconvert_download`, `tip_open`, `tip_upi_open`, `outro_classes_click`.
