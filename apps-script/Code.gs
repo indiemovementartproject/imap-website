@@ -30,7 +30,7 @@
 
 /* Bump this whenever you paste a new copy in. Visiting the /exec URL in a browser
    prints it, so you can always tell which version the web app is actually serving. */
-var BUILD = '2026-09-28-a';
+var BUILD = '2026-10-05-a';
 
 /* A genuine payer screenshots the receipt and uploads it within a couple of
    minutes. A bigger gap means an older image, so say so. */
@@ -96,10 +96,8 @@ var PRICES = (function () {
     /* One-off events carry `until`, the moment they END (IST), same as SPECIALS
        in cart.js. After it (plus a grace period for a form left open) the
        order is refused - the site stops selling at `until` itself. */
-    'ws-s-26sep':       { label: 'Bollywood Choreography Workshop (Kalyani) · 26 Sep Seawoods',        amount: 800,
-                          until: '2026-09-26T19:00:00+05:30' },
-    'ws-s-27sep':       { label: 'Afro & Dancehall Choreography Workshop (Kelebu) · 27 Sep Seawoods',  amount: 800,
-                          until: '2026-09-27T19:00:00+05:30' }
+    'ws-s-10oct':       { label: 'Chiggy Wiggy Choreography Workshop (Virali) · 10 Oct Seawoods · pre-registration', amount: 850,
+                          until: '2026-10-10T12:00:00+05:30' }
   };
   var BATCHES = {
     'contemporary-seawoods':        'Ballet Training (Seawoods)',

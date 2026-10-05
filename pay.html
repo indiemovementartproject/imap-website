@@ -112,6 +112,8 @@
   .line .lx{flex:1;min-width:0}
   .line .lt{font-size:14.5px;line-height:1.35}
   .line .ld{font-family:"Space Mono",monospace;font-size:10.5px;color:var(--muted-2);margin-top:4px;letter-spacing:.06em}
+  /* a special's own caveat, from `note` in cart.js - e.g. a price that only holds online */
+  .line .ln{font-size:12px;line-height:1.45;color:var(--cyan);opacity:.85;margin-top:5px}
   .line .lp{flex:0 0 auto;font-family:"Instrument Serif",serif;font-size:21px;white-space:nowrap;min-width:78px;text-align:right}
   .qty{display:inline-flex;align-items:center;gap:2px;background:var(--glass-2);border:1px solid var(--border);border-radius:10px;padding:3px;flex:0 0 auto}
   .qty button{width:29px;height:29px;border:0;border-radius:7px;background:none;cursor:pointer;color:var(--text);font-size:17px;line-height:1;font-family:"Space Grotesk",sans-serif;transition:.15s}
@@ -522,7 +524,8 @@ function renderLines(){
   for(var i=0;i<items.length;i++){
     var it = items[i];
     html += '<div class="line" data-id="'+esc(it.id)+'">'+
-      '<div class="lx"><div class="lt">'+esc(it.title)+'</div><div class="ld">'+esc(it.detail)+'</div></div>'+
+      '<div class="lx"><div class="lt">'+esc(it.title)+'</div><div class="ld">'+esc(it.detail)+'</div>'+
+        (it.note ? '<div class="ln">'+esc(it.note)+'</div>' : '')+'</div>'+
       '<div class="qty">'+
         '<button type="button" data-act="dec" aria-label="Reduce quantity"'+(it.qty<=1?' disabled':'')+'>−</button>'+
         '<span class="n">'+it.qty+'</span>'+
@@ -882,8 +885,8 @@ if(/[?&]test=1\b/.test(location.search) && !Cart.has('test-1')) Cart.add('test-1
   if(!it) return;
   Cart.clear();                     /* a registration link means this and only this */
   Cart.add(it.id);
-  /* Workshops that need a caveat on the checkout page (members-only rates and
-     the like) set it here, keyed on the item id. Nothing needs one today. */
+  /* A caveat for the checkout page (an online-only rate and the like) is the
+     item's `note` in SPECIALS in cart.js - renderLines() shows it under the line. */
 })();
 
 renderLines();

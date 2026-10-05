@@ -37,8 +37,15 @@ Live at <https://indiemovementartproject.com> · GitHub Pages from `main` in
 
 Between `#about` and `#classes`. One occupant at a time.
 
-**Right now: empty.** The last occupants were two choreography workshops at Seawoods, 5–7 PM, ₹800 each.
-Their section, posters and JSON-LD came out on 28 Sep:
+**Right now:** `#workshops` holds the **Chiggy Wiggy choreography workshop with Virali**: Sat 10 Oct 2026, 12–2 PM, Seawoods.
+
+- **Pre-registration ₹850** online: `ws-s-10oct` in `SPECIALS` / `PRICES`. Checkout shows its `note` that it's ₹1,000 on the spot.
+- **On the spot ₹1,000** at the studio. That one isn't sold online.
+- Its `until` is the workshop's **start** (12:00), not its end, because pre-registration has to close when the workshop begins.
+  Section, nav link, JSON-LD and the online sale all go by themselves at noon on the 10th.
+- Layout: one poster beside a frosted panel of facts and fee rows (`.feat-grid` / `.fx` / `.rt`).
+
+Before it: two choreography workshops at Seawoods on 26–27 Sep 2026, 5–7 PM, ₹800 each:
 
 | | Teacher | Song | When |
 |---|---|---|---|
@@ -48,7 +55,7 @@ Their section, posters and JSON-LD came out on 28 Sep:
 Past shapes, for recovering rather than rewriting:
 
 - **Two posters side by side:** those workshops. `git show e04447c:index.html`, using `.feat-duo` / `.ws-card` / `.ws-rows`.
-- **One poster + a details panel:** Shreya's Contemporary batch. `git show cabbd96:index.html`.
+- **One poster + a details panel:** Shreya's Contemporary batch (`git show cabbd96:index.html`), and now Virali's workshop.
 - The `.feat` / `.glass` / `.ws-*` styles **stay in index.html** between occupants. A template comment marks where the section goes.
 - Neither shape has a backdrop image. A blurred poster was tried and dropped: at an opacity that keeps the type legible it was barely visible,
   and `object-fit` left a seam down the sides.
@@ -64,6 +71,7 @@ Once that moment passes it disappears on its own:
 | A section holding dated cards | also `data-expire-group` | removed once nothing dated is left inside, a safety net if its own `data-until` is forgotten |
 | `SPECIALS` in `cart.js` | `until: '…'` | `lookup()` stops knowing the id, so a shared `pay.html?buy=` link does nothing and stale carts drop it |
 | `PRICES` in `Code.gs` | `until: '…'` | orders refused 12 h after (`UNTIL_GRACE_MS`) with a "message us on WhatsApp" note. The grace covers someone who paid just before the end and submitted late |
+| A special's caveat at checkout | `note: '…'` in its `SPECIALS` entry | shown under the item on `pay.html` (and gone with the item) |
 | A batch's free demo in `batch.html` | `"demoUntil": "…"` in its DATA entry | the "Free demo" line stops showing |
 
 Put `data-until` on each card **and** on the section and nav link (the latest end among them), so the whole slot goes at once.

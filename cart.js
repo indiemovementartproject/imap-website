@@ -44,9 +44,17 @@
        { id: 'ws-s-18oct', title: '...', detail: 'Sun 18 Oct · 5–7 PM · Seawoods · ...',
          amount: 800, until: '2026-10-18T19:00:00+05:30' }
 
-     Last occupants: the Bollywood (Kalyani) and Afro & Dancehall (Kelebu)
-     choreography workshops, 26-27 Sep 2026. */
-  var SPECIALS = [];
+     `note`, if set, is shown under the item at checkout - for a price that
+     only holds online, say.
+
+     Chiggy Wiggy closes at its START, not its end: ₹850 is the pre-registration
+     rate, and once the workshop is under way it's ₹1,000 paid at the studio. */
+  var SPECIALS = [
+    { id: 'ws-s-10oct', title: 'Chiggy Wiggy Choreography Workshop (Virali)',
+      detail: 'Sat 10 Oct · 12–2 PM · Seawoods · Virali', amount: 850,
+      note: 'Pre-registration rate - it is ₹1,000 if you pay at the studio on the day.',
+      until: '2026-10-10T12:00:00+05:30' }
+  ];
 
   /* strict ISO only - Date.parse reads a typo like "27 Sepp" as a date in 2001 */
   function over(until) {
@@ -96,7 +104,7 @@
     for (i = 0; i < SPECIALS.length; i++) {
       if (SPECIALS[i].id === id && !over(SPECIALS[i].until)) {
         return { id: id, type: 'workshop', title: SPECIALS[i].title,
-                 detail: SPECIALS[i].detail, amount: SPECIALS[i].amount };
+                 detail: SPECIALS[i].detail, amount: SPECIALS[i].amount, note: SPECIALS[i].note || '' };
       }
     }
     for (i = 0; i < PASSES.length; i++) {
