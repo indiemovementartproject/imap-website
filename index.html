@@ -1610,6 +1610,17 @@
     }
     land();
     addEventListener('load', function(){ land(); setTimeout(land, 300); });
+    /* Things above the target (the hero, late images, fonts) keep settling for
+       a moment after load and pushed the section ~95px up under the nav. Follow
+       every layout change for the first few seconds - but stop the moment the
+       visitor scrolls on their own, so we never fight them. */
+    if(window.ResizeObserver){
+      var ro = new ResizeObserver(function(){ land(); });
+      ro.observe(document.body);
+      var stop = function(){ ro.disconnect(); ['wheel','touchstart','keydown'].forEach(function(t){ removeEventListener(t, stop); }); };
+      ['wheel','touchstart','keydown'].forEach(function(t){ addEventListener(t, stop, { passive:true }); });
+      setTimeout(stop, 4000);
+    }
   })();
 
 
