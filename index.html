@@ -859,6 +859,18 @@
   .hero-logo-wrap::before{content:"";position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:210%;height:360%;z-index:0;pointer-events:none;background:radial-gradient(farthest-side ellipse at center,rgba(92,225,230,.30),rgba(92,225,230,.14) 36%,rgba(92,225,230,.035) 58%,rgba(92,225,230,0) 76%)}
   .hero-logo{width:min(54vw,280px);height:auto;opacity:.97;position:relative;z-index:1;filter:drop-shadow(0 0 9px rgba(92,225,230,.40))}
   .hero-actions{display:flex;gap:14px;margin-top:42px;flex-wrap:wrap;justify-content:center}
+  /* The one line search engines read as "what is this", kept small and quiet at
+     the foot of the hero so the video, logo and two buttons stay the whole look.
+     The arrow under it scrolls to About (a plain #about link - html has smooth
+     scrolling and a scroll-padding for the nav). */
+  .hero-foot{position:absolute;left:0;right:0;bottom:max(22px,env(safe-area-inset-bottom));display:flex;flex-direction:column;align-items:center;gap:6px;pointer-events:none}
+  .hero-seo{font-family:"Space Grotesk",sans-serif;font-weight:400;font-size:12px;line-height:1.4;letter-spacing:.06em;color:rgba(238,246,247,.5);margin:0;padding:0 24px}
+  .hero-down{pointer-events:auto;width:36px;height:36px;display:grid;place-items:center;color:rgba(238,246,247,.62);border-radius:50%;transition:color .2s}
+  .hero-down:hover,.hero-down:focus-visible{color:var(--cyan);outline:none}
+  .hero-down svg{animation:heroNudge 2.4s ease-in-out infinite}
+  @keyframes heroNudge{0%,100%{transform:translateY(0);opacity:.65}50%{transform:translateY(4px);opacity:1}}
+  @media (prefers-reduced-motion:reduce){.hero-down svg{animation:none}}
+  @media (max-width:430px){.hero-seo{font-size:11px;letter-spacing:.02em;padding:0 16px;text-wrap:balance}}
 
   .btn{font-family:"Space Grotesk",sans-serif;cursor:pointer;text-decoration:none;border-radius:12px;font-size:15px;font-weight:500;padding:13px 26px;transition:.16s;display:inline-flex;align-items:center;gap:8px}
   .btn-cyan{background:var(--cyan);color:#04181a;font-weight:600}
@@ -1201,6 +1213,10 @@
   <div class="hero-actions">
     <a href="#about" class="btn btn-ghost">Explore</a>
     <a class="btn btn-cyan" data-wa="Hi iMAP! I'd like to book a class.">Enquire</a>
+  </div>
+  <div class="hero-foot">
+    <h1 class="hero-seo">Dance &amp; acting classes in Seawoods &amp; Vashi, Navi Mumbai</h1>
+    <a class="hero-down" href="#about" aria-label="Scroll down"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></a>
   </div>
 </header>
 
