@@ -1093,7 +1093,7 @@
   @keyframes rvScroll{to{transform:translateX(-50%)}}
   .rv-card{flex:0 0 320px;background:rgba(255,255,255,.035);border:1px solid var(--border);border-radius:16px;padding:18px 20px;text-align:left}
   .rv-card .rv-stars{font-size:13px}
-  .rv-card p{color:#d6e1e2;font-size:14.5px;line-height:1.6;margin:10px 0 14px;display:-webkit-box;-webkit-line-clamp:5;-webkit-box-orient:vertical;overflow:hidden}
+  .rv-card p{color:#d6e1e2;font-size:14.5px;line-height:1.6;margin:10px 0 14px;display:-webkit-box;-webkit-line-clamp:6;-webkit-box-orient:vertical;overflow:hidden}
   .rv-card .who{font-size:13px;color:var(--text)}
   .rv-card .who small{display:block;color:var(--muted-2);font-size:11.5px;margin-top:2px}
   .rv-card.is-ph{border-style:dashed;border-color:rgba(255,196,96,.45)}
@@ -1159,6 +1159,13 @@
     .rc-progress{margin-left:22px;margin-right:22px}
   }
 
+  /* Annual Jam: its title block sits on the same left edge as Regular Classes */
+  .jam-head{text-align:left;margin-left:calc(50% - 50vw);margin-right:calc(50% - 50vw);
+    padding:0 max(32px,calc((100vw - 1200px) / 2 + 32px))}
+  .jam-head h2{font-size:clamp(40px,5.6vw,72px);line-height:.95;margin:0}
+  .jam-head .tagline{text-align:left;margin:12px 0 0}
+  .jam-head .cf-hint{text-align:left;margin-top:14px}
+  @media (max-width:900px){.jam-head{padding:0 22px}}
   /* ===== Regular Classes carousel ===== */
   .carousel{position:relative;max-width:1000px;margin:34px auto 0;perspective:1600px;outline:none}
   .carousel.is-carousel{height:560px;overflow:hidden;touch-action:pan-y;-webkit-user-select:none;user-select:none}
@@ -1289,12 +1296,12 @@
         <p class="lead">Most people come for one class and stay for the rest. There&rsquo;s a workshop or an open mic most months, and once a year the Annual Jam puts the batches on one stage for a night.</p>
         </div>
       </div>
-      <div class="about2-collage" aria-hidden="true">
-        <figure class="ph p1" data-ph="Photo 1 · portrait 4:5" data-depth="-28"></figure>
-        <figure class="ph p2" data-ph="Photo 2 · landscape 3:2" data-depth="18"></figure>
-        <figure class="ph p3" data-ph="Photo 3 · square" data-depth="-12"></figure>
-        <figure class="ph p4" data-ph="Photo 4 · landscape 16:10" data-depth="30"></figure>
-        <figure class="ph p5" data-ph="Photo 5 · portrait 3:4" data-depth="-40"></figure>
+      <div class="about2-collage">
+        <figure class="ph p1" data-depth="-28"><img src="media/about-1.jpg" alt="Students posing together after class at the iMAP studio" loading="lazy" decoding="async"></figure>
+        <figure class="ph p2" data-depth="18"><img src="media/about-2.jpg" alt="A class sitting in a circle on the studio floor, laughing" loading="lazy" decoding="async"></figure>
+        <figure class="ph p3" data-depth="-12"><img src="media/about-3.jpg" alt="A Bollywood class mid-routine" loading="lazy" decoding="async"></figure>
+        <figure class="ph p4" data-depth="30"><img src="media/about-4.jpg" alt="Dancers drilling a low squat in front of the studio mirror" loading="lazy" decoding="async"></figure>
+        <figure class="ph p5" data-depth="-40"><img src="media/about-5.jpg" alt="A contemporary class working on the floor" loading="lazy" decoding="async"></figure>
       </div>
     </div>
 
@@ -1317,13 +1324,23 @@
   window.IMAP_REVIEWS = {
     count: 55,                 /* the total shown on Google */
     rating: null,              /* e.g. 4.9 - shown as stars and a number once filled in */
+    /* from the Google profile, October 2026: reviews with text only, owner
+       replies left out, reviewers shown by first name and initial */
     items: [
-      { placeholder: true, name: 'Reviewer name', stars: 5, text: 'Placeholder. A real Google review goes here, copied from the business profile.' },
-      { placeholder: true, name: 'Reviewer name', stars: 5, text: 'Placeholder. Longer reviews are cut at five lines, so the strip stays even.' },
-      { placeholder: true, name: 'Reviewer name', stars: 5, text: 'Placeholder review.' },
-      { placeholder: true, name: 'Reviewer name', stars: 5, text: 'Placeholder. Pick the ones that mention a class, a teacher or the Annual Jam.' },
-      { placeholder: true, name: 'Reviewer name', stars: 5, text: 'Placeholder review.' },
-      { placeholder: true, name: 'Reviewer name', stars: 5, text: 'Placeholder. The strip pauses when someone hovers over it, so it can be read.' }
+      {"name": "Aarushi T.", "stars": 4, "text": "Attended Shehzaan's Workshop and had a blast! The entire team is very warm. Looking forward to many more amazing workshops…"},
+      {"name": "Pratik J.", "stars": 5, "text": "Lovely space with an amazing vibe. The teachers at IMAP are top-notch! Best space in Navi Mumbai. You'll feel right at home."},
+      {"name": "Akhil M.", "stars": 5, "text": "IMAP is THE place to be for creativity. An amazing platform to nurture curiosity and talent. The whole atmosphere is incubative. A big Kudos to Rohit sir, Ruchika ma'am, Jeevak sir and Dishita to keep the studio rocking🤌🔥🔥"},
+      {"name": "Jayashri D.", "stars": 5, "text": "Enthusiastic bollywood classes taken by ruchika mam. I always look forward to attend her classes in weekend. She is ever smiling and pushes us to perform beyond our limits. Great experience for everyone from beginners to pros. 😁😁😁"},
+      {"name": "Vishal S.", "stars": 5, "text": "One of the best places to learn the true form of dance. If you want to grow as a dancer, or if you want to begin from two left feets, if you have that spark, then Imap will torch that spark into a flame....just try it once"},
+      {"name": "Vinayak G.", "stars": 5, "text": "iMap is really putting Navi Mumbai on the map when it comes to performing arts. The instructors are knowledgeable, friendly, helpful and really amazing artists themselves. DO NOT MISS Rohit sir's workshop at any cost."},
+      {"name": "Smridhi S.", "stars": 5, "text": "Had a lovely experience during one of the dance workshops that I attended at iMAP. I was trained with much ease and all the students there along the teacher encouraged me to push my limits and to perform my best🫶 Loved the community they have made ✨"},
+      {"name": "Uday P.", "stars": 5, "text": "It was a wonderful Annual Jam! 👏🎉 All the best, Rohit! You have trained your students exceptionally well. Their performance was truly impressive and reflected your dedication, hard work, and guidance. Wishing you and all your students continued success! 🌟👏"},
+      {"name": "Sourabh J.", "stars": 5, "text": "One of the best place ik, the vibe the teachers are really great if I got a chance to stay whole day there I will, the whole team is very supportive kind and bestest teacher 🫶"},
+      {"name": "Vaibhav J.", "stars": 5, "text": "I've been associated with iMAP for the last 2 years, and it has become one of my favourite places for dance classes in Navi Mumbai."},
+      {"name": "Debjani S.", "stars": 5, "text": "I am extremely happy with my experience at this dance academy. I love the vibe of the class as it is very welcoming and inclusive. The instructors are highly skilled, professional and friendly as well. I would specially like to mention my instructor, Rohit Choudhary, who is an exceptional mentor and one of the best I have learnt from ! He teaches the choreography with great attention to every minute details and keeps encouraging the students to improve and build confidence. I would highly recommend this place for all dance lover !!"},
+      {"name": "Tamanna B.", "stars": 5, "text": "The best place to learn, grow and have fun in Navi Mumbai. All the instructors are very knowledgeable and professional and at the same time kind n approachable! Its a safe space for everyone, beginners n professionals alike. I have been going here for the last 2 years. Will always recommend this place to anyone who wants to learn the performing arts!"},
+      {"name": "Nikita S.", "stars": 5, "text": "I had the pleasure of learning Advanced Bollywood under the guidance of my instructor, Rohit Choudhary Sir. And trust me, it's not just an ordinary dance class. It goes beyond dance. I got to learn a lot about discipline, dedication, consistency, and even some valuable life skills along the way. Highly recommend joining his classes if you're looking for more than just learning dance! ❤️"},
+      {"name": "Sushant B.", "stars": 5, "text": "iMAP is one of the finest academy with exceptional faculty lineup. It truly feels amazing to just be part of it, to learn and to grow. If you are from Navi Mumbai/ Mumbai and wanted to learn dance may be as a hobby or as professional, this is a perfect space for you. Highly recommended❤️."}
     ]
   };
   (function(){
@@ -1335,7 +1352,7 @@
     function stars(n){ n=Math.round(n||5); return '\u2605\u2605\u2605\u2605\u2605'.slice(0,n) + '\u2606\u2606\u2606\u2606\u2606'.slice(0,5-n); }
     var cards = items.map(function(r){
       return '<article class="rv-card'+(r.placeholder?' is-ph':'')+'"><div class="rv-stars" aria-label="'+(r.stars||5)+' out of 5">'+stars(r.stars)+'</div>'+
-        '<p>'+esc(r.text)+'</p><div class="who">'+esc(r.name)+'<small>'+(r.placeholder?'Placeholder':'Google review'+(r.when?' &middot; '+esc(r.when):''))+'</small></div></article>';
+        '<p title="'+esc(r.text).replace(/"/g,'&quot;')+'">'+esc(r.text)+'</p><div class="who">'+esc(r.name)+'<small>'+(r.placeholder?'Placeholder':'Google review'+(r.when?' &middot; '+esc(r.when):''))+'</small></div></article>';
     }).join('');
     var belt = document.getElementById('rvBelt');
     belt.innerHTML = cards + cards.replace(/<article /g,'<article aria-hidden="true" ');   /* twice, for a seamless loop */
@@ -1503,9 +1520,11 @@
 
   <!-- ANNUAL JAM PHOTOS -->
   <section class="section" id="jam" style="padding-bottom:44px">
-    <h2>Annual <span class="i">Jam</span>.</h2>
-    <p class="tagline">The night the studio took the stage.</p>
-    <p class="cf-hint"><span>Plays on its own</span> &middot; drag to browse</p>
+    <div class="jam-head">
+      <h2>Annual <span class="i">Jam</span>.</h2>
+      <p class="tagline">The night the studio took the stage.</p>
+      <p class="cf-hint"><span>Plays on its own</span> &middot; drag to browse</p>
+    </div>
     <div class="jam-stage" id="jamStage" aria-roledescription="carousel" aria-label="Annual Jam photographs">
       <div class="jam-track" id="jamTrack">
         <figure class="jam-slide"><img src="media/jam/0679_Semi-Classical.jpg" alt="iMAP Annual Jam — Semi-Classical" width="1200" height="800" decoding="async"></figure>

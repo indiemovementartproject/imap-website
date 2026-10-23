@@ -33,6 +33,21 @@ Live at <https://indiemovementartproject.com> · GitHub Pages from `main` in
   `918454880061` (Ruchika).
 - **Notified on every payment:** `CONFIG.NOTIFY` in `Code.gs` — Ruchika, Rohit, studio address.
 
+## Homepage: Who we are, reviews, classes rail, footer (Oct 2026)
+
+- **Collage photos** are `media/about-1.jpg` to `about-5.jpg`, in fixed shapes:
+  1 portrait 4:5, 2 landscape 3:2, 3 square, 4 landscape 16:10, 5 portrait 3:4.
+  To swap one, crop the new photo to the same shape and keep the file name.
+- **Google reviews** live in `window.IMAP_REVIEWS` in `index.html`: `{ name, stars, text }`, with reviewers shown by first name and initial.
+  Only reviews with text, no owner replies. Staff reviews are left out (Tanvi Palande's, for one).
+  Update `count` when the Google total moves, and fill `rating` (for example 4.9) to show it.
+  Entries marked `placeholder: true` only render on localhost, so a test entry can't leak live.
+- **Regular Classes** is a rail (`.rc-*`), not the coverflow. Cards carry `data-href` so the analytics `select_item` still fires.
+  The all-batches page (`batches.html`) still uses the coverflow.
+- **Footer** layout lives in `footer.css`, loaded on every page: details left, map right, no tool links.
+- **The hero is deliberately minimal** (video, logo, Explore, Enquire). The one line at its foot is the page's h1, there for search engines.
+  Don't add more to the hero.
+
 ## The featured slot on the homepage
 
 Between `#about` and `#classes`. One occupant at a time.
