@@ -1088,10 +1088,17 @@
   .rv-all{margin-left:auto;color:var(--cyan);text-decoration:none;font-size:14px;border-bottom:1px solid var(--border-cyan)}
   .rv-all:hover{color:var(--text);border-color:var(--text)}
   .rv-track{overflow:hidden;-webkit-mask-image:linear-gradient(90deg,transparent,#000 6%,#000 94%,transparent);mask-image:linear-gradient(90deg,transparent,#000 6%,#000 94%,transparent)}
-  .rv-belt{display:flex;gap:16px;width:max-content;animation:rvScroll var(--rv-dur,120s) linear infinite}
+  /* The belt holds the reviews twice and moves left by exactly one set's
+     length (--rv-shift, measured in px by the script), so the second set lands
+     where the first began and the loop never shows a seam or a gap. Not a
+     percentage of the belt's own width: Safari sizes a max-content flex box
+     from the unwrapped text, five times too wide, and the strip ran off into
+     empty space at five times the speed. */
+  .rv-belt{display:flex;gap:16px;will-change:transform;animation:rvScroll var(--rv-dur,200s) linear infinite}
+  .rv-belt.held{animation-play-state:paused}
   .reviews:hover .rv-belt,.rv-belt:focus-within{animation-play-state:paused}
-  @keyframes rvScroll{to{transform:translateX(-50%)}}
-  .rv-card{flex:0 0 320px;background:rgba(255,255,255,.035);border:1px solid var(--border);border-radius:16px;padding:18px 20px;text-align:left}
+  @keyframes rvScroll{from{transform:translateX(0)}to{transform:translateX(calc(-1 * var(--rv-shift,0px)))}}
+  .rv-card{flex:0 0 320px;width:320px;min-width:0;box-sizing:border-box;background:rgba(255,255,255,.035);border:1px solid var(--border);border-radius:16px;padding:18px 20px;text-align:left}
   .rv-card .rv-stars{font-size:13px}
   .rv-card p{color:#d6e1e2;font-size:14.5px;line-height:1.6;margin:10px 0 14px;display:-webkit-box;-webkit-line-clamp:6;-webkit-box-orient:vertical;overflow:hidden}
   .rv-card .who{font-size:13px;color:var(--text)}
@@ -1107,7 +1114,7 @@
     .about2-collage{margin-top:44px;aspect-ratio:1/1.05}
     .rv-head,.rv-track{padding-left:0}
     .rv-head{padding:0 22px}
-    .rv-card{flex-basis:270px}
+    .rv-card{flex-basis:270px;width:270px}
   }
   @media (prefers-reduced-motion:reduce){.rv-belt{animation:none}.ph{transition:none}}
 
@@ -1356,7 +1363,22 @@
     }).join('');
     var belt = document.getElementById('rvBelt');
     belt.innerHTML = cards + cards.replace(/<article /g,'<article aria-hidden="true" ');   /* twice, for a seamless loop */
-    belt.style.setProperty('--rv-dur', Math.max(40, items.length * 7) + 's');
+    /* one set's exact length, and a reading pace: ~22 px a second, so each
+       card takes around fifteen seconds to cross. Re-measured on resize (card
+       width changes on phones) and once the fonts are in. */
+    var SPEED = 22;
+    function measure(){
+      var shift = belt.children[items.length].offsetLeft - belt.children[0].offsetLeft;
+      if (!(shift > 0)) return;
+      belt.style.setProperty('--rv-shift', shift + 'px');
+      belt.style.setProperty('--rv-dur', (shift / SPEED).toFixed(1) + 's');
+    }
+    measure();
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(measure);
+    var rz; addEventListener('resize', function(){ clearTimeout(rz); rz = setTimeout(measure, 150); });
+    /* a finger on the strip holds it still for reading, same as hovering with a mouse */
+    belt.addEventListener('pointerdown', function(){ belt.classList.add('held'); });
+    ['pointerup','pointercancel','pointerleave'].forEach(function(t){ belt.addEventListener(t, function(){ belt.classList.remove('held'); }); });
     if (R.rating) { document.getElementById('rvStars').textContent = stars(R.rating); }
     document.getElementById('rvCount').textContent = (R.rating ? R.rating.toFixed(1) + ' \u00b7 ' : '') + R.count + ' reviews on Google';
     box.hidden = false;
