@@ -4,7 +4,7 @@ Everything needed to change this site, written so a fresh session (or a differen
 person) can pick it up without any prior context. **This file is the source of
 truth, not any chat history.**
 
-Live at <https://indiemovementartproject.com> · GitHub Pages from `main` in
+Live at <https://www.indiemovementartproject.com> · GitHub Pages from `main` in
 `indiemovementartproject/imap-website`. Push to `main` and it is live in ~60s.
 
 ---

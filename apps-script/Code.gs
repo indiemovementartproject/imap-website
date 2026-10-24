@@ -30,7 +30,7 @@
 
 /* Bump this whenever you paste a new copy in. Visiting the /exec URL in a browser
    prints it, so you can always tell which version the web app is actually serving. */
-var BUILD = '2026-10-05-a';
+var BUILD = '2026-10-24-a';
 
 /* A genuine payer screenshots the receipt and uploads it within a couple of
    minutes. A bigger gap means an older image, so say so. */
@@ -73,7 +73,7 @@ var CONFIG = {
      deliberate. Add to this if the receiving account ever changes. */
   PAYEE_MARKERS: ['rohit', 'choud', 'chaud', 'choWd', 'rohitchoudhary91',
                   'rohitchoudhary91.rc-1', 'rohitchoudhary91.rc'],
-  SITE:  'https://indiemovementartproject.com',
+  SITE:  'https://www.indiemovementartproject.com',
   ENQUIRY_WHATSAPP: '918454880061',   // Ruchika — enquiries + screenshots
   PAYMENT_WHATSAPP: '919870538332',   // Rohit — money
   SHEET_NAME:   'Payments',

@@ -7,4 +7,4 @@ Disallow: /attendance.html
 Disallow: /checkin.html
 Disallow: /links.html
 
-Sitemap: https://indiemovementartproject.com/sitemap.xml
+Sitemap: https://www.indiemovementartproject.com/sitemap.xml
